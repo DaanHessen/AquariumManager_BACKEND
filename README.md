@@ -57,6 +57,11 @@ A Java-based REST API for managing aquarium systems, built with Jakarta EE, Jers
    mvn clean package
    java -jar target/dependency/webapp-runner.jar --port 8080 target/aquarium-api.war
    ```
+   
+   **Note**: For production deployments with environment variables, use:
+   ```bash
+   java -Dserver.port=$PORT -jar target/dependency/webapp-runner.jar --port $PORT target/aquarium-api.war
+   ```
 
 4. **Access the API**
    - API Base URL: `http://localhost:8080/api`
@@ -276,12 +281,18 @@ DB_PASSWORD=${{Postgres.PGPASSWORD}}
    - Check DATABASE_URL or individual DB_* environment variables
    - Ensure database exists and user has proper permissions
 
-2. **Application Won't Start**
+2. **Port Configuration Issues**
+   - **Error**: `"--port": couldn't convert "$PORT" to an integer`
+   - **Cause**: Environment variable not properly expanded in command line
+   - **Solution**: Ensure commands use shell expansion: `sh -c 'command with $PORT'`
+   - **Files to check**: `railway.json`, `Dockerfile`, `Procfile`
+
+3. **Application Won't Start**
    - Check Java version (requires Java 17+)
    - Verify all required environment variables are set
    - Check application logs for specific error messages
 
-3. **Authentication Issues**
+4. **Authentication Issues**
    - Ensure JWT_SECRET is set and consistent
    - Check token expiration settings
    - Verify user registration/login endpoints

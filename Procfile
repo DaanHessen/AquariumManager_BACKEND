@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war 
+web: sh -c 'java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war' 

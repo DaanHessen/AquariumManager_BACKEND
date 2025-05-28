@@ -4,7 +4,7 @@
     "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war",
+    "startCommand": "sh -c 'java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war'",
     "healthcheckPath": "/api/health/basic",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
