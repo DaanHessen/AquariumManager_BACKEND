@@ -38,8 +38,7 @@ public class DatabaseConfig {
             } catch (Exception e) {
                 log.error("Failed to initialize database", e);
                 shutdown();
-                // Don't throw exception - allow application to start without database
-                log.warn("Application will continue without database connectivity");
+                throw new RepositoryException.DatabaseConfigException("Database initialization failed", e);
             }
         }
     }
@@ -47,10 +46,12 @@ public class DatabaseConfig {
     private static void createDataSource() {
         String host, port, database, username, password;
         
-        // Check if we're running on Heroku (DATABASE_URL is provided)
+        // Check if we're running on Railway/Heroku (DATABASE_URL is provided)
         String databaseUrl = System.getenv("DATABASE_URL");
+        log.info("DATABASE_URL environment variable: {}", databaseUrl != null ? "present" : "missing");
+        
         if (databaseUrl != null && !databaseUrl.isEmpty()) {
-            // Parse Heroku DATABASE_URL: postgres://username:password@hostname:port/database
+            // Parse Railway/Heroku DATABASE_URL: postgres://username:password@hostname:port/database
             try {
                 URI dbUri = new URI(databaseUrl);
                 host = dbUri.getHost();
@@ -67,9 +68,10 @@ public class DatabaseConfig {
                     password = "";
                 }
                 
-                log.info("Using Heroku DATABASE_URL configuration");
+                log.info("Using DATABASE_URL configuration: host={}, port={}, database={}, username={}", 
+                    host, port, database, username);
             } catch (Exception e) {
-                log.error("Failed to parse DATABASE_URL, falling back to individual environment variables", e);
+                log.error("Failed to parse DATABASE_URL: {}, falling back to individual environment variables", databaseUrl, e);
                 // Fall back to individual environment variables
                 host = getEnv("DB_HOST", "localhost");
                 port = getEnv("DB_PORT", "5432");
@@ -79,16 +81,20 @@ public class DatabaseConfig {
             }
         } else {
             // Use individual environment variables (for local development)
+            log.info("DATABASE_URL not found, using individual environment variables");
             host = getEnv("DB_HOST", "localhost");
             port = getEnv("DB_PORT", "5432");
             database = getEnv("DB_NAME", "aquariumdb");
             username = getEnv("DB_USER", "postgres");
             password = getEnv("DB_PASSWORD", "postgres");
+            log.info("Using individual DB config: host={}, port={}, database={}, username={}", 
+                host, port, database, username);
         }
         
         int poolSize = Integer.parseInt(getEnv("DB_POOL_SIZE", "10"));
         
         String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
+        log.info("Attempting to connect to database with JDBC URL: {}", jdbcUrl);
         
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
@@ -105,8 +111,13 @@ public class DatabaseConfig {
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         
-        dataSource = new HikariDataSource(config);
-        log.info("PostgreSQL connection pool initialized: {}:{}/{}", host, port, database);
+        try {
+            dataSource = new HikariDataSource(config);
+            log.info("PostgreSQL connection pool initialized successfully: {}:{}/{}", host, port, database);
+        } catch (Exception e) {
+            log.error("Failed to initialize PostgreSQL connection pool for {}:{}/{}", host, port, database, e);
+            throw e;
+        }
     }
     
     private static void createEntityManagerFactory() {
@@ -133,59 +144,19 @@ public class DatabaseConfig {
     }
 
     public static EntityManager createEntityManager() {
-        if (!initialized.get()) {
-            initialize();
-        }
-        
-        if (emf == null) {
-            throw new RepositoryException.DatabaseConfigException("Database not available - initialization failed");
-        }
-        
+        if (!initialized.get()) initialize();
         return emf.createEntityManager();
     }
 
     public static DataSource getDataSource() {
-        if (!initialized.get()) {
-            initialize();
-        }
-        
-        if (dataSource == null) {
-            throw new RepositoryException.DatabaseConfigException("DataSource not available - initialization failed");
-        }
-        
+        if (!initialized.get()) initialize();
         return dataSource;
     }
 
-    public static boolean isInitialized() {
-        return initialized.get();
-    }
-    
-    public static String getStatus() {
-        if (!initialized.get()) {
-            return "NOT_INITIALIZED";
-        }
-        if (emf == null || dataSource == null) {
-            return "INITIALIZATION_FAILED";
-        }
-        if (dataSource.isClosed()) {
-            return "CLOSED";
-        }
-        return isHealthy() ? "HEALTHY" : "UNHEALTHY";
-    }
-
     public static boolean isHealthy() {
-        if (!initialized.get()) {
-            log.debug("Database not initialized");
-            return false;
-        }
-        
-        if (emf == null || dataSource == null) {
-            log.debug("Database components not available");
-            return false;
-        }
-        
-        if (dataSource.isClosed()) {
-            log.debug("DataSource is closed");
+        if (!initialized.get() || emf == null || dataSource == null || dataSource.isClosed()) {
+            log.warn("Database health check failed: Database not initialized or closed. initialized={}, emf={}, dataSource={}, dataSourceClosed={}", 
+                initialized.get(), emf != null, dataSource != null, dataSource != null ? dataSource.isClosed() : "N/A");
             return false;
         }
         
@@ -193,9 +164,10 @@ public class DatabaseConfig {
             em.getTransaction().begin();
             em.createNativeQuery("SELECT 1").getSingleResult();
             em.getTransaction().commit();
+            log.debug("Database health check passed");
             return true;
         } catch (Exception e) {
-            log.warn("Database health check failed", e);
+            log.error("Database health check failed with exception", e);
             return false;
         }
     }

@@ -4,17 +4,22 @@ FROM maven:3.9.4-eclipse-temurin-17 AS build
 # Set working directory
 WORKDIR /app
 
+# Copy Maven wrapper files first
+COPY mvnw .
+COPY mvnw.cmd .
+COPY .mvn .mvn
+
 # Copy pom.xml first for better caching
 COPY pom.xml .
 
-# Download dependencies
-RUN mvn dependency:go-offline -B
+# Download dependencies using Maven wrapper
+RUN ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY src ./src
 
-# Build the application
-RUN mvn clean package -DskipTests
+# Build the application using Maven wrapper
+RUN ./mvnw clean package -DskipTests
 
 # Verify that webapp-runner.jar was created
 RUN ls -la target/dependency/ && \
