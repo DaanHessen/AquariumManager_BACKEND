@@ -314,6 +314,9 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <skip>false</skip>
+                    <skipMain>false</skipMain>
+                    <testCompile>false</testCompile>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -322,6 +325,18 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             
             <plugin>
@@ -331,6 +346,7 @@
                 <configuration>
                     <argLine>-Dnet.bytebuddy.experimental=true</argLine>
                     <skipTests>true</skipTests>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
             
