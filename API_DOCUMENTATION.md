@@ -11,6 +11,7 @@ This document provides comprehensive documentation for the Aquarium API. The pur
 - [Ornaments](#ornaments)
 - [Error Handling](#error-handling)
 - [Aquarium Parameters Simulation](#aquarium-parameters-simulation)
+- [Health Check](#health-check)
 
 ## General API Information
 
@@ -1063,4 +1064,8 @@ All secured endpoints require a JWT token in the Authorization header:
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
 
-The token is obtained via the login or register endpoints. 
+The token is obtained via the login or register endpoints.
+
+## Health Check
+- `GET /api/health` - Application health status (includes database connectivity)
+- `GET /api/health/basic` - Basic service health status (no database dependency) 

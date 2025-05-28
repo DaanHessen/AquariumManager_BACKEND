@@ -53,4 +53,17 @@ public class RootResource {
                     .build();
         }
     }
+
+    @GET
+    @Path("/health/basic")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response basicHealthCheck() {
+        Map<String, Object> health = new HashMap<>();
+        health.put("status", "UP");
+        health.put("timestamp", System.currentTimeMillis());
+        health.put("service", "Aquarium API");
+        health.put("version", "1.0.0 beta");
+        
+        return Response.ok(ApiResponse.success(health, "Service is running")).build();
+    }
 }
