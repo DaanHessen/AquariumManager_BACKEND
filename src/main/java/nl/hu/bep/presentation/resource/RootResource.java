@@ -41,15 +41,18 @@ public class RootResource {
         health.put("status", "UP");
         health.put("timestamp", System.currentTimeMillis());
         
-        // Check database health
+        // Check database health with detailed status
         boolean dbHealthy = DatabaseConfig.isHealthy();
+        String dbStatus = DatabaseConfig.getStatus();
         health.put("database", dbHealthy ? "UP" : "DOWN");
+        health.put("databaseStatus", dbStatus);
+        health.put("databaseInitialized", DatabaseConfig.isInitialized());
         
         if (dbHealthy) {
             return Response.ok(ApiResponse.success(health, "Service is healthy")).build();
         } else {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity(ApiResponse.error(health, "Service is unhealthy"))
+                    .entity(ApiResponse.error(health, "Service is unhealthy - database: " + dbStatus))
                     .build();
         }
     }

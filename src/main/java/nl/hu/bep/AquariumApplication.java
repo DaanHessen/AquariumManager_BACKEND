@@ -37,7 +37,14 @@ public class AquariumApplication extends ResourceConfig {
 
     public AquariumApplication(@Context UriInfo uriInfo) {
         try {
-            DatabaseConfig.initialize();
+            // Try to initialize database, but don't fail if it's not available
+            try {
+                DatabaseConfig.initialize();
+                log.info("Database initialized successfully");
+            } catch (Exception e) {
+                log.warn("Database initialization failed - application will start without database connectivity: {}", e.getMessage());
+                // Continue with application initialization even if database fails
+            }
 
             register(new DependencyBinder(uriInfo));
 

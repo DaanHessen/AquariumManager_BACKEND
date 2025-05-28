@@ -264,6 +264,13 @@ If your Railway deployment shows "Service Unavailable" during health checks, the
    - Your backend service will automatically redeploy with the new database connection
    - The health check should now pass
 
+#### Graceful Degradation
+The application is designed to start even without database connectivity:
+- **Basic health check** (`/api/health/basic`) will work without database
+- **Full health check** (`/api/health`) will show database status
+- **Database-dependent operations** will fail gracefully with appropriate error messages
+- **Application logs** will show database initialization status
+
 #### Alternative: Manual Environment Variables
 If you prefer individual database variables instead of `DATABASE_URL`:
 ```

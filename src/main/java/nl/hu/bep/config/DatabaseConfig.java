@@ -38,7 +38,8 @@ public class DatabaseConfig {
             } catch (Exception e) {
                 log.error("Failed to initialize database", e);
                 shutdown();
-                throw new RepositoryException.DatabaseConfigException("Database initialization failed", e);
+                // Don't throw exception - allow application to start without database
+                log.warn("Application will continue without database connectivity");
             }
         }
     }
@@ -132,17 +133,59 @@ public class DatabaseConfig {
     }
 
     public static EntityManager createEntityManager() {
-        if (!initialized.get()) initialize();
+        if (!initialized.get()) {
+            initialize();
+        }
+        
+        if (emf == null) {
+            throw new RepositoryException.DatabaseConfigException("Database not available - initialization failed");
+        }
+        
         return emf.createEntityManager();
     }
 
     public static DataSource getDataSource() {
-        if (!initialized.get()) initialize();
+        if (!initialized.get()) {
+            initialize();
+        }
+        
+        if (dataSource == null) {
+            throw new RepositoryException.DatabaseConfigException("DataSource not available - initialization failed");
+        }
+        
         return dataSource;
     }
 
+    public static boolean isInitialized() {
+        return initialized.get();
+    }
+    
+    public static String getStatus() {
+        if (!initialized.get()) {
+            return "NOT_INITIALIZED";
+        }
+        if (emf == null || dataSource == null) {
+            return "INITIALIZATION_FAILED";
+        }
+        if (dataSource.isClosed()) {
+            return "CLOSED";
+        }
+        return isHealthy() ? "HEALTHY" : "UNHEALTHY";
+    }
+
     public static boolean isHealthy() {
-        if (!initialized.get() || emf == null || dataSource == null || dataSource.isClosed()) {
+        if (!initialized.get()) {
+            log.debug("Database not initialized");
+            return false;
+        }
+        
+        if (emf == null || dataSource == null) {
+            log.debug("Database components not available");
+            return false;
+        }
+        
+        if (dataSource.isClosed()) {
+            log.debug("DataSource is closed");
             return false;
         }
         
