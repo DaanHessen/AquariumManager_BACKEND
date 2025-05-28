@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
+    <display-name>Aquarium API</display-name>
+    
+    <!-- Add context parameters for proper path mapping -->
+    <context-param>
+        <param-name>jersey.config.servlet.context.path</param-name>
+        <param-value>/api</param-value>
+    </context-param>
+    <context-param>
+        <param-name>jersey.config.servlet.filter.forwardOn404</param-name>
+        <param-value>true</param-value>
+    </context-param>
+    
+    <!-- Lifecycle Listeners -->
+    <!-- 
+    <listener>
+        <listener-class>nl.hu.bep.config.DatabaseLifecycleListener</listener-class>
+    </listener>
+    -->
+
+    <!-- Explicitly define Jersey servlet for guaranteed loading -->
+    <servlet>
+        <servlet-name>Jersey Web Application</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>jakarta.ws.rs.Application</param-name>
+            <param-value>nl.hu.bep.AquariumApplication</param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.provider.packages</param-name>
+            <param-value>
+                nl.hu.bep.presentation.resource,
+                nl.hu.bep.security.presentation.resource,
+                nl.hu.bep.config,
+                nl.hu.bep.security.application.filter,
+                nl.hu.bep.application.mapper
+            </param-value>
+        </init-param>
+        <init-param>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>
+                org.glassfish.jersey.jackson.JacksonFeature,
+                org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature
+            </param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Jersey Web Application</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
+
+    <!-- CORS Filter for API calls -->
+    <filter>
+        <filter-name>CorsFilter</filter-name>
+        <filter-class>nl.hu.bep.config.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CorsFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+    
+    <!-- Welcome File List -->
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+    
+    <!-- H2 Console Servlet (for development) -->
+    <servlet>
+        <servlet-name>H2Console</servlet-name>
+        <servlet-class>org.h2.server.web.WebServlet</servlet-class>
+        <init-param>
+            <param-name>webAllowOthers</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>H2Console</servlet-name>
+        <url-pattern>/h2-console/*</url-pattern>
+    </servlet-mapping>
+</web-app> 

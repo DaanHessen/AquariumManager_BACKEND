@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_1.xsd"
+             version="3.1">
+
+    <persistence-unit name="aquariumPU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        
+        <!-- Remove JNDI datasource reference -->
+        <!-- <non-jta-data-source>java:comp/env/jdbc/AquariumDB</non-jta-data-source> -->
+        
+        <!-- Core entities -->
+        <class>nl.hu.bep.domain.Aquarium</class>
+        <class>nl.hu.bep.domain.Inhabitant</class>
+        <class>nl.hu.bep.domain.Accessory</class>
+        <class>nl.hu.bep.domain.Ornament</class>
+        <class>nl.hu.bep.domain.Owner</class>
+        <class>nl.hu.bep.domain.AquariumManager</class>
+        
+        <!-- Include any other entity classes in your domain model -->
+        <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <!-- Properties are now managed programmatically in DatabaseConfig -->
+        <properties>
+            <!-- Base properties - will be overridden by DatabaseConfig -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            
+            <!-- Connection handling settings -->
+            <property name="hibernate.connection.handling_mode" value="IMMEDIATE_ACQUISITION_AND_HOLD"/>
+            <property name="hibernate.connection.provider_disables_autocommit" value="false"/>
+            
+            <!-- ByteBuddy settings -->
+            <property name="hibernate.bytecode.provider" value="bytebuddy"/>
+            <property name="hibernate.bytecode.use_reflection_optimizer" value="false"/>
+            
+            <!-- Transaction settings -->
+            <property name="hibernate.transaction.flush_before_completion" value="true"/>
+            <property name="hibernate.connection.isolation" value="2"/>
+            
+            <!-- Connection pool settings -->
+            <property name="hibernate.hikari.minimumIdle" value="5"/>
+            <property name="hibernate.hikari.maximumPoolSize" value="10"/>
+            <property name="hibernate.hikari.idleTimeout" value="30000"/>
+        </properties>
+
+    </persistence-unit>
+
+</persistence> 
