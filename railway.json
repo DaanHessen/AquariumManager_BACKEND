@@ -7,7 +7,7 @@
     "startCommand": "sh -c 'java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war'",
     "healthcheckPath": "/api/health/basic",
     "healthcheckTimeout": 20,
-    "restartPolicyType": "",
+    "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
 } 
