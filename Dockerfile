@@ -9,6 +9,9 @@ COPY mvnw .
 COPY mvnw.cmd .
 COPY .mvn .mvn
 
+# Make Maven wrapper executable
+RUN chmod +x mvnw
+
 # Copy pom.xml first for better caching
 COPY pom.xml .
 
