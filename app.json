@@ -1,15 +1,8 @@
 {
-  "name": "Aquarium Backend API",
+  "name": "Aquarium Manager Backend API",
   "description": "Backend API for the Aquarium Management System",
-  "repository": "https://github.com/your-username/hu-sd-bep1-aquarium-DaanHessen",
-  "logo": "https://cdn.worldvectorlogo.com/logos/heroku-1.svg",
-  "keywords": ["java", "spring", "postgresql", "api"],
-  "image": "heroku/java",
-  "addons": [
-    {
-      "plan": "heroku-postgresql:mini"
-    }
-  ],
+  "repository": "https://github.com/your-username/aquarium-manager-backend",
+  "keywords": ["java", "jakarta-ee", "postgresql", "api", "aquarium"],
   "env": {
     "HIBERNATE_HBM2DDL": {
       "description": "Hibernate DDL auto mode",
@@ -23,16 +16,5 @@
       "description": "JWT token expiration time in milliseconds",
       "value": "86400000"
     }
-  },
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "eco"
-    }
-  },
-  "buildpacks": [
-    {
-      "url": "heroku/java"
-    }
-  ]
+  }
 } 

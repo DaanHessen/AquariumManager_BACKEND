@@ -4,16 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>nl.hu.bep</groupId>
-        <artifactId>fishy-system</artifactId>
-        <version>1.0</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
-    <artifactId>fishy-system-backend</artifactId>
+    <groupId>nl.hu.bep</groupId>
+    <artifactId>aquarium-manager-backend</artifactId>
+    <version>1.0.0</version>
     <packaging>war</packaging>
-    <name>Fishy System Backend</name>
+    <name>Aquarium Manager Backend</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,6 +17,7 @@
         <jersey.version>3.1.3</jersey.version>
         <jackson.version>2.15.3</jackson.version>
         <hibernate.version>6.2.7.Final</hibernate.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
 
     <dependencies>
@@ -37,16 +33,19 @@
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>
             <artifactId>jersey-container-servlet</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.glassfish.jersey.inject</groupId>
             <artifactId>jersey-hk2</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-json-jackson</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
 
         <dependency>
@@ -109,11 +108,13 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         
         <dependency>
@@ -132,6 +133,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
         </dependency>
 
         <!-- Jakarta EE APIs -->
@@ -284,6 +286,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -301,11 +304,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
             </plugin>
             
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
@@ -329,19 +334,6 @@
                 </configuration>
             </plugin>
             
-            <!-- Heroku Maven Plugin -->
-            <plugin>
-                <groupId>com.heroku.sdk</groupId>
-                <artifactId>heroku-maven-plugin</artifactId>
-                <version>3.0.7</version>
-                <configuration>
-                    <appName>${heroku.appName}</appName>
-                    <processTypes>
-                        <web>java -Dserver.port=$PORT -jar target/dependency/webapp-runner.jar --port $PORT target/*.war</web>
-                    </processTypes>
-                </configuration>
-            </plugin>
-            
             <!-- Maven Dependency Plugin for webapp-runner -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -362,6 +354,7 @@
                                     <destFileName>webapp-runner.jar</destFileName>
                                 </artifactItem>
                             </artifactItems>
+                            <outputDirectory>${project.build.directory}/dependency</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
