@@ -9,8 +9,8 @@ COPY mvnw .
 COPY mvnw.cmd .
 COPY .mvn .mvn
 
-# Make Maven wrapper executable
-RUN chmod +x mvnw
+# Make Maven wrapper executable and ensure Unix line endings
+RUN chmod +x mvnw && sed -i 's/\r$//' mvnw
 
 # Copy pom.xml first for better caching
 COPY pom.xml .
