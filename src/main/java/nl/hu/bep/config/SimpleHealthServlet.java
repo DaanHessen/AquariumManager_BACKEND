@@ -4,20 +4,21 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Simple health check servlet that responds immediately without requiring
  * full application initialization. This ensures Railway health checks
  * pass during startup even if database connectivity is delayed.
  */
-@Slf4j
 public class SimpleHealthServlet extends HttpServlet {
     
     private static final long serialVersionUID = 1L;
+    private static final Logger log = Logger.getLogger(SimpleHealthServlet.class.getName());
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -52,10 +53,10 @@ public class SimpleHealthServlet extends HttpServlet {
                 out.flush();
             }
             
-            log.debug("Health check request successful from: {}", request.getRemoteAddr());
+            log.log(Level.FINE, "Health check request successful from: " + request.getRemoteAddr());
             
         } catch (Exception e) {
-            log.error("Health check failed: {}", e.getMessage(), e);
+            log.log(Level.SEVERE, "Health check failed: " + e.getMessage(), e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             
             try (PrintWriter out = response.getWriter()) {
