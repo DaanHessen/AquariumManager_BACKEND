@@ -1,5 +1,8 @@
-# Use Eclipse Temurin JDK Alpine for standardized Java environment
-FROM eclipse-temurin:17-jdk-alpine
+# Use Eclipse Temurin JDK for standardized Java environment
+FROM eclipse-temurin:17-jdk
+
+# Install Maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -10,17 +13,17 @@ COPY .mvn .mvn
 COPY pom.xml ./
 COPY src ./src
 
-# Make Maven wrapper executable
+# Make Maven wrapper executable and fix line endings
 RUN chmod +x mvnw
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
+# Build the application using system Maven
+RUN mvn clean package -DskipTests
 
 # Verify WAR file creation
 RUN ls -la target/ && test -f target/aquarium-api.war
 
-# Use standard Tomcat 10 Alpine for Jakarta EE compatibility
-FROM tomcat:10.1-alpine
+# Use standard Tomcat 10 with JDK 17 for Jakarta EE compatibility
+FROM tomcat:10-jdk17-openjdk
 
 # Remove default webapps
 RUN rm -rf /usr/local/tomcat/webapps/*
