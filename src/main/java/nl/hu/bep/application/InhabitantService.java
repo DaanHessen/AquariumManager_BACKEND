@@ -157,23 +157,25 @@ public class InhabitantService {
 
     public AquariumResponse addInhabitant(Long aquariumId, Long inhabitantId,
             Map<String, Object> properties, Long ownerId) {
-        Aquarium aquarium = aquariumRepository.findById(aquariumId)
-                .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-
-        aquarium.verifyOwnership(ownerId);
-
-        Inhabitant inhabitant = inhabitantRepository.findById(inhabitantId)
-                .orElseThrow(() -> new ApplicationException.NotFoundException("Inhabitant", inhabitantId));
-
-        log.info("Adding inhabitant {} to aquarium: {}", inhabitant, aquarium);
-
+        
         try {
+            // Fetch aquarium with inhabitants collection eagerly loaded 
+            Aquarium aquarium = aquariumRepository.findByIdWithInhabitants(aquariumId)
+                    .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
+
+            aquarium.verifyOwnership(ownerId);
+
+            Inhabitant inhabitant = inhabitantRepository.findById(inhabitantId)
+                    .orElseThrow(() -> new ApplicationException.NotFoundException("Inhabitant", inhabitantId));
+
+            log.info("Adding inhabitant {} to aquarium: {}", inhabitant, aquarium);
+
             aquarium.addToInhabitants(inhabitant);
 
             inhabitant = inhabitantRepository.save(inhabitant);
-
             aquarium = aquariumRepository.save(aquarium);
 
+            // Fetch the updated aquarium with all collections to ensure they're loaded
             Aquarium updatedAquarium = aquariumRepository.findByIdWithAllCollections(aquariumId)
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
@@ -186,23 +188,25 @@ public class InhabitantService {
     }
 
     public AquariumResponse removeInhabitant(Long aquariumId, Long inhabitantId, Long ownerId) {
-        Aquarium aquarium = aquariumRepository.findById(aquariumId)
-                .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-
-        aquarium.verifyOwnership(ownerId);
-
-        Inhabitant inhabitant = inhabitantRepository.findById(inhabitantId)
-                .orElseThrow(() -> new ApplicationException.NotFoundException("Inhabitant", inhabitantId));
-
-        log.info("Removing inhabitant {} from aquarium: {}", inhabitant, aquarium);
-
+        
         try {
+            // Fetch aquarium with inhabitants collection eagerly loaded
+            Aquarium aquarium = aquariumRepository.findByIdWithInhabitants(aquariumId)
+                    .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
+
+            aquarium.verifyOwnership(ownerId);
+
+            Inhabitant inhabitant = inhabitantRepository.findById(inhabitantId)
+                    .orElseThrow(() -> new ApplicationException.NotFoundException("Inhabitant", inhabitantId));
+
+            log.info("Removing inhabitant {} from aquarium: {}", inhabitant, aquarium);
+
             aquarium.removeFromInhabitants(inhabitant);
 
             inhabitant = inhabitantRepository.save(inhabitant);
-
             aquarium = aquariumRepository.save(aquarium);
 
+            // Fetch the updated aquarium with all collections to ensure they're loaded
             Aquarium updatedAquarium = aquariumRepository.findByIdWithAllCollections(aquariumId)
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
