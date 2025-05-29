@@ -50,4 +50,4 @@ EXPOSE 8080
 ENV PORT=8080
 
 # Run the application
-CMD ["sh", "-c", "java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war"] 
+CMD ["sh", "-c", "java -jar webapp-runner.jar --port ${PORT:-8080} app.war"] 
