@@ -133,6 +133,27 @@ This project is pre-configured to work with [Neon PostgreSQL](https://neon.tech)
    - The application will build and deploy automatically
    - Access your API at the generated Railway URL
 
+### ✅ Health Check Optimizations
+
+This application has been optimized for Railway's health check requirements:
+
+- **Fast Health Check Endpoint**: `/health` responds immediately without requiring database connectivity
+- **Optimized Startup**: Database initialization is non-blocking to ensure quick startup
+- **Railway Compatibility**: Port configuration and health checks are optimized for Railway's deployment process
+- **Resilient Architecture**: Application continues startup even if database connectivity is delayed
+
+#### Health Check Endpoints
+
+- `/health` - **Railway Health Check**: Fast response, no database dependency (recommended for Railway)
+- `/api/health` - **Full Health Check**: Includes database connectivity verification
+
+#### Health Check Configuration
+
+The `railway.json` file configures:
+- Health check path: `/health`
+- Health check timeout: 300 seconds (5 minutes)
+- Restart policy: `ON_FAILURE` with max 10 retries
+
 ### Manual Deployment with Railway CLI
 
 1. **Install Railway CLI**
@@ -162,6 +183,21 @@ This project is pre-configured to work with [Neon PostgreSQL](https://neon.tech)
    ```bash
    railway up
    ```
+
+### Testing Railway Deployment Locally
+
+Use the provided verification script to test Railway-like deployment locally:
+
+```bash
+./verify-railway-startup.sh
+```
+
+This script will:
+- Build the Docker image
+- Start a container with Railway-like environment variables
+- Test all health check endpoints
+- Verify startup sequence and timing
+- Provide a deployment readiness report
 
 ## Environment Variables
 
@@ -317,7 +353,7 @@ The application uses Hibernate's automatic schema generation. Set `HIBERNATE_HBM
    - Check that the database service is running
 
 3. **Health Check Failures**
-   - If health checks fail, first check `/api/health/basic` endpoint
+   - If health checks fail, first check `/health` endpoint
    - If basic health passes but `/api/health` fails, it's a database issue
    - Review application startup logs for database connection errors
 
@@ -351,7 +387,7 @@ The application uses Hibernate's automatic schema generation. Set `HIBERNATE_HBM
 
 2. **Test Basic Health Check:**
    ```
-   GET https://your-app.railway.app/api/health/basic
+   GET https://your-app.railway.app/health
    ```
    This endpoint doesn't require database connectivity.
 
@@ -384,10 +420,10 @@ PORT=8080
 
 #### Health Check Endpoints
 
-- `/api/health/basic` - Application-only health (no database)
-- `/api/health` - Full health check including database connectivity
+- `/health` - **Railway Health Check**: Fast response, no database dependency (recommended for Railway)
+- `/api/health` - **Full Health Check**: Includes database connectivity verification
 
-Use `/api/health/basic` for initial deployment verification, then switch to `/api/health` once database is configured.
+Use `/health` for initial deployment verification, then switch to `/api/health` once database is configured.
 
 ## Contributing
 

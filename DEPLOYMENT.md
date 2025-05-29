@@ -45,7 +45,7 @@ This guide walks you through deploying the Aquarium Manager Backend using Neon P
 ### Step 3: Verify Deployment
 
 1. **Check health endpoints**
-   - Basic health: `https://your-app.railway.app/api/health/basic`
+   - Basic health: `https://your-app.railway.app/health`
    - Database health: `https://your-app.railway.app/api/health`
 
 2. **Test API endpoints**

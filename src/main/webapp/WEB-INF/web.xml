@@ -16,6 +16,18 @@
         <param-value>true</param-value>
     </context-param>
     
+    <!-- Simple health check servlet that loads immediately for Railway health checks -->
+    <servlet>
+        <servlet-name>SimpleHealthServlet</servlet-name>
+        <servlet-class>nl.hu.bep.config.SimpleHealthServlet</servlet-class>
+        <load-on-startup>0</load-on-startup>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>SimpleHealthServlet</servlet-name>
+        <url-pattern>/health</url-pattern>
+    </servlet-mapping>
+    
     <!-- Lifecycle Listeners -->
     <!-- 
     <listener>

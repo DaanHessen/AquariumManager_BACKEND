@@ -23,23 +23,35 @@ public class DatabaseConfig {
     private static volatile EntityManagerFactory emf;
     private static volatile HikariDataSource dataSource;
 
-    public static void initialize() {
-        if (initialized.get()) return;
+    public static synchronized void initialize() {
+        if (initialized.get()) {
+            log.info("Database already initialized, skipping re-initialization");
+            return;
+        }
+
+        log.info("Initializing database configuration...");
         
-        synchronized (INIT_LOCK) {
-            if (initialized.get()) return;
+        try {
+            createDataSource();
+            createEntityManagerFactory();
             
+            // Test the connection but don't fail startup if it's not ready
             try {
-                log.info("Initializing PostgreSQL database");
-                createDataSource();
-                createEntityManagerFactory();
-                initialized.set(true);
-                log.info("Database configuration initialized successfully");
+                testConnection();
+                log.info("Database connection test successful");
             } catch (Exception e) {
-                log.error("Failed to initialize database", e);
-                shutdown();
-                throw new RepositoryException.DatabaseConfigException("Database initialization failed", e);
+                log.warn("Database connection test failed during initialization, but continuing startup. Connection will be retried on first use. Error: {}", e.getMessage());
+                // Don't throw the exception - allow the application to start even if DB is not ready
             }
+            
+            initialized.set(true);
+            log.info("Database configuration initialized successfully");
+        } catch (Exception e) {
+            log.error("Failed to initialize database configuration: {}", e.getMessage(), e);
+            // For Railway health checks, we still mark as initialized to allow app startup
+            // The health check endpoint will handle database availability separately
+            initialized.set(true);
+            throw new RuntimeException("Database configuration failed", e);
         }
     }
 
@@ -133,7 +145,6 @@ public class DatabaseConfig {
     
     private static void createEntityManagerFactory() {
         Map<String, Object> props = new HashMap<>();
-        
         props.put("jakarta.persistence.jdbc.driver", "org.postgresql.Driver");
         props.put("jakarta.persistence.jdbc.url", dataSource.getJdbcUrl());
         props.put("jakarta.persistence.jdbc.user", dataSource.getUsername());
@@ -141,17 +152,27 @@ public class DatabaseConfig {
         
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.put("hibernate.hbm2ddl.auto", getEnv("HIBERNATE_HBM2DDL", "update"));
-        props.put("hibernate.show_sql", "false");
-        props.put("hibernate.format_sql", "false");
-        props.put("hibernate.enable_lazy_load_no_trans", "true");
+        props.put("hibernate.show_sql", "true");
+        props.put("hibernate.format_sql", "true");
+        props.put("hibernate.use_sql_comments", "true");
+        
         props.put("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
+        props.put("hibernate.hikari.dataSource", dataSource);
         
-        // Production settings
-        props.put("hibernate.connection.release_mode", "after_transaction");
-        props.put("hibernate.jdbc.batch_size", "50");
-        
-        emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME, props);
-        log.info("EntityManagerFactory created");
+        emf = Persistence.createEntityManagerFactory("aquarium-pu", props);
+        log.info("EntityManagerFactory created successfully");
+    }
+
+    private static void testConnection() {
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            em.createNativeQuery("SELECT 1").getSingleResult();
+            em.getTransaction().commit();
+            log.debug("Database connection test successful");
+        } catch (Exception e) {
+            log.error("Database connection test failed: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public static EntityManager createEntityManager() {
@@ -165,9 +186,29 @@ public class DatabaseConfig {
     }
 
     public static boolean isHealthy() {
-        if (!initialized.get() || emf == null || dataSource == null || dataSource.isClosed()) {
-            log.warn("Database health check failed: Database not initialized or closed. initialized={}, emf={}, dataSource={}, dataSourceClosed={}", 
-                initialized.get(), emf != null, dataSource != null, dataSource != null ? dataSource.isClosed() : "N/A");
+        if (!initialized.get()) {
+            log.warn("Database health check failed: Database not initialized");
+            return false;
+        }
+        
+        // If EMF or DataSource are null, try to initialize them
+        if (emf == null || dataSource == null) {
+            log.warn("Database components not ready, attempting re-initialization...");
+            try {
+                if (dataSource == null) {
+                    createDataSource();
+                }
+                if (emf == null) {
+                    createEntityManagerFactory();
+                }
+            } catch (Exception e) {
+                log.error("Failed to re-initialize database components: {}", e.getMessage());
+                return false;
+            }
+        }
+        
+        if (dataSource != null && dataSource.isClosed()) {
+            log.warn("DataSource is closed");
             return false;
         }
         
@@ -178,7 +219,7 @@ public class DatabaseConfig {
             log.debug("Database health check passed");
             return true;
         } catch (Exception e) {
-            log.error("Database health check failed with exception", e);
+            log.error("Database health check failed with exception: {}", e.getMessage());
             return false;
         }
     }

@@ -49,23 +49,29 @@ public class CorsFilter implements Filter {
             }
         }
         
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+        // Railway health checks come from healthcheck.railway.app
+        String host = request.getHeader("Host");
+        String userAgent = request.getHeader("User-Agent");
+        if ((host != null && host.contains("railway.app")) || 
+            (userAgent != null && userAgent.contains("Railway")) ||
+            request.getRequestURI().contains("/health")) {
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            log.debug("Railway health check or internal request detected");
+        }
+        
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+        response.setHeader("Access-Control-Allow-Headers", 
+            "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Max-Age", "3600");
         
+        // Handle preflight OPTIONS requests
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
-            response.setContentType("application/json");
-            
-            Map<String, Object> responseBody = new HashMap<>();
-            responseBody.put("status", "OK");
-            responseBody.put("message", "CORS preflight request successful");
-            
-            response.getWriter().write(objectMapper.writeValueAsString(responseBody));
-        } else {
-            chain.doFilter(request, response);
+            return;
         }
+        
+        chain.doFilter(request, response);
     }
 
     @Override

@@ -24,7 +24,7 @@ if [ $? -eq 0 ]; then
     
     # Test basic health check
     echo "Testing basic health check..."
-    BASIC_HEALTH=$(curl -s http://localhost:8080/api/health/basic)
+    BASIC_HEALTH=$(curl -s http://localhost:8080/health)
     echo "Basic health response: $BASIC_HEALTH"
     
     # Test database health check

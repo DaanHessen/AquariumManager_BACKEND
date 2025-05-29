@@ -24,7 +24,7 @@ public class RootResource {
         endpoints.put("inhabitants", "/api/inhabitants");
         endpoints.put("authentication", "/api/auth");
         endpoints.put("health", "/api/health");
-        endpoints.put("health-basic", "/api/health/basic");
+        endpoints.put("health-basic", "/health");
 
         Map<String, Object> apiInfo = new HashMap<>();
         apiInfo.put("name", "Aquarium API");
@@ -32,27 +32,6 @@ public class RootResource {
         apiInfo.put("endpoints", endpoints);
 
         return Response.ok(ApiResponse.success(apiInfo)).build();
-    }
-
-    @GET
-    @Path("/health/basic")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response basicHealthCheck() {
-        // Basic health check - completely independent of database or other components
-        Map<String, Object> health = new HashMap<>();
-        health.put("status", "UP");
-        health.put("timestamp", System.currentTimeMillis());
-        health.put("application", "RUNNING");
-        health.put("service", "Aquarium API");
-        health.put("version", "1.0.0");
-        
-        // Add minimal environment info for debugging (without slow operations)
-        Map<String, Object> env = new HashMap<>();
-        env.put("PORT", System.getenv("PORT"));
-        env.put("java_version", System.getProperty("java.version"));
-        health.put("environment", env);
-        
-        return Response.ok(ApiResponse.success(health, "Application is running")).build();
     }
 
     @GET
