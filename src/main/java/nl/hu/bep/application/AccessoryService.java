@@ -151,7 +151,7 @@ public class AccessoryService {
   }
 
   public AquariumResponse addAccessory(Long aquariumId, Long accessoryId, Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findByIdWithAccessories(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithRelationships(aquariumId, "accessories")
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
     Accessory accessory = accessoryRepository.findById(accessoryId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
@@ -178,7 +178,7 @@ public class AccessoryService {
   }
 
   public AquariumResponse removeAccessory(Long aquariumId, Long accessoryId, Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findByIdWithAccessories(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithRelationships(aquariumId, "accessories")
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
     Accessory accessory = accessoryRepository.findById(accessoryId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
@@ -218,7 +218,7 @@ public class AccessoryService {
   }
 
   private Aquarium findAquariumWithAccessories(Long id) {
-    return aquariumRepository.findByIdWithAccessories(id)
+    return aquariumRepository.findByIdWithRelationships(id, "accessories")
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", id));
   }
 }

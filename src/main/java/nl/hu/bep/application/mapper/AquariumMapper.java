@@ -214,4 +214,20 @@ public class AquariumMapper {
                 .map(this::toOrnamentResponse)
                 .collect(Collectors.toList());
     }
+
+    public AquariumStateHistoryResponse toStateHistoryResponse(AquariumStateHistory stateHistory) {
+        if (stateHistory == null) {
+            return null;
+        }
+
+        return new AquariumStateHistoryResponse(
+                stateHistory.getId(),
+                stateHistory.getState(),
+                stateHistory.getStartTime(),
+                stateHistory.getEndTime(),
+                stateHistory.getDurationMinutes(),
+                stateHistory.isActive(),
+                stateHistory.getCreatedAt()
+        );
+    }
 }

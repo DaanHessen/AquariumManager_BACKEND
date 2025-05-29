@@ -131,7 +131,7 @@ public class OrnamentService {
   }
 
   public AquariumResponse addOrnament(Long aquariumId, Long ornamentId, Long ownerId, Map<String, Object> properties) {
-    Aquarium aquarium = aquariumRepository.findByIdWithOrnaments(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithRelationships(aquariumId, "ornaments")
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
     Ornament ornament = ornamentRepository.findById(ornamentId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Ornament", ornamentId));
@@ -158,7 +158,7 @@ public class OrnamentService {
   }
 
   public AquariumResponse removeOrnament(Long aquariumId, Long ornamentId, Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findByIdWithOrnaments(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithRelationships(aquariumId, "ornaments")
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
     Ornament ornament = ornamentRepository.findById(ornamentId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Ornament", ornamentId));
@@ -190,7 +190,7 @@ public class OrnamentService {
   }
 
   private Aquarium findAquariumWithOrnaments(Long id) {
-    return aquariumRepository.findByIdWithOrnaments(id)
+    return aquariumRepository.findByIdWithRelationships(id, "ornaments")
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", id));
   }
 }

@@ -28,7 +28,7 @@ public class RootResource {
 
         Map<String, Object> apiInfo = new HashMap<>();
         apiInfo.put("name", "Aquarium API");
-        apiInfo.put("version", "1.0.0 beta");
+        apiInfo.put("version", "2.0.0");
         apiInfo.put("endpoints", endpoints);
         apiInfo.put("notes", Map.of(
             "health-basic", "Simple health check for Railway deployment",

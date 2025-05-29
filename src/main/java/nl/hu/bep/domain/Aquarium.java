@@ -21,8 +21,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "aquariums")
 @Getter
-@EqualsAndHashCode(exclude = { "accessories", "inhabitants", "ornaments", "aquariumManager", "owner" })
-@ToString(exclude = { "accessories", "inhabitants", "ornaments", "aquariumManager", "owner" })
+@EqualsAndHashCode(exclude = { "accessories", "inhabitants", "ornaments", "aquariumManager", "owner", "stateHistory" })
+@ToString(exclude = { "accessories", "inhabitants", "ornaments", "aquariumManager", "owner", "stateHistory" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter(value = AccessLevel.PRIVATE)
@@ -54,6 +54,9 @@ public class Aquarium {
   @Enumerated(EnumType.STRING)
   private AquariumState state;
 
+  @Column(name = "current_state_start_time")
+  private LocalDateTime currentStateStartTime;
+
   @Column(name = "color")
   private String color;
 
@@ -71,6 +74,9 @@ public class Aquarium {
 
   @OneToMany(mappedBy = "aquarium", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private Set<Ornament> ornaments = new HashSet<>();
+
+  @OneToMany(mappedBy = "aquarium", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  private Set<AquariumStateHistory> stateHistory = new HashSet<>();
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "aquarium_manager_id")
@@ -95,10 +101,16 @@ public class Aquarium {
     aquarium.accessories = new HashSet<>();
     aquarium.inhabitants = new HashSet<>();
     aquarium.ornaments = new HashSet<>();
+    aquarium.stateHistory = new HashSet<>();
     aquarium.state = state != null ? state : AquariumState.SETUP;
+    aquarium.currentStateStartTime = LocalDateTime.now();
     aquarium.color = color;
     aquarium.description = description;
     aquarium.dateCreated = LocalDateTime.now();
+
+    // Create initial state history record
+    AquariumStateHistory initialHistory = AquariumStateHistory.create(aquarium, aquarium.state);
+    aquarium.stateHistory.add(initialHistory);
 
     return aquarium;
   }
@@ -129,26 +141,82 @@ public class Aquarium {
     this.temperature = temperature;
   }
 
-  public void updateState(AquariumState state) {
-    this.state = Validator.notNull(state, "Aquarium state");
+  public void updateState(AquariumState newState) {
+    AquariumState oldState = this.state;
+    this.state = Validator.notNull(newState, "Aquarium state");
+    
+    // Only create history if state actually changed
+    if (oldState != newState) {
+      transitionToState(newState);
+    }
   }
 
   public void activateAquarium() {
     if (this.state != AquariumState.SETUP && this.state != AquariumState.MAINTENANCE) {
       throw new DomainException("Cannot activate aquarium from " + this.state + " state");
     }
-    this.state = AquariumState.RUNNING;
+    transitionToState(AquariumState.RUNNING);
   }
 
   public void startMaintenance() {
     if (this.state != AquariumState.RUNNING) {
       throw new DomainException("Cannot start maintenance when aquarium is not running");
     }
-    this.state = AquariumState.MAINTENANCE;
+    transitionToState(AquariumState.MAINTENANCE);
   }
 
   public void deactivateAquarium() {
-    this.state = AquariumState.INACTIVE;
+    transitionToState(AquariumState.INACTIVE);
+  }
+
+  /**
+   * Handles state transition with proper history tracking
+   */
+  private void transitionToState(AquariumState newState) {
+    if (this.state == newState) {
+      return; // No change needed
+    }
+
+    // End current state history record
+    AquariumStateHistory currentHistory = getCurrentActiveStateHistory();
+    if (currentHistory != null) {
+      currentHistory.endState();
+    }
+
+    // Update current state and timestamp
+    this.state = newState;
+    this.currentStateStartTime = LocalDateTime.now();
+
+    // Create new state history record
+    AquariumStateHistory newHistory = AquariumStateHistory.create(this, newState);
+    this.stateHistory.add(newHistory);
+  }
+
+  /**
+   * Gets the currently active state history record
+   */
+  private AquariumStateHistory getCurrentActiveStateHistory() {
+    return stateHistory.stream()
+        .filter(AquariumStateHistory::isActive)
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Gets the current state duration in minutes
+   */
+  public long getCurrentStateDurationMinutes() {
+    if (currentStateStartTime == null) {
+      return 0;
+    }
+    return java.time.temporal.ChronoUnit.MINUTES.between(currentStateStartTime, LocalDateTime.now());
+  }
+
+  /**
+   * Gets all state history for this aquarium
+   */
+  public Set<AquariumStateHistory> getStateHistory() {
+    return new HashSet<>(stateHistory);
   }
 
   public void addToInhabitants(Inhabitant inhabitant) {
