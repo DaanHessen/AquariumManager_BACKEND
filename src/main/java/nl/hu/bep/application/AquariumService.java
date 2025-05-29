@@ -88,8 +88,13 @@ public class AquariumService {
       aquarium.assignToOwner(owner);
     }
 
-    aquarium = aquariumRepository.save(aquarium);
-    return mappingService.mapAquarium(aquarium);
+    Aquarium savedAquarium = aquariumRepository.save(aquarium);
+    
+    // Fetch the aquarium with owner to avoid LazyInitializationException
+    Aquarium aquariumWithOwner = aquariumRepository.findByIdWithOwner(savedAquarium.getId())
+        .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
+    
+    return mappingService.mapAquarium(aquariumWithOwner);
   }
 
   public AquariumResponse updateAquarium(Long id, AquariumRequest request) {
