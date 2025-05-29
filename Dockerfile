@@ -57,4 +57,4 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
 EXPOSE 8080
 
 # Use the startup script
-CMD ["/app/start.sh"] 
+ENTRYPOINT ["/app/start.sh"] 
