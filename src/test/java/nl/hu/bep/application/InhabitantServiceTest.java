@@ -283,7 +283,7 @@ class InhabitantServiceTest {
 
     when(spyAquarium.isOwnedBy(any(Long.class))).thenReturn(true);
 
-    when(aquariumRepository.findById(1L)).thenReturn(Optional.of(spyAquarium));
+    when(aquariumRepository.findByIdWithInhabitants(1L)).thenReturn(Optional.of(spyAquarium));
     when(inhabitantRepository.findById(1L)).thenReturn(Optional.of(testInhabitant));
     when(inhabitantRepository.save(any(Inhabitant.class))).thenReturn(testInhabitant);
     when(aquariumRepository.save(any(Aquarium.class))).thenReturn(spyAquarium);
@@ -294,7 +294,7 @@ class InhabitantServiceTest {
         1L, 1L, Collections.emptyMap(), 1L);
 
     assertEquals(expectedResponse, result);
-    verify(aquariumRepository).findById(1L);
+    verify(aquariumRepository).findByIdWithInhabitants(1L);
     verify(inhabitantRepository).findById(1L);
     verify(inhabitantRepository).save(any(Inhabitant.class));
     verify(aquariumRepository).save(any(Aquarium.class));

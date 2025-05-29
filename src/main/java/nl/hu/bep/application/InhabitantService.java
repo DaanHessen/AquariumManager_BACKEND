@@ -157,9 +157,8 @@ public class InhabitantService {
 
     public AquariumResponse addInhabitant(Long aquariumId, Long inhabitantId,
             Map<String, Object> properties, Long ownerId) {
-        
         try {
-            // Fetch aquarium with inhabitants collection eagerly loaded 
+            // Load aquarium with inhabitants collection - this ensures inhabitants are loaded
             Aquarium aquarium = aquariumRepository.findByIdWithInhabitants(aquariumId)
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
@@ -170,12 +169,14 @@ public class InhabitantService {
 
             log.info("Adding inhabitant {} to aquarium: {}", inhabitant, aquarium);
 
+            // Perform the relationship update - inhabitants collection is already loaded
             aquarium.addToInhabitants(inhabitant);
 
+            // Save the entities in the correct order
             inhabitant = inhabitantRepository.save(inhabitant);
             aquarium = aquariumRepository.save(aquarium);
 
-            // Fetch the updated aquarium with all collections to ensure they're loaded
+            // Fetch fresh aquarium with all collections for the response
             Aquarium updatedAquarium = aquariumRepository.findByIdWithAllCollections(aquariumId)
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
@@ -188,9 +189,8 @@ public class InhabitantService {
     }
 
     public AquariumResponse removeInhabitant(Long aquariumId, Long inhabitantId, Long ownerId) {
-        
         try {
-            // Fetch aquarium with inhabitants collection eagerly loaded
+            // Load aquarium with inhabitants collection - this ensures inhabitants are loaded
             Aquarium aquarium = aquariumRepository.findByIdWithInhabitants(aquariumId)
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
@@ -201,12 +201,14 @@ public class InhabitantService {
 
             log.info("Removing inhabitant {} from aquarium: {}", inhabitant, aquarium);
 
+            // Perform the relationship update - inhabitants collection is already loaded
             aquarium.removeFromInhabitants(inhabitant);
 
+            // Save the entities in the correct order
             inhabitant = inhabitantRepository.save(inhabitant);
             aquarium = aquariumRepository.save(aquarium);
 
-            // Fetch the updated aquarium with all collections to ensure they're loaded
+            // Fetch fresh aquarium with all collections for the response
             Aquarium updatedAquarium = aquariumRepository.findByIdWithAllCollections(aquariumId)
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
