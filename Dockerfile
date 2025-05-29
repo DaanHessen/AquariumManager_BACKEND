@@ -19,8 +19,8 @@ RUN ./mvnw clean package -DskipTests
 # Verify WAR file creation
 RUN ls -la target/ && test -f target/aquarium-api.war
 
-# Use Tomcat 10 Alpine for Jakarta EE compatibility
-FROM tomcat:10.1-jdk17-alpine
+# Use Tomcat 10 Alpine for Jakarta EE compatibility (correct tag)
+FROM tomcat:10.1.15-jdk17-temurin-alpine
 
 # Remove default webapps
 RUN rm -rf /usr/local/tomcat/webapps/*
