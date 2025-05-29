@@ -68,7 +68,9 @@ public class DatabaseConfig {
             try {
                 URI dbUri = new URI(databaseUrl);
                 host = dbUri.getHost();
-                port = String.valueOf(dbUri.getPort());
+                // Handle case where no port is specified in URL (dbUri.getPort() returns -1)
+                int portValue = dbUri.getPort();
+                port = portValue == -1 ? "5432" : String.valueOf(portValue);
                 database = dbUri.getPath().substring(1); // Remove leading slash
                 
                 String userInfo = dbUri.getUserInfo();
