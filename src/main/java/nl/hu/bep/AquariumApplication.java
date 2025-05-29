@@ -11,7 +11,6 @@ import nl.hu.bep.application.InhabitantService;
 import nl.hu.bep.application.OrnamentService;
 import nl.hu.bep.security.presentation.resource.AuthResource;
 import nl.hu.bep.application.mapper.*;
-import nl.hu.bep.config.CorsFilter;
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.config.JacksonConfig;
 import nl.hu.bep.data.*;
@@ -60,7 +59,6 @@ public class AquariumApplication extends ResourceConfig {
             packages(
                     "nl.hu.bep.presentation.resource",
                     "nl.hu.bep.security.presentation.resource",
-                    "nl.hu.bep.config",
                     "nl.hu.bep.security.application.filter",
                     "nl.hu.bep.application.mapper");
 
@@ -88,7 +86,7 @@ public class AquariumApplication extends ResourceConfig {
             bindAsSingleton(JacksonFeature.class);
             bindAsSingleton(JacksonConfig.class);
 
-            bindAsSingleton(CorsFilter.class);
+            // CorsFilter is registered as servlet filter in web.xml, not as Jersey component
             bindAsSingleton(AquariumSecurityFilter.class);
             bindAsSingleton(OwnershipFilter.class);
 

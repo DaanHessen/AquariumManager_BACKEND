@@ -27,5 +27,5 @@ ENV PORT=8080
 # Set database URL for Neon PostgreSQL
 ENV DATABASE_URL=postgres://neondb_owner:npg_POpns15rGmed@ep-restless-tooth-a4ch55l0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
 
-# Run the application using Railway-compatible pattern with explicit paths
-CMD sh -c "java -jar target/dependency/webapp-runner.jar --port ${PORT:-8080} target/aquarium-api.war" 
+# Run the application using Railway-compatible pattern with proper environment variable expansion
+CMD ["sh", "-c", "java -jar target/dependency/webapp-runner.jar --port ${PORT:-8080} target/aquarium-api.war"] 

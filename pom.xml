@@ -156,6 +156,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Add javax servlet API for webapp-runner compatibility -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>jakarta.inject</groupId>
             <artifactId>jakarta.inject-api</artifactId>

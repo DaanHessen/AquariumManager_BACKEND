@@ -1,11 +1,9 @@
 package nl.hu.bep.config;
 
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.annotation.WebListener;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import lombok.extern.slf4j.Slf4j;
 
-@WebListener
 @Slf4j
 public class DatabaseLifecycleListener implements ServletContextListener {
 
