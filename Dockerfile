@@ -25,33 +25,33 @@ RUN ls -la target/ && test -f target/aquarium-api.war
 # Use proper Tomcat 10 with JDK 17 for Jakarta EE compatibility
 FROM tomcat:10.1.28-jdk17
 
-# Remove default webapps
-RUN rm -rf /usr/local/tomcat/webapps/*
+# Remove default webapps completely
+RUN rm -rf /opt/tomcat/webapps/*
 
 # Copy WAR file to ROOT context
-COPY --from=0 /app/target/aquarium-api.war /usr/local/tomcat/webapps/ROOT.war
+COPY --from=0 /app/target/aquarium-api.war /opt/tomcat/webapps/ROOT.war
 
 # Create simple server.xml template
-RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /usr/local/tomcat/conf/server.xml && \
-    echo '<Server port="8005" shutdown="SHUTDOWN">' >> /usr/local/tomcat/conf/server.xml && \
-    echo '  <Service name="Catalina">' >> /usr/local/tomcat/conf/server.xml && \
-    echo '    <Connector port="PORT_PLACEHOLDER" protocol="HTTP/1.1"' >> /usr/local/tomcat/conf/server.xml && \
-    echo '               connectionTimeout="20000" redirectPort="8443" />' >> /usr/local/tomcat/conf/server.xml && \
-    echo '    <Engine name="Catalina" defaultHost="localhost">' >> /usr/local/tomcat/conf/server.xml && \
-    echo '      <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">' >> /usr/local/tomcat/conf/server.xml && \
-    echo '      </Host>' >> /usr/local/tomcat/conf/server.xml && \
-    echo '    </Engine>' >> /usr/local/tomcat/conf/server.xml && \
-    echo '  </Service>' >> /usr/local/tomcat/conf/server.xml && \
-    echo '</Server>' >> /usr/local/tomcat/conf/server.xml
+RUN echo '<?xml version="1.0" encoding="UTF-8"?>' > /opt/tomcat/conf/server.xml && \
+    echo '<Server port="8005" shutdown="SHUTDOWN">' >> /opt/tomcat/conf/server.xml && \
+    echo '  <Service name="Catalina">' >> /opt/tomcat/conf/server.xml && \
+    echo '    <Connector port="PORT_PLACEHOLDER" protocol="HTTP/1.1"' >> /opt/tomcat/conf/server.xml && \
+    echo '               connectionTimeout="20000" redirectPort="8443" />' >> /opt/tomcat/conf/server.xml && \
+    echo '    <Engine name="Catalina" defaultHost="localhost">' >> /opt/tomcat/conf/server.xml && \
+    echo '      <Host name="localhost" appBase="webapps" unpackWARs="true" autoDeploy="true">' >> /opt/tomcat/conf/server.xml && \
+    echo '      </Host>' >> /opt/tomcat/conf/server.xml && \
+    echo '    </Engine>' >> /opt/tomcat/conf/server.xml && \
+    echo '  </Service>' >> /opt/tomcat/conf/server.xml && \
+    echo '</Server>' >> /opt/tomcat/conf/server.xml
 
 # Create startup script
-RUN echo '#!/bin/sh' > /usr/local/tomcat/bin/startup.sh && \
-    echo 'export PORT=${PORT:-8080}' >> /usr/local/tomcat/bin/startup.sh && \
-    echo 'echo "Starting Aquarium API on port $PORT"' >> /usr/local/tomcat/bin/startup.sh && \
-    echo 'sed "s/PORT_PLACEHOLDER/$PORT/g" /usr/local/tomcat/conf/server.xml > /tmp/server.xml' >> /usr/local/tomcat/bin/startup.sh && \
-    echo 'mv /tmp/server.xml /usr/local/tomcat/conf/server.xml' >> /usr/local/tomcat/bin/startup.sh && \
-    echo 'exec /usr/local/tomcat/bin/catalina.sh run' >> /usr/local/tomcat/bin/startup.sh && \
-    chmod +x /usr/local/tomcat/bin/startup.sh
+RUN echo '#!/bin/sh' > /opt/tomcat/bin/startup.sh && \
+    echo 'export PORT=${PORT:-8080}' >> /opt/tomcat/bin/startup.sh && \
+    echo 'echo "Starting Aquarium API on port $PORT"' >> /opt/tomcat/bin/startup.sh && \
+    echo 'sed "s/PORT_PLACEHOLDER/$PORT/g" /opt/tomcat/conf/server.xml > /tmp/server.xml' >> /opt/tomcat/bin/startup.sh && \
+    echo 'mv /tmp/server.xml /opt/tomcat/conf/server.xml' >> /opt/tomcat/bin/startup.sh && \
+    echo 'exec /opt/tomcat/bin/catalina.sh run' >> /opt/tomcat/bin/startup.sh && \
+    chmod +x /opt/tomcat/bin/startup.sh
 
 # Set JVM options for Railway
 ENV CATALINA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -Xms256m -Xmx1024m"
@@ -60,4 +60,4 @@ ENV CATALINA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./uran
 EXPOSE 8080
 
 # Use startup script
-CMD ["/usr/local/tomcat/bin/startup.sh"] 
+CMD ["/opt/tomcat/bin/startup.sh"] 
