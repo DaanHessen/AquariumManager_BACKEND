@@ -28,50 +28,76 @@ public class CorsFilter implements Filter {
         
         // Get the origin from the request
         String origin = request.getHeader("Origin");
+        String method = request.getMethod();
+        String requestURI = request.getRequestURI();
         
-        // Allow requests from your specific Vercel domain and localhost for development
-        if (origin != null && (
-            origin.equals("https://aquarium-manager-frontend.vercel.app") ||
-            origin.contains("localhost") || 
-            origin.contains("127.0.0.1") ||
-            origin.contains("vercel.app") ||
-            origin.contains("railway.app") ||
-            origin.contains("render.com") ||
-            origin.contains("netlify.app") ||
-            origin.contains("github.io")
-        )) {
-            response.setHeader("Access-Control-Allow-Origin", origin);
-        } else {
-            // For any other origins, still allow but log for monitoring
-            response.setHeader("Access-Control-Allow-Origin", "*");
-            if (origin != null) {
-                log.info("CORS request from origin: {}", origin);
-            }
-        }
+        log.debug("CORS request - Origin: {}, Method: {}, URI: {}", origin, method, requestURI);
         
-        // Railway health checks come from healthcheck.railway.app
-        String host = request.getHeader("Host");
-        String userAgent = request.getHeader("User-Agent");
-        if ((host != null && host.contains("railway.app")) || 
-            (userAgent != null && userAgent.contains("Railway")) ||
-            request.getRequestURI().contains("/health")) {
-            response.setHeader("Access-Control-Allow-Origin", "*");
-            log.debug("Railway health check or internal request detected");
-        }
-        
+        // Always set these headers for all requests
         response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
         response.setHeader("Access-Control-Allow-Headers", 
             "Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma");
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Max-Age", "3600");
         
+        // Determine the appropriate origin to allow
+        if (origin != null) {
+            // Explicitly allow your Vercel frontend
+            if (origin.equals("https://aquarium-manager-frontend.vercel.app")) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                log.debug("CORS: Allowed Vercel frontend origin: {}", origin);
+            }
+            // Allow localhost for development
+            else if (origin.contains("localhost") || origin.contains("127.0.0.1")) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                log.debug("CORS: Allowed localhost origin: {}", origin);
+            }
+            // Allow other Vercel deployment URLs (preview deployments)
+            else if (origin.endsWith("vercel.app")) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                log.debug("CORS: Allowed Vercel deployment origin: {}", origin);
+            }
+            // Allow Railway origins (for internal checks)
+            else if (origin.contains("railway.app")) {
+                response.setHeader("Access-Control-Allow-Origin", origin);
+                log.debug("CORS: Allowed Railway origin: {}", origin);
+            }
+            // Log other origins but still allow them for debugging
+            else {
+                response.setHeader("Access-Control-Allow-Origin", "*");
+                log.warn("CORS: Unknown origin allowed with wildcard: {}", origin);
+            }
+        } else {
+            // No origin header (direct server requests, health checks, etc.)
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            log.debug("CORS: No origin header, allowing wildcard");
+        }
+        
         // Handle preflight OPTIONS requests
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+        if ("OPTIONS".equalsIgnoreCase(method)) {
             response.setStatus(HttpServletResponse.SC_OK);
+            log.debug("CORS: Handled OPTIONS preflight request for URI: {}", requestURI);
             return;
         }
         
-        chain.doFilter(request, response);
+        // Continue with the request
+        try {
+            chain.doFilter(request, response);
+        } catch (Exception e) {
+            log.error("Error in filter chain for request {}: {}", requestURI, e.getMessage(), e);
+            // Set error response headers
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("application/json");
+            
+            // Create error response
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Internal Server Error");
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("path", requestURI);
+            errorResponse.put("timestamp", System.currentTimeMillis());
+            
+            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        }
     }
 
     @Override
