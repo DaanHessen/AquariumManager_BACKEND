@@ -55,36 +55,68 @@ public class AccessoryService {
   }
 
   public AccessoryResponse createAccessory(AccessoryRequest request, Long ownerId) {
+    // Validate basic requirements
+    if (request.model() == null || request.model().trim().isEmpty()) {
+      throw new ApplicationException.BadRequestException("Accessory model cannot be empty");
+    }
+    
+    if (request.serialNumber() == null || request.serialNumber().trim().isEmpty()) {
+      throw new ApplicationException.BadRequestException("Accessory serial number cannot be empty");
+    }
+    
+    if (request.type() == null || request.type().trim().isEmpty()) {
+      throw new ApplicationException.BadRequestException("Accessory type cannot be empty");
+    }
+
     Aquarium aquarium = null;
     if (request.aquariumId() != null) {
       aquarium = findAquariumWithAccessories(request.aquariumId());
       aquarium.verifyOwnership(ownerId);
     }
 
-    Accessory accessory = Accessory.createFromType(
-        request.type(),
-        request.model(),
-        request.serialNumber(),
-        request.getIsExternalValue(),
-        request.getCapacityInLitersValue(),
-        request.getIsLEDValue(),
-        request.getTimeOnValue(),
-        request.getTimeOffValue(),
-        request.getMinTemperatureValue(),
-        request.getMaxTemperatureValue(),
-        request.getCurrentTemperatureValue(),
-        ownerId,
-        request.color(),
-        request.description());
+    Accessory accessory;
+    try {
+      accessory = Accessory.createFromType(
+          request.type(),
+          request.model(),
+          request.serialNumber(),
+          request.getIsExternalValue(),
+          request.getCapacityInLitersValue(),
+          request.getIsLEDValue(),
+          request.getTimeOnValue(),
+          request.getTimeOffValue(),
+          request.getMinTemperatureValue(),
+          request.getMaxTemperatureValue(),
+          request.getCurrentTemperatureValue(),
+          ownerId,
+          request.color(),
+          request.description());
+    } catch (IllegalArgumentException e) {
+      throw new ApplicationException.BadRequestException("Invalid accessory data: " + e.getMessage(), e);
+    } catch (Exception e) {
+      log.error("Error creating accessory: {}", e.getMessage(), e);
+      throw new ApplicationException.BadRequestException("Failed to create accessory: " + e.getMessage(), e);
+    }
 
-    accessory = accessoryRepository.save(accessory);
-    log.info("Saved accessory with ownerId: {}", accessory.getOwnerId());
+    try {
+      accessory = accessoryRepository.save(accessory);
+      log.info("Saved accessory with ownerId: {}", accessory.getOwnerId());
+    } catch (Exception e) {
+      log.error("Database error saving accessory: {}", e.getMessage(), e);
+      throw new ApplicationException.BadRequestException("Failed to save accessory to database: " + e.getMessage(), e);
+    }
 
     if (aquarium != null) {
-      log.info("Adding accessory {} to aquarium on creation: {}", accessory, aquarium);
-      aquarium.addToAccessories(accessory);
-      aquariumRepository.save(aquarium);
-      accessory = findAccessory(accessory.getId());
+      try {
+        log.info("Adding accessory {} to aquarium on creation: {}", accessory, aquarium);
+        aquarium.addToAccessories(accessory);
+        aquariumRepository.save(aquarium);
+        accessory = findAccessory(accessory.getId());
+      } catch (Exception e) {
+        log.error("Error adding accessory to aquarium during creation: {}", e.getMessage(), e);
+        // Don't fail the entire operation, but log the issue
+        log.warn("Accessory was created but could not be added to aquarium");
+      }
     }
 
     return mappingService.mapAccessory(accessory);

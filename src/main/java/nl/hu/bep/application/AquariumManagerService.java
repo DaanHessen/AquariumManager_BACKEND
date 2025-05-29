@@ -69,31 +69,90 @@ public class AquariumManagerService {
 
     public AquariumResponse createAquarium(AquariumRequest request, Long ownerId) {
         Validator.notNull(request, "Request");
-
-        Aquarium aquarium = Aquarium.create(
-                request.name(),
-                request.length(),
-                request.width(),
-                request.height(),
-                request.substrate(),
-                request.waterType(),
-                request.color(),
-                request.description(),
-                request.state()
-        );
-
-        if (ownerId != null) {
-            Owner owner = findOwner(ownerId);
-            aquarium.assignToOwner(owner);
+        
+        // Additional validation
+        if (request.name() == null || request.name().trim().isEmpty()) {
+            throw new ApplicationException.BadRequestException("Aquarium name cannot be empty");
+        }
+        
+        if (request.length() == null || request.length() <= 0) {
+            throw new ApplicationException.BadRequestException("Aquarium length must be positive");
+        }
+        
+        if (request.width() == null || request.width() <= 0) {
+            throw new ApplicationException.BadRequestException("Aquarium width must be positive");
+        }
+        
+        if (request.height() == null || request.height() <= 0) {
+            throw new ApplicationException.BadRequestException("Aquarium height must be positive");
+        }
+        
+        if (request.substrate() == null) {
+            throw new ApplicationException.BadRequestException("Substrate type is required");
+        }
+        
+        if (request.waterType() == null) {
+            throw new ApplicationException.BadRequestException("Water type is required");
         }
 
-        Aquarium savedAquarium = aquariumRepository.save(aquarium);
+        // Find and validate owner if provided
+        Owner owner = null;
+        if (ownerId != null) {
+            try {
+                owner = findOwner(ownerId);
+            } catch (Exception e) {
+                log.error("Error finding owner {}: {}", ownerId, e.getMessage(), e);
+                throw new ApplicationException.BadRequestException("Invalid owner ID: " + ownerId);
+            }
+        }
+
+        Aquarium aquarium;
+        try {
+            aquarium = Aquarium.create(
+                    request.name(),
+                    request.length(),
+                    request.width(),
+                    request.height(),
+                    request.substrate(),
+                    request.waterType(),
+                    request.color(),
+                    request.description(),
+                    request.state()
+            );
+        } catch (Exception e) {
+            log.error("Error creating aquarium domain object: {}", e.getMessage(), e);
+            throw new ApplicationException.BadRequestException("Failed to create aquarium: " + e.getMessage(), e);
+        }
+
+        if (owner != null) {
+            try {
+                aquarium.assignToOwner(owner);
+            } catch (Exception e) {
+                log.error("Error assigning aquarium to owner: {}", e.getMessage(), e);
+                throw new ApplicationException.BadRequestException("Failed to assign aquarium to owner: " + e.getMessage(), e);
+            }
+        }
+
+        Aquarium savedAquarium;
+        try {
+            savedAquarium = aquariumRepository.save(aquarium);
+            log.info("Successfully saved aquarium with ID: {}", savedAquarium.getId());
+        } catch (Exception e) {
+            log.error("Database error saving aquarium: {}", e.getMessage(), e);
+            throw new ApplicationException.BadRequestException("Database operation failed while creating aquarium: " + e.getMessage(), e);
+        }
         
         // Fetch the aquarium with all required relationships to avoid LazyInitializationException
-        Aquarium aquariumWithAllData = aquariumRepository.findByIdWithAllCollections(savedAquarium.getId())
-                .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
-        
-        return mappingService.mapAquarium(aquariumWithAllData);
+        try {
+            Aquarium aquariumWithAllData = aquariumRepository.findByIdWithAllCollections(savedAquarium.getId())
+                    .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
+            
+            return mappingService.mapAquarium(aquariumWithAllData);
+        } catch (Exception e) {
+            log.error("Error fetching created aquarium: {}", e.getMessage(), e);
+            // Return basic mapping if detailed fetch fails
+            return mappingService.mapAquarium(savedAquarium);
+        }
     }
 
     public AquariumResponse updateAquarium(Long id, AquariumRequest request) {

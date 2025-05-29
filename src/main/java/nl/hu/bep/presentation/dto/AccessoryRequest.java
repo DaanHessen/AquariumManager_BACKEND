@@ -1,21 +1,36 @@
 package nl.hu.bep.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AccessoryRequest(
+        @NotBlank(message = "Model cannot be empty")
+        @Size(min = 1, max = 50, message = "Model must be between 1 and 50 characters")
         String model,
+        
+        @NotBlank(message = "Serial number cannot be empty")
+        @Size(min = 1, max = 50, message = "Serial number must be between 1 and 50 characters")
         String serialNumber,
+        
+        @NotBlank(message = "Type cannot be empty")
         String type,
+        
         Long aquariumId,
 
         Boolean isExternal,
         Integer capacityInLiters,
 
         Boolean isLED,
+        
+        @Size(max = 50, message = "Color must be less than 50 characters")
         String color,
+        
+        @Size(max = 255, message = "Description must be less than 255 characters")
         String description,
+        
         String timeOn,
         String timeOff,
 
