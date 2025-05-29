@@ -127,7 +127,7 @@ public class AquariumService {
 
   public AquariumResponse addAccessory(Long aquariumId, Long accessoryId, Map<String, Object> properties,
       Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findById(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithAccessories(aquariumId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
     aquarium.verifyOwnership(ownerId);
@@ -152,7 +152,7 @@ public class AquariumService {
   }
 
   public AquariumResponse removeAccessory(Long aquariumId, Long accessoryId, Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findById(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithAccessories(aquariumId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
     aquarium.verifyOwnership(ownerId);
@@ -177,7 +177,7 @@ public class AquariumService {
   }
 
   public AquariumResponse addOrnament(Long aquariumId, Long ornamentId, Map<String, Object> properties, Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findById(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithOrnaments(aquariumId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
     aquarium.verifyOwnership(ownerId);
@@ -202,7 +202,7 @@ public class AquariumService {
   }
 
   public AquariumResponse removeOrnament(Long aquariumId, Long ornamentId, Long ownerId) {
-    Aquarium aquarium = aquariumRepository.findById(aquariumId)
+    Aquarium aquarium = aquariumRepository.findByIdWithOrnaments(aquariumId)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
 
     aquarium.verifyOwnership(ownerId);
