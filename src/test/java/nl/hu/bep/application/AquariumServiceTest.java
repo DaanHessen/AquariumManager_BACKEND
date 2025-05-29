@@ -166,12 +166,14 @@ class AquariumServiceTest {
         request.waterType());
 
     when(aquariumRepository.save(any(Aquarium.class))).thenReturn(newAquarium);
+    when(aquariumRepository.findByIdWithOwner(any())).thenReturn(Optional.of(newAquarium));
     when(mappingService.mapAquarium(newAquarium)).thenReturn(testAquariumResponse);
 
     AquariumResponse result = aquariumService.createAquarium(request, null);
 
     assertEquals(testAquariumResponse, result);
     verify(aquariumRepository).save(any(Aquarium.class));
+    verify(aquariumRepository).findByIdWithOwner(any());
     verify(mappingService).mapAquarium(any(Aquarium.class));
   }
 
@@ -197,6 +199,7 @@ class AquariumServiceTest {
 
     when(ownerRepository.findByIdWithAquariums(1L)).thenReturn(Optional.of(testOwner));
     when(aquariumRepository.save(any(Aquarium.class))).thenReturn(newAquarium);
+    when(aquariumRepository.findByIdWithOwner(any())).thenReturn(Optional.of(newAquarium));
     when(mappingService.mapAquarium(any(Aquarium.class))).thenReturn(testAquariumResponse);
 
     AquariumResponse result = aquariumService.createAquarium(request, 1L);
@@ -204,6 +207,7 @@ class AquariumServiceTest {
     assertEquals(testAquariumResponse, result);
     verify(ownerRepository).findByIdWithAquariums(1L);
     verify(aquariumRepository).save(any(Aquarium.class));
+    verify(aquariumRepository).findByIdWithOwner(any());
     verify(mappingService).mapAquarium(any(Aquarium.class));
   }
 
