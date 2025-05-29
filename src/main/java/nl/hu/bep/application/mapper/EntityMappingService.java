@@ -1,13 +1,11 @@
 package nl.hu.bep.application.mapper;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import nl.hu.bep.domain.*;
 import nl.hu.bep.presentation.dto.*;
 
 import java.util.List;
 
-@ApplicationScoped
 public class EntityMappingService {
     
     private final AquariumMapper mapper;
