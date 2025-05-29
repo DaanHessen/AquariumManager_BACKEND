@@ -15,14 +15,14 @@ RUN chmod +x mvnw
 # Copy pom.xml first for better caching
 COPY pom.xml .
 
-# Download dependencies using Maven wrapper
-RUN ./mvnw dependency:go-offline -B
+# Download dependencies using Maven wrapper (unset MAVEN_CONFIG to avoid conflicts)
+RUN unset MAVEN_CONFIG && ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY src ./src
 
-# Build the application using Maven wrapper
-RUN ./mvnw clean package -DskipTests
+# Build the application using Maven wrapper (unset MAVEN_CONFIG to avoid conflicts)
+RUN unset MAVEN_CONFIG && ./mvnw clean package -DskipTests
 
 # Verify that webapp-runner.jar was created
 RUN ls -la target/dependency/ && \
