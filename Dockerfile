@@ -22,10 +22,10 @@ RUN mvn clean package -DskipTests
 # Verify WAR file creation
 RUN ls -la target/ && test -f target/aquarium-api.war
 
-# Use proper Tomcat 10 with JDK 17 for Jakarta EE compatibility
-FROM tomcat:10.1.28-jdk17
+# Use standard Tomcat 10 with JDK 17 for Jakarta EE compatibility
+FROM tomcat:10-jdk17-openjdk
 
-# Remove default webapps completely
+# Remove default webapps
 RUN rm -rf /opt/tomcat/webapps/*
 
 # Copy WAR file to ROOT context
