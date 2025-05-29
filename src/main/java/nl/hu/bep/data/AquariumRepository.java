@@ -8,62 +8,41 @@ import java.util.List;
 import java.util.Optional;
 
 @Singleton
-public class AquariumRepository extends Repository<Aquarium, Long> {
+public class AquariumRepository extends BaseRepository<Aquarium, Long> {
     
     public AquariumRepository() {
         super(Aquarium.class);
     }
     
+    /**
+     * Find aquarium by ID with inhabitants loaded
+     * Using the base repository's flexible method
+     */
     public Optional<Aquarium> findByIdWithInhabitants(Long id) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT a FROM Aquarium a LEFT JOIN FETCH a.inhabitants WHERE a.id = :id", Aquarium.class);
-            query.setParameter("id", id);
-            
-            return query.getResultStream().findFirst();
-        });
+        return findByIdWithRelationships(id, "inhabitants");
     }
     
-    public Optional<Aquarium> findByIdWithAccessories(Long id) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT a FROM Aquarium a LEFT JOIN FETCH a.accessories WHERE a.id = :id", Aquarium.class);
-            query.setParameter("id", id);
-            
-            return query.getResultStream().findFirst();
-        });
+    /**
+     * Find aquarium by ID with all collections loaded
+     * Using the base repository's flexible method
+     */
+    public Optional<Aquarium> findByIdWithAllCollections(Long id) {
+        return findByIdWithRelationships(id, "inhabitants", "accessories", "ornaments", "owner", "stateHistory");
     }
     
-    public Optional<Aquarium> findByIdWithOrnaments(Long id) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT a FROM Aquarium a LEFT JOIN FETCH a.ornaments WHERE a.id = :id", Aquarium.class);
-            query.setParameter("id", id);
-            
-            return query.getResultStream().findFirst();
-        });
+    /**
+     * Find all aquariums with all collections for a specific owner
+     * Using the base repository's flexible method
+     */
+    public List<Aquarium> findByOwnerIdWithCollections(Long ownerId) {
+        return findByNestedFieldWithRelationships("owner.id", ownerId, 
+            "inhabitants", "accessories", "ornaments", "owner", "stateHistory");
     }
     
-    public Optional<Aquarium> findByIdWithOwner(Long id) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT a FROM Aquarium a LEFT JOIN FETCH a.owner WHERE a.id = :id", Aquarium.class);
-            query.setParameter("id", id);
-            
-            return query.getResultStream().findFirst();
-        });
-    }
-    
-    public Optional<Aquarium> findByIdWithManager(Long id) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT a FROM Aquarium a LEFT JOIN FETCH a.aquariumManager WHERE a.id = :id", Aquarium.class);
-            query.setParameter("id", id);
-            
-            return query.getResultStream().findFirst();
-        });
-    }
-    
+    /**
+     * Find all aquariums with all collections
+     * Custom method since base repository doesn't handle "find all with relationships" 
+     */
     public List<Aquarium> findAllWithCollections() {
         return executeWithEntityManager(em -> {
             TypedQuery<Aquarium> query = em.createQuery(
@@ -71,39 +50,16 @@ public class AquariumRepository extends Repository<Aquarium, Long> {
                 "LEFT JOIN FETCH a.inhabitants " +
                 "LEFT JOIN FETCH a.accessories " +
                 "LEFT JOIN FETCH a.ornaments " +
-                "LEFT JOIN FETCH a.owner", Aquarium.class);
+                "LEFT JOIN FETCH a.owner " +
+                "LEFT JOIN FETCH a.stateHistory", Aquarium.class);
             
             return query.getResultList();
         });
     }
     
-    public List<Aquarium> findByOwnerIdWithCollections(Long ownerId) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT DISTINCT a FROM Aquarium a " +
-                "LEFT JOIN FETCH a.inhabitants " +
-                "LEFT JOIN FETCH a.accessories " +
-                "LEFT JOIN FETCH a.ornaments " +
-                "LEFT JOIN FETCH a.owner " +
-                "WHERE a.owner.id = :ownerId", Aquarium.class);
-            query.setParameter("ownerId", ownerId);
-            
-            return query.getResultList();
-        });
-    }
-    
-    public Optional<Aquarium> findByIdWithAllCollections(Long id) {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT DISTINCT a FROM Aquarium a " +
-                "LEFT JOIN FETCH a.inhabitants " +
-                "LEFT JOIN FETCH a.accessories " +
-                "LEFT JOIN FETCH a.ornaments " +
-                "LEFT JOIN FETCH a.owner " +
-                "WHERE a.id = :id", Aquarium.class);
-            query.setParameter("id", id);
-            
-            return query.getResultStream().findFirst();
-        });
-    }
+    // Note: The following methods are now replaced by the generic base repository methods:
+    // - findByIdWithAccessories(id) -> findByIdWithRelationships(id, "accessories")
+    // - findByIdWithOrnaments(id) -> findByIdWithRelationships(id, "ornaments") 
+    // - findByIdWithOwner(id) -> findByIdWithRelationships(id, "owner")
+    // - findByIdWithManager(id) -> findByIdWithRelationships(id, "aquariumManager")
 } 

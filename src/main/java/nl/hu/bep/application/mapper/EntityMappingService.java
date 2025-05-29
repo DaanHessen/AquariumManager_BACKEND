@@ -60,4 +60,14 @@ public class EntityMappingService {
             .map(mapper::toOrnamentResponse)
             .toList();
     }
+
+    public AquariumStateHistoryResponse mapStateHistory(AquariumStateHistory stateHistory) {
+        return mapper.toStateHistoryResponse(stateHistory);
+    }
+
+    public List<AquariumStateHistoryResponse> mapStateHistories(List<AquariumStateHistory> stateHistories) {
+        return stateHistories.stream()
+            .map(mapper::toStateHistoryResponse)
+            .toList();
+    }
 } 

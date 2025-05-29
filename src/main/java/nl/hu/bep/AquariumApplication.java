@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.application.AccessoryService;
+import nl.hu.bep.application.AquariumManagerService;
 import nl.hu.bep.application.AquariumService;
 import nl.hu.bep.application.InhabitantService;
 import nl.hu.bep.application.OrnamentService;
@@ -16,7 +17,7 @@ import nl.hu.bep.config.JacksonConfig;
 import nl.hu.bep.data.*;
 import nl.hu.bep.presentation.exception.ExceptionMappers;
 import nl.hu.bep.presentation.resource.AccessoryResource;
-import nl.hu.bep.presentation.resource.AquariumResource;
+import nl.hu.bep.presentation.resource.AquariumManagerResource;
 import nl.hu.bep.presentation.resource.InhabitantResource;
 import nl.hu.bep.presentation.resource.OrnamentResource;
 import nl.hu.bep.presentation.resource.RootResource;
@@ -53,7 +54,7 @@ public class AquariumApplication extends ResourceConfig {
 
             // Register resource classes
             register(AccessoryResource.class);
-            register(AquariumResource.class);
+            register(AquariumManagerResource.class);
             register(OrnamentResource.class);
             register(InhabitantResource.class);
             register(RootResource.class);
@@ -103,6 +104,7 @@ public class AquariumApplication extends ResourceConfig {
             bindAsSingleton(AccessoryRepository.class);
             bindAsSingleton(AquariumManagerRepository.class);
             bindAsSingleton(AquariumRepository.class);
+            bindAsSingleton(AquariumStateHistoryRepository.class);
             bindAsSingleton(InhabitantRepository.class);
             bindAsSingleton(OrnamentRepository.class);
             bindAsSingleton(OwnerRepository.class);
@@ -111,6 +113,7 @@ public class AquariumApplication extends ResourceConfig {
             bindAsSingleton(InhabitantService.class);
             bindAsSingleton(AccessoryService.class);
             bindAsSingleton(OrnamentService.class);
+            bindAsSingleton(AquariumManagerService.class);
 
             bindAsSingleton(JwtService.class);
             bindAsSingleton(AuthenticationService.class);
