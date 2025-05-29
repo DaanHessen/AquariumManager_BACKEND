@@ -89,11 +89,11 @@ public class AquariumManagerService {
 
         Aquarium savedAquarium = aquariumRepository.save(aquarium);
         
-        // Fetch the aquarium with owner to avoid LazyInitializationException
-        Aquarium aquariumWithOwner = aquariumRepository.findByIdWithRelationships(savedAquarium.getId(), "owner")
+        // Fetch the aquarium with all required relationships to avoid LazyInitializationException
+        Aquarium aquariumWithAllData = aquariumRepository.findByIdWithAllCollections(savedAquarium.getId())
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
         
-        return mappingService.mapAquarium(aquariumWithOwner);
+        return mappingService.mapAquarium(aquariumWithAllData);
     }
 
     public AquariumResponse updateAquarium(Long id, AquariumRequest request) {

@@ -17,6 +17,8 @@ public record AquariumResponse(
     SubstrateType substrate,
     WaterType waterType,
     AquariumState state,
+    LocalDateTime currentStateStartTime,
+    Long currentStateDurationMinutes,
     Long ownerId,
     String ownerEmail,
     List<InhabitantResponse> inhabitants,
