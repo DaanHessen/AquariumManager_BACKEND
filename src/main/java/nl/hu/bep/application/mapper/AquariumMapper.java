@@ -33,6 +33,8 @@ public class AquariumMapper {
                 aquarium.getSubstrate(),
                 aquarium.getWaterType(),
                 aquarium.getState(),
+                aquarium.getCurrentStateStartTime(),
+                aquarium.getCurrentStateDurationMinutes(),
                 aquarium.getOwner() != null ? aquarium.getOwner().getId() : null,
                 aquarium.getOwner() != null ? aquarium.getOwner().getEmail() : null,
                 mapInhabitants(aquarium, includeCollections),
