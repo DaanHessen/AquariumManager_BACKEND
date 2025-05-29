@@ -159,7 +159,7 @@ public class DatabaseConfig {
         props.put("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
         props.put("hibernate.hikari.dataSource", dataSource);
         
-        emf = Persistence.createEntityManagerFactory("aquarium-pu", props);
+        emf = Persistence.createEntityManagerFactory("aquariumPU", props);
         log.info("EntityManagerFactory created successfully");
     }
 
