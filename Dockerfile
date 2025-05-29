@@ -1,47 +1,22 @@
-# Use Maven image for building
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+# Use Eclipse Temurin JDK Alpine image (Railway's recommended approach)
+FROM eclipse-temurin:17-jdk-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper files first
-COPY mvnw .
-COPY mvnw.cmd .
-COPY .mvn .mvn
+# Copy all project files
+COPY . ./
 
 # Make Maven wrapper executable and ensure Unix line endings
 RUN chmod +x mvnw && sed -i 's/\r$//' mvnw
 
-# Copy pom.xml first for better caching
-COPY pom.xml .
+# Build the application and download webapp-runner (Railway's pattern)
+RUN ./mvnw -DoutputFile=target/mvn-dependency-list.log -B -DskipTests clean package
 
-# Download dependencies using Maven wrapper (unset MAVEN_CONFIG to avoid conflicts)
-RUN unset MAVEN_CONFIG && ./mvnw dependency:go-offline -B
-
-# Copy source code
-COPY src ./src
-
-# Build the application using Maven wrapper (unset MAVEN_CONFIG to avoid conflicts)
-RUN unset MAVEN_CONFIG && ./mvnw clean package -DskipTests
-
-# Verify that webapp-runner.jar was created
-RUN ls -la target/dependency/ && \
+# Verify that both WAR and webapp-runner.jar were created
+RUN ls -la target/ && ls -la target/dependency/ && \
+    test -f target/aquarium-api.war || (echo "WAR file not found!" && exit 1) && \
     test -f target/dependency/webapp-runner.jar || (echo "webapp-runner.jar not found!" && exit 1)
-
-# Use OpenJDK for runtime
-FROM eclipse-temurin:17-jre-alpine
-
-# Set working directory
-WORKDIR /app
-
-# Copy the built WAR file and webapp-runner
-COPY --from=build /app/target/aquarium-api.war ./app.war
-COPY --from=build /app/target/dependency/webapp-runner.jar ./webapp-runner.jar
-
-# Verify files were copied correctly
-RUN ls -la . && \
-    test -f webapp-runner.jar || (echo "webapp-runner.jar not found in final image!" && exit 1) && \
-    test -f app.war || (echo "app.war not found in final image!" && exit 1)
 
 # Expose port
 EXPOSE 8080
@@ -52,5 +27,5 @@ ENV PORT=8080
 # Set database URL for Neon PostgreSQL
 ENV DATABASE_URL=postgres://neondb_owner:npg_POpns15rGmed@ep-restless-tooth-a4ch55l0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
 
-# Run the application
-CMD ["sh", "-c", "java -jar webapp-runner.jar --port ${PORT:-8080} app.war"] 
+# Run the application using Railway-compatible pattern with explicit paths
+CMD ["sh", "-c", "java -jar target/dependency/webapp-runner.jar --port ${PORT:-8080} target/aquarium-api.war"] 
