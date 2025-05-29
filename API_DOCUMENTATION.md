@@ -1,42 +1,135 @@
-# Aquarium API Documentation
+# Aquarium Manager API Documentation
 
-This document provides comprehensive documentation for the Aquarium API. The purpose of this documentation is to help frontend developers implement a user interface that interacts with the backend.
+## Overview
 
-## Table of Contents
-- [General API Information](#general-api-information)
-- [Authentication](#authentication)
-- [Aquariums](#aquariums)
-- [Inhabitants](#inhabitants)
-- [Accessories](#accessories)
-- [Ornaments](#ornaments)
-- [Error Handling](#error-handling)
-- [Aquarium Parameters Simulation](#aquarium-parameters-simulation)
+The Aquarium Manager API is a RESTful web service for managing aquariums, their inhabitants, accessories, and ornaments. The API provides comprehensive functionality for aquarium enthusiasts to track and manage their aquatic setups.
 
-## General API Information
+**Base URL:** `https://your-domain.com/api`
 
-- Base URL: `/api`
-- All responses are wrapped in an `ApiResponse` object with the following structure:
-
-```json
-{
-  "status": "success", // or "error"
-  "data": {}, // response data or null in case of error
-  "timestamp": 1620000000000, // Unix timestamp in milliseconds
-  "message": "Operation successful" // or error message
-}
-```
+**Version:** 1.0.0 beta
 
 ## Authentication
 
-### Register
+### Authentication Method
+The API uses JWT (JSON Web Token) based authentication. After successful login or registration, you'll receive a token that must be included in subsequent requests.
 
-Creates a new user account.
+### Headers Required
+For authenticated endpoints, include the following header:
+```
+Authorization: Bearer <your-jwt-token>
+```
 
-- **URL**: `/api/auth/register`
-- **Method**: `POST`
-- **Auth required**: No
-- **Request Body**:
+### Content Type
+All requests should include:
+```
+Content-Type: application/json
+```
 
+## Global Response Format
+
+All API responses follow a consistent wrapper format:
+
+```json
+{
+  "status": "success|error",
+  "data": <response_data>,
+  "timestamp": 1234567890123,
+  "message": "Optional message"
+}
+```
+
+## Data Models
+
+### Enums
+
+#### AquariumState
+- `SETUP` - Aquarium is being set up
+- `RUNNING` - Aquarium is operational
+- `MAINTENANCE` - Aquarium is under maintenance
+- `INACTIVE` - Aquarium is not in use
+
+#### SubstrateType
+- `SAND` - Sand substrate
+- `GRAVEL` - Gravel substrate
+- `SOIL` - Soil substrate
+
+#### WaterType
+- `FRESH` - Freshwater
+- `SALT` - Saltwater
+
+## API Endpoints
+
+### Health & Information
+
+#### Get API Information
+- **Method:** `GET`
+- **Endpoint:** `/`
+- **Authentication:** None
+- **Description:** Returns basic API information and available endpoints
+
+**Response:**
+```json
+{
+  "status": "success",
+  "data": {
+    "name": "Aquarium API",
+    "version": "1.0.0 beta",
+    "endpoints": {
+      "aquariums": "/api/aquariums",
+      "inhabitants": "/api/inhabitants",
+      "authentication": "/api/auth",
+      "health-detailed": "/api/health",
+      "health-basic": "/health"
+    },
+    "notes": {
+      "health-basic": "Simple health check for Railway deployment",
+      "health-detailed": "Detailed health check including database connectivity"
+    }
+  },
+  "timestamp": 1234567890123,
+  "message": null
+}
+```
+
+#### Health Check (Detailed)
+- **Method:** `GET`
+- **Endpoint:** `/health`
+- **Authentication:** None
+- **Description:** Detailed health check including database connectivity
+
+**Response (Healthy):**
+```json
+{
+  "status": "success",
+  "data": {
+    "status": "UP",
+    "timestamp": 1234567890123,
+    "service": "Aquarium API - Detailed Health Check",
+    "environment": {
+      "DATABASE_URL_present": true,
+      "DB_HOST": "present",
+      "DB_PORT": "present",
+      "DB_NAME": "present",
+      "DB_USER": "present",
+      "DB_PASSWORD": "present",
+      "PORT": "8080"
+    },
+    "database": "UP"
+  },
+  "timestamp": 1234567890123,
+  "message": "Service is healthy"
+}
+```
+
+### Authentication
+
+#### Register
+- **Method:** `POST`
+- **Endpoint:** `/auth/register`
+- **Authentication:** None
+- **Description:** Register a new user account
+
+**Request Body:**
 ```json
 {
   "firstName": "John",
@@ -46,31 +139,26 @@ Creates a new user account.
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 201 Created
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
     "ownerId": 1,
-    "token": "eyJhbGciOiJIUzI1NiJ9..."
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Registration successful"
 }
 ```
 
-### Login
+#### Login
+- **Method:** `POST`
+- **Endpoint:** `/auth/login`
+- **Authentication:** None
+- **Description:** Authenticate user and receive access token
 
-Authenticates a user and returns a JWT token.
-
-- **URL**: `/api/auth/login`
-- **Method**: `POST`
-- **Auth required**: No
-- **Request Body**:
-
+**Request Body:**
 ```json
 {
   "email": "john.doe@example.com",
@@ -78,46 +166,39 @@ Authenticates a user and returns a JWT token.
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
     "ownerId": 1,
-    "token": "eyJhbGciOiJIUzI1NiJ9..."
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Login successful"
 }
 ```
 
-## Aquariums
+### Aquariums
 
-### Get All Aquariums
+#### Get All Aquariums
+- **Method:** `GET`
+- **Endpoint:** `/aquariums`
+- **Authentication:** Required (Bearer token)
+- **Description:** Get all aquariums owned by the authenticated user
 
-Returns a list of all aquariums.
-
-- **URL**: `/api/aquariums`
-- **Method**: `GET`
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": [
     {
       "id": 1,
-      "name": "Living Room Aquarium",
-      "length": 100.0,
-      "width": 40.0,
-      "height": 50.0,
-      "volumeInLiters": 200.0,
+      "name": "My First Tank",
+      "length": 60.0,
+      "width": 30.0,
+      "height": 40.0,
+      "volumeInLiters": 72.0,
       "substrate": "GRAVEL",
       "waterType": "FRESH",
       "state": "RUNNING",
@@ -125,942 +206,675 @@ Returns a list of all aquariums.
       "ownerEmail": "john.doe@example.com",
       "inhabitants": [],
       "accessories": [],
-      "ornaments": []
+      "ornaments": [],
+      "color": "Blue",
+      "description": "My beautiful freshwater tank",
+      "dateCreated": "2024-01-15T10:30:00"
     }
   ],
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Aquariums fetched successfully"
 }
 ```
 
-### Get Aquarium By ID
+#### Get Aquarium by ID
+- **Method:** `GET`
+- **Endpoint:** `/aquariums/{id}`
+- **Authentication:** None
+- **Description:** Get detailed information about a specific aquarium
 
-Returns a specific aquarium by ID.
+**Path Parameters:**
+- `id` (Long) - Aquarium ID
 
-- **URL**: `/api/aquariums/{id}`
-- **Method**: `GET`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the aquarium
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
     "id": 1,
-    "name": "Living Room Aquarium",
-    "length": 100.0,
-    "width": 40.0,
-    "height": 50.0,
-    "volumeInLiters": 200.0,
+    "name": "My First Tank",
+    "length": 60.0,
+    "width": 30.0,
+    "height": 40.0,
+    "volumeInLiters": 72.0,
     "substrate": "GRAVEL",
     "waterType": "FRESH",
     "state": "RUNNING",
     "ownerId": 1,
     "ownerEmail": "john.doe@example.com",
-    "inhabitants": [],
+    "inhabitants": [
+      {
+        "id": 1,
+        "species": "Neon Tetra",
+        "color": "Blue and Red",
+        "description": "Small schooling fish",
+        "dateCreated": "2024-01-15T11:00:00",
+        "count": 10,
+        "isSchooling": true,
+        "waterType": "FRESH",
+        "aquariumId": 1,
+        "type": "Fish",
+        "isAggressiveEater": false,
+        "requiresSpecialFood": false,
+        "isSnailEater": false
+      }
+    ],
     "accessories": [],
-    "ornaments": []
+    "ornaments": [],
+    "color": "Blue",
+    "description": "My beautiful freshwater tank",
+    "dateCreated": "2024-01-15T10:30:00"
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Aquarium fetched successfully"
 }
 ```
 
-### Get Aquarium Detail By ID
+#### Get Aquarium Detail by ID
+- **Method:** `GET`
+- **Endpoint:** `/aquariums/{id}/detail`
+- **Authentication:** None
+- **Description:** Get detailed aquarium information with inhabitants
 
-Returns detailed information about a specific aquarium.
+**Path Parameters:**
+- `id` (Long) - Aquarium ID
 
-- **URL**: `/api/aquariums/{id}/detail`
-- **Method**: `GET`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the aquarium
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Similar to Get Aquarium By ID but with more details
+**Response:** Same as "Get Aquarium by ID"
 
-### Create Aquarium
+#### Create Aquarium
+- **Method:** `POST`
+- **Endpoint:** `/aquariums`
+- **Authentication:** Required (Bearer token)
+- **Description:** Create a new aquarium
 
-Creates a new aquarium.
-
-- **URL**: `/api/aquariums`
-- **Method**: `POST`
-- **Auth required**: Yes (JWT token in Authorization header)
-- **Request Body**:
-
+**Request Body:**
 ```json
 {
-  "name": "Living Room Aquarium",
-  "length": 100.0,
-  "width": 40.0,
-  "height": 50.0,
-  "substrate": "GRAVEL",
-  "waterType": "FRESH",
+  "name": "My New Tank",
+  "length": 80.0,
+  "width": 35.0,
+  "height": 45.0,
+  "substrate": "SAND",
+  "waterType": "SALT",
+  "color": "Black",
+  "description": "A beautiful saltwater setup",
   "state": "SETUP"
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 201 Created
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
-    "id": 1,
-    "name": "Living Room Aquarium",
-    "length": 100.0,
-    "width": 40.0,
-    "height": 50.0,
-    "volumeInLiters": 200.0,
-    "substrate": "GRAVEL",
-    "waterType": "FRESH",
+    "id": 2,
+    "name": "My New Tank",
+    "length": 80.0,
+    "width": 35.0,
+    "height": 45.0,
+    "volumeInLiters": 126.0,
+    "substrate": "SAND",
+    "waterType": "SALT",
     "state": "SETUP",
     "ownerId": 1,
     "ownerEmail": "john.doe@example.com",
     "inhabitants": [],
     "accessories": [],
-    "ornaments": []
+    "ornaments": [],
+    "color": "Black",
+    "description": "A beautiful saltwater setup",
+    "dateCreated": "2024-01-15T12:00:00"
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Aquarium created successfully"
 }
 ```
 
-### Update Aquarium
+#### Update Aquarium
+- **Method:** `PUT`
+- **Endpoint:** `/aquariums/{id}`
+- **Authentication:** Required (Bearer token)
+- **Description:** Update an existing aquarium
 
-Updates an existing aquarium.
+**Path Parameters:**
+- `id` (Long) - Aquarium ID
 
-- **URL**: `/api/aquariums/{id}`
-- **Method**: `PUT`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the aquarium
-- **Auth required**: Yes (JWT token in Authorization header)
-- **Request Body**:
+**Request Body:** Same as Create Aquarium
 
-```json
-{
-  "name": "Updated Aquarium Name",
-  "length": 120.0,
-  "width": 45.0,
-  "height": 55.0,
-  "substrate": "SAND",
-  "waterType": "FRESH",
-  "state": "RUNNING"
-}
-```
+**Response:** Updated aquarium object
 
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Similar to Create Aquarium response but with updated values
+#### Delete Aquarium
+- **Method:** `DELETE`
+- **Endpoint:** `/aquariums/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Delete an aquarium (owner only)
 
-### Delete Aquarium
+**Path Parameters:**
+- `id` (Long) - Aquarium ID
 
-Deletes an aquarium.
-
-- **URL**: `/api/aquariums/{id}`
-- **Method**: `DELETE`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the aquarium
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
     "aquariumId": 1
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Aquarium deleted successfully"
 }
 ```
 
-### Add Accessory to Aquarium
+#### Add Accessory to Aquarium
+- **Method:** `POST`
+- **Endpoint:** `/aquariums/{aquariumId}/accessories/{accessoryId}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Add an accessory to an aquarium
 
-Adds an accessory to an aquarium.
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+- `accessoryId` (Long) - Accessory ID
 
-- **URL**: `/api/aquariums/{aquariumId}/accessories/{accessoryId}`
-- **Method**: `POST`
-- **URL Parameters**: 
-  - `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-  - `accessoryId=[long]` where `accessoryId` is the ID of the accessory
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Request Body** (Optional properties for the accessory):
-
+**Request Body:**
 ```json
 {
-  "position": "top",
-  "isActive": true
+  "customProperty": "value"
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated aquarium with accessory added
+**Response:** Updated aquarium object with accessories
 
-### Remove Accessory from Aquarium
+#### Remove Accessory from Aquarium
+- **Method:** `DELETE`
+- **Endpoint:** `/aquariums/{aquariumId}/accessories/{accessoryId}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Remove an accessory from an aquarium
 
-Removes an accessory from an aquarium.
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+- `accessoryId` (Long) - Accessory ID
 
-- **URL**: `/api/aquariums/{aquariumId}/accessories/{accessoryId}`
-- **Method**: `DELETE`
-- **URL Parameters**: 
-  - `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-  - `accessoryId=[long]` where `accessoryId` is the ID of the accessory
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated aquarium with accessory removed
+**Response:** Updated aquarium object
 
-### Add Ornament to Aquarium
+#### Add Ornament to Aquarium
+- **Method:** `POST`
+- **Endpoint:** `/aquariums/{aquariumId}/ornaments/{ornamentId}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Add an ornament to an aquarium
 
-Adds an ornament to an aquarium.
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+- `ornamentId` (Long) - Ornament ID
 
-- **URL**: `/api/aquariums/{aquariumId}/ornaments/{ornamentId}`
-- **Method**: `POST`
-- **URL Parameters**: 
-  - `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-  - `ornamentId=[long]` where `ornamentId` is the ID of the ornament
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Request Body** (Optional properties for the ornament):
-
+**Request Body:**
 ```json
 {
-  "position": "center",
-  "isVisible": true
+  "customProperty": "value"
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated aquarium with ornament added
+**Response:** Updated aquarium object with ornaments
 
-### Remove Ornament from Aquarium
+#### Remove Ornament from Aquarium
+- **Method:** `DELETE`
+- **Endpoint:** `/aquariums/{aquariumId}/ornaments/{ornamentId}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Remove an ornament from an aquarium
 
-Removes an ornament from an aquarium.
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+- `ornamentId` (Long) - Ornament ID
 
-- **URL**: `/api/aquariums/{aquariumId}/ornaments/{ornamentId}`
-- **Method**: `DELETE`
-- **URL Parameters**: 
-  - `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-  - `ornamentId=[long]` where `ornamentId` is the ID of the ornament
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated aquarium with ornament removed
+**Response:** Updated aquarium object
 
-### Add Inhabitant to Aquarium
+#### Add Inhabitant to Aquarium
+- **Method:** `POST`
+- **Endpoint:** `/aquariums/{aquariumId}/inhabitants/{inhabitantId}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Add an inhabitant to an aquarium
 
-Adds an inhabitant to an aquarium.
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+- `inhabitantId` (Long) - Inhabitant ID
 
-- **URL**: `/api/aquariums/{aquariumId}/inhabitants/{inhabitantId}`
-- **Method**: `POST`
-- **URL Parameters**: 
-  - `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-  - `inhabitantId=[long]` where `inhabitantId` is the ID of the inhabitant
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Request Body** (Optional properties for the inhabitant):
-
+**Request Body:**
 ```json
 {
-  "position": "bottom",
-  "health": "good"
+  "customProperty": "value"
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated aquarium with inhabitant added
+**Response:** Updated aquarium object with inhabitants
 
-### Remove Inhabitant from Aquarium
+#### Remove Inhabitant from Aquarium
+- **Method:** `DELETE`
+- **Endpoint:** `/aquariums/{aquariumId}/inhabitants/{inhabitantId}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Remove an inhabitant from an aquarium
 
-Removes an inhabitant from an aquarium.
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+- `inhabitantId` (Long) - Inhabitant ID
 
-- **URL**: `/api/aquariums/{aquariumId}/inhabitants/{inhabitantId}`
-- **Method**: `DELETE`
-- **URL Parameters**: 
-  - `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-  - `inhabitantId=[long]` where `inhabitantId` is the ID of the inhabitant
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the aquarium)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated aquarium with inhabitant removed
+**Response:** Updated aquarium object
 
-## Inhabitants
+### Accessories
 
-### Get All Inhabitants
+#### Get All Accessories
+- **Method:** `GET`
+- **Endpoint:** `/accessories`
+- **Authentication:** Required (Bearer token)
+- **Description:** Get all accessories owned by the authenticated user
 
-Returns a list of all inhabitants.
-
-- **URL**: `/api/inhabitants`
-- **Method**: `GET`
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": [
     {
       "id": 1,
-      "species": "Guppy",
-      "color": "Rainbow",
-      "count": 5,
-      "isSchooling": true,
-      "waterType": "FRESH",
-      "aquariumId": 1,
-      "type": "FISH",
-      "isAggressiveEater": false,
-      "requiresSpecialFood": false,
-      "isSnailEater": false
+      "model": "AquaClear 50",
+      "serialNumber": "AC50-001",
+      "type": "Filter",
+      "isExternal": false,
+      "capacityLiters": 200,
+      "isLed": false,
+      "turnOnTime": "08:00:00",
+      "turnOffTime": "20:00:00",
+      "minTemperature": 22.0,
+      "maxTemperature": 28.0,
+      "currentTemperature": 25.0,
+      "color": "Black",
+      "description": "High-quality filter system",
+      "dateCreated": "2024-01-15T10:45:00"
     }
   ],
-  "timestamp": 1620000000000,
-  "message": "Inhabitants fetched successfully"
-}
-```
-
-### Get Inhabitant By ID
-
-Returns a specific inhabitant by ID.
-
-- **URL**: `/api/inhabitants/{id}`
-- **Method**: `GET`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the inhabitant
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
-```json
-{
-  "status": "success",
-  "data": {
-    "id": 1,
-    "species": "Guppy",
-    "color": "Rainbow",
-    "count": 5,
-    "isSchooling": true,
-    "waterType": "FRESH",
-    "aquariumId": 1,
-    "type": "FISH",
-    "isAggressiveEater": false,
-    "requiresSpecialFood": false,
-    "isSnailEater": false
-  },
-  "timestamp": 1620000000000,
-  "message": "Inhabitant fetched successfully"
-}
-```
-
-### Get Inhabitants By Aquarium
-
-Returns all inhabitants in a specific aquarium.
-
-- **URL**: `/api/inhabitants/byAquarium/{aquariumId}`
-- **Method**: `GET`
-- **URL Parameters**: `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: List of inhabitants in the specified aquarium
-
-### Create Inhabitant
-
-Creates a new inhabitant.
-
-- **URL**: `/api/inhabitants`
-- **Method**: `POST`
-- **Auth required**: Yes (JWT token in Authorization header)
-- **Request Body**:
-
-```json
-{
-  "species": "Guppy",
-  "color": "Rainbow",
-  "count": 5,
-  "isSchooling": true,
-  "waterType": "FRESH",
-  "type": "FISH",
-  "aquariumId": 1,
-  "isAggressiveEater": false,
-  "requiresSpecialFood": false,
-  "isSnailEater": false
-}
-```
-
-- **Success Response**: 
-  - **Code**: 201 Created
-  - **Content**: Created inhabitant object
-
-### Update Inhabitant
-
-Updates an existing inhabitant.
-
-- **URL**: `/api/inhabitants/{id}`
-- **Method**: `PUT`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the inhabitant
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the inhabitant)
-- **Request Body**:
-
-```json
-{
-  "species": "Updated Species",
-  "color": "Updated Color",
-  "count": 10,
-  "isSchooling": false,
-  "waterType": "FRESH",
-  "type": "FISH",
-  "aquariumId": 1,
-  "isAggressiveEater": true,
-  "requiresSpecialFood": true,
-  "isSnailEater": true
-}
-```
-
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated inhabitant object
-
-### Delete Inhabitant
-
-Deletes an inhabitant.
-
-- **URL**: `/api/inhabitants/{id}`
-- **Method**: `DELETE`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the inhabitant
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the inhabitant)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
-```json
-{
-  "status": "success",
-  "data": {
-    "inhabitantId": 1
-  },
-  "timestamp": 1620000000000,
-  "message": "Inhabitant deleted successfully"
-}
-```
-
-## Accessories
-
-### Get All Accessories
-
-Returns a list of all accessories.
-
-- **URL**: `/api/accessories`
-- **Method**: `GET`
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
-```json
-{
-  "status": "success",
-  "data": [
-    {
-      "id": 1,
-      "model": "Filter Model X",
-      "serialNumber": "FMX123",
-      "type": "FILTER",
-      "isExternal": true,
-      "capacityLiters": 100,
-      "isLed": null,
-      "turnOnTime": null,
-      "turnOffTime": null,
-      "minTemperature": null,
-      "maxTemperature": null,
-      "currentTemperature": null
-    }
-  ],
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Accessories fetched successfully"
 }
 ```
 
-### Get Accessory By ID
+#### Get Accessory by ID
+- **Method:** `GET`
+- **Endpoint:** `/accessories/{id}`
+- **Authentication:** None
+- **Description:** Get detailed information about a specific accessory
 
-Returns a specific accessory by ID.
+**Path Parameters:**
+- `id` (Long) - Accessory ID
 
-- **URL**: `/api/accessories/{id}`
-- **Method**: `GET`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the accessory
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
+**Response:** Single accessory object
 
+#### Get Accessories by Aquarium
+- **Method:** `GET`
+- **Endpoint:** `/accessories/byAquarium/{aquariumId}`
+- **Authentication:** None
+- **Description:** Get all accessories for a specific aquarium
+
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+
+**Response:** Array of accessory objects
+
+#### Create Accessory
+- **Method:** `POST`
+- **Endpoint:** `/accessories`
+- **Authentication:** Required (Bearer token)
+- **Description:** Create a new accessory
+
+**Request Body:**
 ```json
 {
-  "status": "success",
-  "data": {
-    "id": 1,
-    "model": "Filter Model X",
-    "serialNumber": "FMX123",
-    "type": "FILTER",
-    "isExternal": true,
-    "capacityLiters": 100,
-    "isLed": null,
-    "turnOnTime": null,
-    "turnOffTime": null,
-    "minTemperature": null,
-    "maxTemperature": null,
-    "currentTemperature": null
-  },
-  "timestamp": 1620000000000,
-  "message": "Accessory fetched successfully"
-}
-```
-
-### Get Accessories By Aquarium
-
-Returns all accessories in a specific aquarium.
-
-- **URL**: `/api/accessories/byAquarium/{aquariumId}`
-- **Method**: `GET`
-- **URL Parameters**: `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: List of accessories in the specified aquarium
-
-### Create Accessory
-
-Creates a new accessory.
-
-- **URL**: `/api/accessories`
-- **Method**: `POST`
-- **Auth required**: Yes (JWT token in Authorization header)
-- **Request Body**:
-
-```json
-{
-  "model": "Filter Model X",
-  "serialNumber": "FMX123",
-  "type": "FILTER",
+  "model": "AquaClear 70",
+  "serialNumber": "AC70-002",
+  "type": "Filter",
   "aquariumId": 1,
-  "isExternal": true,
-  "capacityInLiters": 100,
-  "isLED": null,
-  "color": null,
-  "timeOn": null,
-  "timeOff": null,
-  "minTemperature": null,
-  "maxTemperature": null,
-  "currentTemperature": null
+  "isExternal": false,
+  "capacityInLiters": 300,
+  "isLED": false,
+  "color": "Black",
+  "description": "Powerful filtration system",
+  "timeOn": "07:00",
+  "timeOff": "21:00",
+  "minTemperature": 20.0,
+  "maxTemperature": 30.0,
+  "currentTemperature": 24.0
 }
 ```
 
-For a light accessory:
+**Response:** Created accessory object
 
-```json
-{
-  "model": "Light Model Y",
-  "serialNumber": "LMY456",
-  "type": "LIGHT",
-  "aquariumId": 1,
-  "isExternal": null,
-  "capacityInLiters": null,
-  "isLED": true,
-  "color": "white",
-  "timeOn": "08:00:00",
-  "timeOff": "20:00:00",
-  "minTemperature": null,
-  "maxTemperature": null,
-  "currentTemperature": null
-}
-```
+#### Update Accessory
+- **Method:** `PUT`
+- **Endpoint:** `/accessories/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Update an existing accessory
 
-For a heater accessory:
+**Path Parameters:**
+- `id` (Long) - Accessory ID
 
-```json
-{
-  "model": "Heater Model Z",
-  "serialNumber": "HMZ789",
-  "type": "HEATER",
-  "aquariumId": 1,
-  "isExternal": null,
-  "capacityInLiters": null,
-  "isLED": null,
-  "color": null,
-  "timeOn": null,
-  "timeOff": null,
-  "minTemperature": 22.0,
-  "maxTemperature": 28.0,
-  "currentTemperature": 25.0
-}
-```
+**Request Body:** Same as Create Accessory
 
-- **Success Response**: 
-  - **Code**: 201 Created
-  - **Content**: Created accessory object
+**Response:** Updated accessory object
 
-### Update Accessory
+#### Delete Accessory
+- **Method:** `DELETE`
+- **Endpoint:** `/accessories/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Delete an accessory (owner only)
 
-Updates an existing accessory.
+**Path Parameters:**
+- `id` (Long) - Accessory ID
 
-- **URL**: `/api/accessories/{id}`
-- **Method**: `PUT`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the accessory
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the accessory)
-- **Request Body**: Same format as Create Accessory with updated values
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated accessory object
-
-### Delete Accessory
-
-Deletes an accessory.
-
-- **URL**: `/api/accessories/{id}`
-- **Method**: `DELETE`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the accessory
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the accessory)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
     "accessoryId": 1
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Accessory deleted successfully"
 }
 ```
 
-## Ornaments
+### Inhabitants
 
-### Get All Ornaments
+#### Get All Inhabitants
+- **Method:** `GET`
+- **Endpoint:** `/inhabitants`
+- **Authentication:** Required (Bearer token)
+- **Description:** Get all inhabitants owned by the authenticated user
 
-Returns a list of all ornaments.
-
-- **URL**: `/api/ornaments`
-- **Method**: `GET`
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": [
     {
       "id": 1,
-      "name": "Castle",
-      "description": "A decorative castle",
-      "color": "Gray",
-      "isAirPumpCompatible": true
+      "species": "Neon Tetra",
+      "color": "Blue and Red",
+      "description": "Small schooling fish",
+      "dateCreated": "2024-01-15T11:00:00",
+      "count": 10,
+      "isSchooling": true,
+      "waterType": "FRESH",
+      "aquariumId": 1,
+      "type": "Fish",
+      "isAggressiveEater": false,
+      "requiresSpecialFood": false,
+      "isSnailEater": false
     }
   ],
-  "timestamp": 1620000000000,
-  "message": "Ornaments fetched successfully"
+  "timestamp": 1234567890123,
+  "message": "Inhabitants fetched successfully"
 }
 ```
 
-### Get Ornament By ID
+#### Get Inhabitant by ID
+- **Method:** `GET`
+- **Endpoint:** `/inhabitants/{id}`
+- **Authentication:** None
+- **Description:** Get detailed information about a specific inhabitant
 
-Returns a specific ornament by ID.
+**Path Parameters:**
+- `id` (Long) - Inhabitant ID
 
-- **URL**: `/api/ornaments/{id}`
-- **Method**: `GET`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the ornament
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
+**Response:** Single inhabitant object
 
+#### Get Inhabitants by Aquarium
+- **Method:** `GET`
+- **Endpoint:** `/inhabitants/byAquarium/{aquariumId}`
+- **Authentication:** None
+- **Description:** Get all inhabitants for a specific aquarium
+
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+
+**Response:** Array of inhabitant objects
+
+#### Create Inhabitant
+- **Method:** `POST`
+- **Endpoint:** `/inhabitants`
+- **Authentication:** Required (Bearer token)
+- **Description:** Create a new inhabitant
+
+**Request Body:**
+```json
+{
+  "species": "Angelfish",
+  "color": "Silver",
+  "description": "Beautiful freshwater angelfish",
+  "count": 2,
+  "isSchooling": false,
+  "waterType": "FRESH",
+  "type": "Fish",
+  "aquariumId": 1,
+  "isAggressiveEater": true,
+  "requiresSpecialFood": false,
+  "isSnailEater": false,
+  "name": "Angel Pair"
+}
+```
+
+**Response:** Created inhabitant object
+
+#### Update Inhabitant
+- **Method:** `PUT`
+- **Endpoint:** `/inhabitants/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Update an existing inhabitant
+
+**Path Parameters:**
+- `id` (Long) - Inhabitant ID
+
+**Request Body:** Same as Create Inhabitant
+
+**Response:** Updated inhabitant object
+
+#### Delete Inhabitant
+- **Method:** `DELETE`
+- **Endpoint:** `/inhabitants/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Delete an inhabitant (owner only)
+
+**Path Parameters:**
+- `id` (Long) - Inhabitant ID
+
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
-    "id": 1,
-    "name": "Castle",
-    "description": "A decorative castle",
-    "color": "Gray",
-    "isAirPumpCompatible": true
+    "inhabitantId": 1
   },
-  "timestamp": 1620000000000,
-  "message": "Ornament fetched successfully"
+  "timestamp": 1234567890123,
+  "message": "Inhabitant deleted successfully"
 }
 ```
 
-### Get Ornaments By Aquarium
+### Ornaments
 
-Returns all ornaments in a specific aquarium.
+#### Get All Ornaments
+- **Method:** `GET`
+- **Endpoint:** `/ornaments`
+- **Authentication:** Required (Bearer token)
+- **Description:** Get all ornaments owned by the authenticated user
 
-- **URL**: `/api/ornaments/byAquarium/{aquariumId}`
-- **Method**: `GET`
-- **URL Parameters**: `aquariumId=[long]` where `aquariumId` is the ID of the aquarium
-- **Auth required**: No
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: List of ornaments in the specified aquarium
-
-### Create Ornament
-
-Creates a new ornament.
-
-- **URL**: `/api/ornaments`
-- **Method**: `POST`
-- **Auth required**: Yes (JWT token in Authorization header)
-- **Request Body**:
-
+**Response:**
 ```json
 {
-  "name": "Castle",
-  "description": "A decorative castle",
+  "status": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "Driftwood",
+      "color": "Brown",
+      "material": "Wood",
+      "description": "Natural driftwood piece",
+      "dateCreated": "2024-01-15T11:15:00",
+      "isAirPumpCompatible": false
+    }
+  ],
+  "timestamp": 1234567890123,
+  "message": "Ornaments fetched successfully"
+}
+```
+
+#### Get Ornament by ID
+- **Method:** `GET`
+- **Endpoint:** `/ornaments/{id}`
+- **Authentication:** None
+- **Description:** Get detailed information about a specific ornament
+
+**Path Parameters:**
+- `id` (Long) - Ornament ID
+
+**Response:** Single ornament object
+
+#### Get Ornaments by Aquarium
+- **Method:** `GET`
+- **Endpoint:** `/ornaments/byAquarium/{aquariumId}`
+- **Authentication:** None
+- **Description:** Get all ornaments for a specific aquarium
+
+**Path Parameters:**
+- `aquariumId` (Long) - Aquarium ID
+
+**Response:** Array of ornament objects
+
+#### Create Ornament
+- **Method:** `POST`
+- **Endpoint:** `/ornaments`
+- **Authentication:** Required (Bearer token)
+- **Description:** Create a new ornament
+
+**Request Body:**
+```json
+{
+  "name": "Castle Decoration",
   "color": "Gray",
+  "material": "Ceramic",
+  "description": "Medieval castle aquarium decoration",
   "supportsAirPump": true,
   "aquariumId": 1
 }
 ```
 
-- **Success Response**: 
-  - **Code**: 201 Created
-  - **Content**: Created ornament object
+**Response:** Created ornament object
 
-### Update Ornament
+#### Update Ornament
+- **Method:** `PUT`
+- **Endpoint:** `/ornaments/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Update an existing ornament
 
-Updates an existing ornament.
+**Path Parameters:**
+- `id` (Long) - Ornament ID
 
-- **URL**: `/api/ornaments/{id}`
-- **Method**: `PUT`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the ornament
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the ornament)
-- **Request Body**:
+**Request Body:** Same as Create Ornament
 
-```json
-{
-  "name": "Updated Castle",
-  "description": "Updated description",
-  "color": "Updated color",
-  "supportsAirPump": false,
-  "aquariumId": 1
-}
-```
+**Response:** Updated ornament object
 
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: Updated ornament object
+#### Delete Ornament
+- **Method:** `DELETE`
+- **Endpoint:** `/ornaments/{id}`
+- **Authentication:** Required (Bearer token + Ownership)
+- **Description:** Delete an ornament (owner only)
 
-### Delete Ornament
+**Path Parameters:**
+- `id` (Long) - Ornament ID
 
-Deletes an ornament.
-
-- **URL**: `/api/ornaments/{id}`
-- **Method**: `DELETE`
-- **URL Parameters**: `id=[long]` where `id` is the ID of the ornament
-- **Auth required**: Yes (JWT token in Authorization header, must be owner of the ornament)
-- **Success Response**: 
-  - **Code**: 200 OK
-  - **Content**: 
-
+**Response:**
 ```json
 {
   "status": "success",
   "data": {
     "ornamentId": 1
   },
-  "timestamp": 1620000000000,
+  "timestamp": 1234567890123,
   "message": "Ornament deleted successfully"
 }
 ```
 
 ## Error Handling
 
-All endpoints can return the following error responses:
+### Error Response Format
 
-### 400 Bad Request
-
-When the request is invalid.
+All errors follow a consistent format:
 
 ```json
 {
   "status": "error",
-  "data": null,
-  "timestamp": 1620000000000,
-  "message": "Invalid request: [specific error message]"
-}
-```
-
-### 401 Unauthorized
-
-When authentication is required but not provided or is invalid.
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "timestamp": 1620000000000,
-  "message": "Authentication required"
-}
-```
-
-### 403 Forbidden
-
-When the authenticated user doesn't have permission to access the resource.
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "timestamp": 1620000000000,
-  "message": "You don't have permission to access this resource"
-}
-```
-
-### 404 Not Found
-
-When the requested resource is not found.
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "timestamp": 1620000000000,
-  "message": "Resource not found"
-}
-```
-
-### 500 Internal Server Error
-
-When an unexpected error occurs on the server.
-
-```json
-{
-  "status": "error",
-  "data": null,
-  "timestamp": 1620000000000,
-  "message": "An unexpected error occurred"
-}
-```
-
-## Enums
-
-### AquariumState
-- `SETUP`
-- `RUNNING`
-- `MAINTENANCE`
-- `INACTIVE`
-
-### SubstrateType
-- `SAND`
-- `GRAVEL`
-- `SOIL`
-
-### WaterType
-- `FRESH`
-- `SALT`
-
-## Aquarium Parameters Simulation
-
-The backend provides simulated water parameters for aquariums, which are useful for monitoring water quality without requiring manual input.
-
-### Get Aquarium Parameters
-
-Retrieves real-time simulated parameters for an aquarium.
-
-**URL**: `/api/aquariums/{id}/parameters`  
-**Method**: `GET`  
-**Auth required**: Yes
-
-**URL Parameters**:
-- `id` - The ID of the aquarium
-
-**Success Response**:
-- **Code**: 200 OK
-- **Content**:
-```json
-{
-  "status": "success",
   "data": {
-    "temperature": 25.6,
-    "pH": 7.2,
-    "ammonia": 0.02,
-    "nitrite": 0.0,
-    "nitrate": 7.5,
-    "hardness": 6.8,
-    "kH": 4.9
-  }
+    "path": "/api/aquariums/999",
+    "code": 404
+  },
+  "timestamp": 1234567890123,
+  "message": "Aquarium with id 999 not found"
 }
 ```
 
-**Error Response**:
-- **Code**: 404 Not Found
-- **Content**:
+### Common HTTP Status Codes
+
+- **200 OK** - Request successful
+- **201 Created** - Resource created successfully
+- **400 Bad Request** - Invalid request data
+- **401 Unauthorized** - Authentication required or invalid token
+- **403 Forbidden** - Access denied (ownership required)
+- **404 Not Found** - Resource not found
+- **500 Internal Server Error** - Server error
+
+### Authentication Errors
+
+#### Missing Authorization Header
 ```json
 {
   "status": "error",
-  "message": "Aquarium not found"
+  "data": {
+    "path": "/api/aquariums",
+    "code": 401
+  },
+  "timestamp": 1234567890123,
+  "message": "Authorization header must be provided"
 }
 ```
 
-OR
-
-- **Code**: 200 OK
-- **Content**:
+#### Invalid Token
 ```json
 {
   "status": "error",
-  "message": "Parameters are only available when the aquarium is in RUNNING state"
+  "data": {
+    "path": "/api/aquariums",
+    "code": 401
+  },
+  "timestamp": 1234567890123,
+  "message": "Invalid token"
 }
 ```
 
-### Reset Aquarium Parameters
+## CORS Configuration
 
-Resets the simulated parameters for an aquarium, e.g., after a water change.
+The API supports Cross-Origin Resource Sharing (CORS) with the following configuration:
 
-**URL**: `/api/aquariums/{id}/parameters/reset`  
-**Method**: `POST`  
-**Auth required**: Yes
+- **Allowed Origins:** 
+  - `https://aquarium-manager-frontend.vercel.app`
+  - `localhost` and `127.0.0.1` (development)
+  - `*.vercel.app` (Vercel deployments)
+  - `*.railway.app` (Railway deployments)
 
-**URL Parameters**:
-- `id` - The ID of the aquarium
+- **Allowed Methods:** `GET, POST, PUT, DELETE, OPTIONS, PATCH`
+- **Allowed Headers:** `Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma`
+- **Credentials:** Supported
 
-**Success Response**:
-- **Code**: 200 OK
-- **Content**:
-```json
-{
-  "status": "success",
-  "message": "Parameters reset successfully"
-}
-```
+## Rate Limiting
 
-**Error Response**:
-- **Code**: 404 Not Found
-- **Content**:
-```json
-{
-  "status": "error",
-  "message": "Aquarium not found"
-}
-```
+Currently, no rate limiting is implemented. This may be added in future versions.
 
-### Note on Aquarium Detail Endpoint
+## Versioning
 
-The `/api/aquariums/{id}` endpoint now includes simulated parameters when the aquarium is in RUNNING state.
+The API is currently in version 1.0.0 beta. Future versions will maintain backward compatibility where possible.
 
-## Authentication
+## Support
 
-All secured endpoints require a JWT token in the Authorization header:
-
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-```
-
-The token is obtained via the login or register endpoints. 
+For API support or questions, please refer to the project documentation or contact the development team. 
