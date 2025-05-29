@@ -49,5 +49,8 @@ EXPOSE 8080
 # Set environment variable for port
 ENV PORT=8080
 
+# Set database URL for Neon PostgreSQL
+ENV DATABASE_URL=postgres://neondb_owner:npg_POpns15rGmed@ep-restless-tooth-a4ch55l0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+
 # Run the application
 CMD ["sh", "-c", "java -jar webapp-runner.jar --port ${PORT:-8080} app.war"] 

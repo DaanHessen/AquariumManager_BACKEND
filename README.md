@@ -30,8 +30,42 @@ A Java-based REST API for managing aquarium systems, built with Jakarta EE, Jers
 
 - Java 17 or higher
 - No Maven installation required (project includes Maven wrapper)
-- PostgreSQL database
+- PostgreSQL database (local or cloud-hosted like Neon)
 - Docker (optional)
+
+### Database Setup
+
+#### Option 1: Neon PostgreSQL (Recommended for Production)
+
+This project is pre-configured to work with [Neon PostgreSQL](https://neon.tech), a serverless PostgreSQL service that's perfect for modern applications.
+
+1. **Create a Neon database**
+   - Sign up at [neon.tech](https://neon.tech)
+   - Create a new project and database
+   - Copy the connection string from the dashboard
+
+2. **Set the DATABASE_URL environment variable**
+   ```bash
+   export DATABASE_URL="postgres://username:password@hostname/database?sslmode=require"
+   ```
+
+   The application automatically detects and parses this URL, including SSL configuration.
+
+#### Option 2: Local PostgreSQL
+
+1. **Install PostgreSQL locally**
+2. **Create a database**
+   ```sql
+   CREATE DATABASE aquariumdb;
+   ```
+3. **Set environment variables**
+   ```bash
+   export DB_HOST=localhost
+   export DB_PORT=5432
+   export DB_NAME=aquariumdb
+   export DB_USER=postgres
+   export DB_PASSWORD=your_password
+   ```
 
 ### Local Development
 
@@ -42,6 +76,15 @@ A Java-based REST API for managing aquarium systems, built with Jakarta EE, Jers
    ```
 
 2. **Set up environment variables**
+   
+   **With Neon PostgreSQL:**
+   ```bash
+   export DATABASE_URL="your_neon_connection_string"
+   export JWT_SECRET=your_jwt_secret_key
+   export HIBERNATE_HBM2DDL=update
+   ```
+   
+   **With Local PostgreSQL:**
    ```bash
    export DB_HOST=localhost
    export DB_PORT=5432

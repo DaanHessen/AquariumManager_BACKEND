@@ -5,10 +5,12 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "java -Dserver.port=$PORT -jar webapp-runner.jar --port $PORT app.war",
     "healthcheckPath": "/api/health/basic",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
+  },
+  "variables": {
+    "DATABASE_URL": "postgres://neondb_owner:npg_POpns15rGmed@ep-restless-tooth-a4ch55l0-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
   }
 } 

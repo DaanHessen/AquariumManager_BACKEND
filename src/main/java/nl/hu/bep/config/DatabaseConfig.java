@@ -45,13 +45,14 @@ public class DatabaseConfig {
 
     private static void createDataSource() {
         String host, port, database, username, password;
+        String jdbcUrl;
         
-        // Check if we're running on Railway/Heroku (DATABASE_URL is provided)
+        // Check if we're running on Railway/Heroku/Neon (DATABASE_URL is provided)
         String databaseUrl = System.getenv("DATABASE_URL");
         log.info("DATABASE_URL environment variable: {}", databaseUrl != null ? "present" : "missing");
         
         if (databaseUrl != null && !databaseUrl.isEmpty()) {
-            // Parse Railway/Heroku DATABASE_URL: postgres://username:password@hostname:port/database
+            // Parse DATABASE_URL: postgres://username:password@hostname:port/database?sslmode=require
             try {
                 URI dbUri = new URI(databaseUrl);
                 host = dbUri.getHost();
@@ -68,8 +69,17 @@ public class DatabaseConfig {
                     password = "";
                 }
                 
+                // Convert postgres:// to jdbc:postgresql:// and preserve query parameters (like sslmode=require)
+                String query = dbUri.getQuery();
+                if (query != null && !query.isEmpty()) {
+                    jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s?%s", host, port, database, query);
+                } else {
+                    jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
+                }
+                
                 log.info("Using DATABASE_URL configuration: host={}, port={}, database={}, username={}", 
                     host, port, database, username);
+                log.info("JDBC URL with SSL parameters: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
             } catch (Exception e) {
                 log.error("Failed to parse DATABASE_URL: {}, falling back to individual environment variables", databaseUrl, e);
                 // Fall back to individual environment variables
@@ -78,6 +88,7 @@ public class DatabaseConfig {
                 database = getEnv("DB_NAME", "aquariumdb");
                 username = getEnv("DB_USER", "postgres");
                 password = getEnv("DB_PASSWORD", "postgres");
+                jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
             }
         } else {
             // Use individual environment variables (for local development)
@@ -89,12 +100,12 @@ public class DatabaseConfig {
             password = getEnv("DB_PASSWORD", "postgres");
             log.info("Using individual DB config: host={}, port={}, database={}, username={}", 
                 host, port, database, username);
+            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
         }
         
         int poolSize = Integer.parseInt(getEnv("DB_POOL_SIZE", "10"));
         
-        String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
-        log.info("Attempting to connect to database with JDBC URL: {}", jdbcUrl);
+        log.info("Attempting to connect to database with JDBC URL: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
         
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
