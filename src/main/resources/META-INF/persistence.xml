@@ -21,17 +21,17 @@
         <!-- Include any other entity classes in your domain model -->
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
 
-        <!-- Properties are now managed programmatically in DatabaseConfig -->
+        <!-- Properties optimized for Railway memory constraints -->
         <properties>
-            <!-- Base properties - will be overridden by DatabaseConfig -->
+            <!-- Base properties -->
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
             <property name="hibernate.hbm2ddl.auto" value="update"/>
             
-            <!-- Connection handling settings -->
+            <!-- Memory optimization settings -->
             <property name="hibernate.connection.handling_mode" value="IMMEDIATE_ACQUISITION_AND_HOLD"/>
             <property name="hibernate.connection.provider_disables_autocommit" value="false"/>
             
-            <!-- ByteBuddy settings -->
+            <!-- ByteBuddy settings - disable reflection optimizer to save memory -->
             <property name="hibernate.bytecode.provider" value="bytebuddy"/>
             <property name="hibernate.bytecode.use_reflection_optimizer" value="false"/>
             
@@ -39,10 +39,21 @@
             <property name="hibernate.transaction.flush_before_completion" value="true"/>
             <property name="hibernate.connection.isolation" value="2"/>
             
-            <!-- Connection pool settings -->
-            <property name="hibernate.hikari.minimumIdle" value="5"/>
-            <property name="hibernate.hikari.maximumPoolSize" value="10"/>
-            <property name="hibernate.hikari.idleTimeout" value="30000"/>
+            <!-- Memory-efficient connection pool settings for Railway -->
+            <property name="hibernate.hikari.minimumIdle" value="2"/>
+            <property name="hibernate.hikari.maximumPoolSize" value="5"/>
+            <property name="hibernate.hikari.idleTimeout" value="60000"/>
+            <property name="hibernate.hikari.connectionTimeout" value="20000"/>
+            <property name="hibernate.hikari.maxLifetime" value="300000"/>
+            
+            <!-- Additional memory optimization -->
+            <property name="hibernate.jdbc.batch_size" value="10"/>
+            <property name="hibernate.order_inserts" value="true"/>
+            <property name="hibernate.order_updates" value="true"/>
+            <property name="hibernate.jdbc.batch_versioned_data" value="true"/>
+            <property name="hibernate.cache.use_second_level_cache" value="false"/>
+            <property name="hibernate.cache.use_query_cache" value="false"/>
+            <property name="hibernate.session.events.log.LOG_QUERIES_SLOWER_THAN_MS" value="1000"/>
         </properties>
 
     </persistence-unit>

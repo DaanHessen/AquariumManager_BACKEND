@@ -53,8 +53,24 @@ RUN echo '#!/bin/sh' > /usr/local/tomcat/bin/startup.sh && \
     echo 'exec /usr/local/tomcat/bin/catalina.sh run' >> /usr/local/tomcat/bin/startup.sh && \
     chmod +x /usr/local/tomcat/bin/startup.sh
 
-# Set JVM options for Railway
-ENV CATALINA_OPTS="-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -XX:+UseG1GC -Xms256m -Xmx1024m"
+# Optimized JVM options for Railway's 512MB memory limit
+ENV CATALINA_OPTS="-Djava.awt.headless=true \
+    -Djava.security.egd=file:/dev/./urandom \
+    -XX:+UseG1GC \
+    -XX:+UseContainerSupport \
+    -XX:MaxRAMPercentage=75.0 \
+    -Xms128m \
+    -Xmx350m \
+    -XX:MetaspaceSize=64m \
+    -XX:MaxMetaspaceSize=128m \
+    -XX:+DisableExplicitGC \
+    -XX:+UseStringDeduplication \
+    -XX:G1HeapRegionSize=8m \
+    -XX:MaxGCPauseMillis=200 \
+    -Dhibernate.jdbc.batch_size=10 \
+    -Dhibernate.order_inserts=true \
+    -Dhibernate.order_updates=true \
+    -Dhibernate.jdbc.batch_versioned_data=true"
 
 # Expose port (Railway will override with PORT env var)
 EXPOSE 8080

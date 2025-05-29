@@ -1,38 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <!-- Console appender for Railway (no file logging in production) -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/aquarium-api.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/aquarium-api.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+    <!-- Conditional file appender for local development only -->
+    <springProfile name="!railway">
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/aquarium-api.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/aquarium-api.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+                <totalSizeCap>100MB</totalSizeCap>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
 
-    <!-- Application logs -->
-    <logger name="nl.hu.bep" level="DEBUG" />
+    <!-- Application logs - reduced for production -->
+    <logger name="nl.hu.bep" level="INFO" />
+    <logger name="nl.hu.bep.config" level="INFO" />
+    <logger name="nl.hu.bep.presentation.exception.ExceptionMappers" level="WARN" />
     
-    <!-- Jersey logs -->
-    <logger name="org.glassfish.jersey" level="INFO" />
+    <!-- Jersey logs - minimal -->
+    <logger name="org.glassfish.jersey" level="WARN" />
     
-    <!-- Hibernate logs -->
-    <logger name="org.hibernate" level="INFO" />
-    <logger name="org.hibernate.SQL" level="DEBUG" />
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+    <!-- Hibernate logs - minimal for production -->
+    <logger name="org.hibernate" level="WARN" />
+    <logger name="org.hibernate.SQL" level="WARN" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN" />
     
     <!-- HikariCP logs -->
-    <logger name="com.zaxxer.hikari" level="INFO" />
+    <logger name="com.zaxxer.hikari" level="WARN" />
+    
+    <!-- Tomcat logs -->
+    <logger name="org.apache.catalina" level="WARN" />
+    <logger name="org.apache.tomcat" level="WARN" />
 
-    <root level="INFO">
+    <!-- Root logger with conditional file appender -->
+    <root level="WARN">
         <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
+        <springProfile name="!railway">
+            <appender-ref ref="FILE" />
+        </springProfile>
     </root>
 </configuration> 
