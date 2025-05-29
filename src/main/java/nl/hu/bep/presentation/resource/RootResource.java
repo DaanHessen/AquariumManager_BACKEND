@@ -23,13 +23,17 @@ public class RootResource {
         endpoints.put("aquariums", "/api/aquariums");
         endpoints.put("inhabitants", "/api/inhabitants");
         endpoints.put("authentication", "/api/auth");
-        endpoints.put("health", "/api/health");
+        endpoints.put("health-detailed", "/api/health");
         endpoints.put("health-basic", "/health");
 
         Map<String, Object> apiInfo = new HashMap<>();
         apiInfo.put("name", "Aquarium API");
         apiInfo.put("version", "1.0.0 beta");
         apiInfo.put("endpoints", endpoints);
+        apiInfo.put("notes", Map.of(
+            "health-basic", "Simple health check for Railway deployment",
+            "health-detailed", "Detailed health check including database connectivity"
+        ));
 
         return Response.ok(ApiResponse.success(apiInfo)).build();
     }
@@ -37,10 +41,11 @@ public class RootResource {
     @GET
     @Path("/health")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response healthCheck() {
+    public Response detailedHealthCheck() {
         Map<String, Object> health = new HashMap<>();
         health.put("status", "UP");
         health.put("timestamp", System.currentTimeMillis());
+        health.put("service", "Aquarium API - Detailed Health Check");
         
         // Add environment info for debugging
         health.put("environment", getEnvironmentInfo());

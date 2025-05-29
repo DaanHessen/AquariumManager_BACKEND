@@ -2,7 +2,8 @@
 <web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
-         version="5.0">
+         version="5.0"
+         metadata-complete="false">
 
     <display-name>Aquarium API</display-name>
     
@@ -16,26 +17,9 @@
         <param-value>true</param-value>
     </context-param>
     
-    <!-- Simple health check servlet that loads immediately for Railway health checks -->
-    <servlet>
-        <servlet-name>SimpleHealthServlet</servlet-name>
-        <servlet-class>nl.hu.bep.config.SimpleHealthServlet</servlet-class>
-        <load-on-startup>0</load-on-startup>
-    </servlet>
+    <!-- Health check servlet is now configured via @WebServlet annotation -->
     
-    <servlet-mapping>
-        <servlet-name>SimpleHealthServlet</servlet-name>
-        <url-pattern>/health</url-pattern>
-    </servlet-mapping>
-    
-    <!-- Lifecycle Listeners -->
-    <!-- 
-    <listener>
-        <listener-class>nl.hu.bep.config.DatabaseLifecycleListener</listener-class>
-    </listener>
-    -->
-
-    <!-- Explicitly define Jersey servlet for guaranteed loading -->
+    <!-- Jersey servlet for REST API -->
     <servlet>
         <servlet-name>Jersey Web Application</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
@@ -60,7 +44,7 @@
                 org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature
             </param-value>
         </init-param>
-        <load-on-startup>1</load-on-startup>
+        <load-on-startup>2</load-on-startup>
     </servlet>
 
     <servlet-mapping>
