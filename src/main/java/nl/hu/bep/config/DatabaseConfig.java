@@ -1,7 +1,5 @@
 package nl.hu.bep.config;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
@@ -21,7 +19,6 @@ public class DatabaseConfig {
     private static final Object INIT_LOCK = new Object();
     
     private static volatile EntityManagerFactory emf;
-    private static volatile HikariDataSource dataSource;
 
     public static synchronized void initialize() {
         if (initialized.get()) {
@@ -117,40 +114,20 @@ public class DatabaseConfig {
             jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
         }
         
-        int poolSize = Integer.parseInt(getEnv("DB_POOL_SIZE", "10"));
+        // Store connection details for JPA configuration
+        System.setProperty("aquarium.db.url", jdbcUrl);
+        System.setProperty("aquarium.db.username", username);
+        System.setProperty("aquarium.db.password", password);
         
-        log.info("Attempting to connect to database with JDBC URL: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
-        
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(jdbcUrl);
-        config.setUsername(username);
-        config.setPassword(password);
-        config.setDriverClassName("org.postgresql.Driver");
-        
-        config.setMaximumPoolSize(poolSize);
-        config.setMinimumIdle(2);
-        config.setIdleTimeout(30000);
-        config.setConnectionTimeout(30000);
-        
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        
-        try {
-            dataSource = new HikariDataSource(config);
-            log.info("PostgreSQL connection pool initialized successfully: {}:{}/{}", host, port, database);
-        } catch (Exception e) {
-            log.error("Failed to initialize PostgreSQL connection pool for {}:{}/{}", host, port, database, e);
-            throw e;
-        }
+        log.info("Database connection details prepared for JPA: {}:{}/{}", host, port, database);
     }
     
     private static void createEntityManagerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put("jakarta.persistence.jdbc.driver", "org.postgresql.Driver");
-        props.put("jakarta.persistence.jdbc.url", dataSource.getJdbcUrl());
-        props.put("jakarta.persistence.jdbc.user", dataSource.getUsername());
-        props.put("jakarta.persistence.jdbc.password", dataSource.getPassword());
+        props.put("jakarta.persistence.jdbc.url", System.getProperty("aquarium.db.url"));
+        props.put("jakarta.persistence.jdbc.user", System.getProperty("aquarium.db.username"));
+        props.put("jakarta.persistence.jdbc.password", System.getProperty("aquarium.db.password"));
         
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.put("hibernate.hbm2ddl.auto", getEnv("HIBERNATE_HBM2DDL", "update"));
@@ -158,8 +135,12 @@ public class DatabaseConfig {
         props.put("hibernate.format_sql", "true");
         props.put("hibernate.use_sql_comments", "true");
         
+        // Configure Hibernate to use HikariCP connection pool
         props.put("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
-        props.put("hibernate.hikari.dataSource", dataSource);
+        props.put("hibernate.hikari.maximumPoolSize", "10");
+        props.put("hibernate.hikari.minimumIdle", "2");
+        props.put("hibernate.hikari.idleTimeout", "30000");
+        props.put("hibernate.hikari.connectionTimeout", "30000");
         
         emf = Persistence.createEntityManagerFactory("aquariumPU", props);
         log.info("EntityManagerFactory created successfully");
@@ -183,8 +164,9 @@ public class DatabaseConfig {
     }
 
     public static DataSource getDataSource() {
-        if (!initialized.get()) initialize();
-        return dataSource;
+        // Since we're using Hibernate-managed connection pooling, 
+        // we don't expose a separate DataSource object
+        throw new UnsupportedOperationException("DataSource is managed internally by Hibernate");
     }
 
     public static boolean isHealthy() {
@@ -193,25 +175,15 @@ public class DatabaseConfig {
             return false;
         }
         
-        // If EMF or DataSource are null, try to initialize them
-        if (emf == null || dataSource == null) {
-            log.warn("Database components not ready, attempting re-initialization...");
+        // If EMF is null, try to initialize it
+        if (emf == null) {
+            log.warn("EntityManagerFactory not ready, attempting re-initialization...");
             try {
-                if (dataSource == null) {
-                    createDataSource();
-                }
-                if (emf == null) {
-                    createEntityManagerFactory();
-                }
+                initialize();
             } catch (Exception e) {
                 log.error("Failed to re-initialize database components: {}", e.getMessage());
                 return false;
             }
-        }
-        
-        if (dataSource != null && dataSource.isClosed()) {
-            log.warn("DataSource is closed");
-            return false;
         }
         
         try (EntityManager em = emf.createEntityManager()) {
@@ -230,11 +202,6 @@ public class DatabaseConfig {
         if (emf != null && emf.isOpen()) {
             emf.close();
             emf = null;
-        }
-        
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
-            dataSource = null;
         }
         
         initialized.set(false);
