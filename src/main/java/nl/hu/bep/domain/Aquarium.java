@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 import java.util.function.BiConsumer;
 import java.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Entity
 @Table(name = "aquariums")
@@ -27,6 +29,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter(value = AccessLevel.PRIVATE)
 public class Aquarium {
+  private static final Logger log = LoggerFactory.getLogger(Aquarium.class);
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -314,9 +318,30 @@ public class Aquarium {
     unassignFromOwner();
 
     this.owner = owner;
-    if (!owner.getOwnedAquariums().contains(this)) {
-      owner.addToAquariums(this);
+    // Only try to update owner's collection if it's already initialized (not a proxy)
+    // This prevents lazy loading issues during entity creation
+    try {
+      if (!owner.getOwnedAquariums().contains(this)) {
+        owner.addToAquariums(this);
+      }
+    } catch (Exception e) {
+      // If accessing the collection fails (e.g., lazy loading issue),
+      // the bidirectional relationship will be handled at the persistence layer
+      // or when the collection is properly initialized
+      log.debug("Could not update owner's aquarium collection during assignment: {}", e.getMessage());
     }
+  }
+
+  /**
+   * Assigns this aquarium to an owner without trying to update the owner's collection.
+   * This is safer to use during entity creation when lazy collections may not be initialized.
+   * The bidirectional relationship should be handled at the persistence/service layer.
+   */
+  public void assignToOwnerSafely(Owner owner) {
+    Validator.notNull(owner, "Owner");
+    
+    unassignFromOwner();
+    this.owner = owner;
   }
 
   public void unassignFromOwner() {

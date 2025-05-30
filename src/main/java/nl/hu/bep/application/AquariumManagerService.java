@@ -95,85 +95,68 @@ public class AquariumManagerService {
             throw new ApplicationException.BadRequestException("Water type is required");
         }
 
-        // Find and validate owner if provided
-        Owner owner = null;
-        if (ownerId != null) {
+        // Use repository transaction to handle the entire operation
+        return aquariumRepository.executeInTransaction(em -> {
+            Aquarium aquarium;
             try {
-                owner = findOwner(ownerId);
+                aquarium = Aquarium.create(
+                        request.name(),
+                        request.length(),
+                        request.width(),
+                        request.height(),
+                        request.substrate(),
+                        request.waterType(),
+                        request.color(),
+                        request.description(),
+                        request.state()
+                );
             } catch (Exception e) {
-                log.error("Error finding owner {}: {}", ownerId, e.getMessage(), e);
-                throw new ApplicationException.BadRequestException("Invalid owner ID: " + ownerId);
+                log.error("Error creating aquarium domain object: {}", e.getMessage(), e);
+                throw new ApplicationException.BadRequestException("Failed to create aquarium: " + e.getMessage(), e);
             }
-        }
 
-        Aquarium aquarium;
-        try {
-            aquarium = Aquarium.create(
-                    request.name(),
-                    request.length(),
-                    request.width(),
-                    request.height(),
-                    request.substrate(),
-                    request.waterType(),
-                    request.color(),
-                    request.description(),
-                    request.state()
-            );
-        } catch (Exception e) {
-            log.error("Error creating aquarium domain object: {}", e.getMessage(), e);
-            throw new ApplicationException.BadRequestException("Failed to create aquarium: " + e.getMessage(), e);
-        }
+            if (ownerId != null) {
+                // Fetch owner with ownedAquariums collection within the same transaction to avoid lazy loading issues
+                Owner owner = ownerRepository.executeWithEntityManager(emInner -> 
+                    emInner.createQuery("SELECT o FROM Owner o LEFT JOIN FETCH o.ownedAquariums WHERE o.id = :id", Owner.class)
+                        .setParameter("id", ownerId)
+                        .getResultStream()
+                        .findFirst()
+                        .orElseThrow(() -> new ApplicationException.NotFoundException("Owner", ownerId))
+                );
+                
+                try {
+                    aquarium.assignToOwnerSafely(owner);
+                } catch (Exception e) {
+                    log.error("Error assigning aquarium to owner: {}", e.getMessage(), e);
+                    throw new ApplicationException.BadRequestException("Failed to assign aquarium to owner: " + e.getMessage(), e);
+                }
+            }
 
-        if (owner != null) {
+            Aquarium savedAquarium;
             try {
-                aquarium.assignToOwner(owner);
+                savedAquarium = em.merge(aquarium);
+                em.flush(); // Ensure the entity is saved before fetching again
+                log.info("Successfully saved aquarium with ID: {}", savedAquarium.getId());
             } catch (Exception e) {
-                log.error("Error assigning aquarium to owner: {}", e.getMessage(), e);
-                throw new ApplicationException.BadRequestException("Failed to assign aquarium to owner: " + e.getMessage(), e);
+                log.error("Database error saving aquarium: {}", e.getMessage(), e);
+                throw new ApplicationException.BadRequestException("Database operation failed while creating aquarium: " + e.getMessage(), e);
             }
-        }
-
-        Aquarium savedAquarium;
-        try {
-            savedAquarium = aquariumRepository.save(aquarium);
-            log.info("Successfully saved aquarium with ID: {}", savedAquarium.getId());
-        } catch (Exception e) {
-            log.error("Database error saving aquarium: {}", e.getMessage(), e);
-            throw new ApplicationException.BadRequestException("Database operation failed while creating aquarium: " + e.getMessage(), e);
-        }
-        
-        // Fetch the aquarium with owner relationship to avoid LazyInitializationException
-        try {
-            Aquarium aquariumWithOwner = aquariumRepository.findByIdWithRelationships(savedAquarium.getId(), "owner")
-                    .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
             
-            return mappingService.mapAquarium(aquariumWithOwner);
-        } catch (Exception e) {
-            log.error("Error fetching created aquarium with owner: {}", e.getMessage(), e);
+            // Fetch the aquarium with all required relationships within the same transaction
+            Aquarium aquariumWithAllData = em.createQuery(
+                "SELECT a FROM Aquarium a " +
+                "LEFT JOIN FETCH a.inhabitants " +
+                "LEFT JOIN FETCH a.accessories " +
+                "LEFT JOIN FETCH a.ornaments " +
+                "LEFT JOIN FETCH a.owner " +
+                "LEFT JOIN FETCH a.stateHistory " +
+                "WHERE a.id = :id", Aquarium.class)
+                .setParameter("id", savedAquarium.getId())
+                .getSingleResult();
             
-            // Fallback: create a simple response without requiring lazy relationships
-            return new AquariumResponse(
-                savedAquarium.getId(),
-                savedAquarium.getName(),
-                savedAquarium.getDimensions().getLength(),
-                savedAquarium.getDimensions().getWidth(),
-                savedAquarium.getDimensions().getHeight(),
-                savedAquarium.getDimensions().getVolumeInLiters(),
-                savedAquarium.getSubstrate(),
-                savedAquarium.getWaterType(),
-                savedAquarium.getState(),
-                savedAquarium.getCurrentStateStartTime(),
-                savedAquarium.getCurrentStateDurationMinutes(),
-                ownerId, // Use the provided ownerId directly
-                owner != null ? owner.getEmail() : null, // Use the owner we already have
-                java.util.Collections.emptyList(), // Empty collections for create operation
-                java.util.Collections.emptyList(),
-                java.util.Collections.emptyList(),
-                savedAquarium.getColor(),
-                savedAquarium.getDescription(),
-                savedAquarium.getDateCreated()
-            );
-        }
+            return mappingService.mapAquarium(aquariumWithAllData);
+        });
     }
 
     public AquariumResponse updateAquarium(Long id, AquariumRequest request) {
