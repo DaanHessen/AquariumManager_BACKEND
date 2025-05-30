@@ -204,6 +204,24 @@ public class AquariumManagerService {
         return aquarium.getCurrentStateDurationMinutes();
     }
 
+    public AquariumResponse changeAquariumState(Long aquariumId, StateChangeRequest request, Long ownerId) {
+        Aquarium aquarium = aquariumRepository.findByIdWithAllCollections(aquariumId)
+                .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
+        
+        aquarium.verifyOwnership(ownerId);
+        
+        // Use the new method that accepts frontend duration
+        aquarium.transitionToStateWithDuration(request.newState(), request.durationInPreviousStateMinutes());
+        
+        Aquarium savedAquarium = aquariumRepository.save(aquarium);
+        
+        // Fetch updated aquarium with all relationships
+        Aquarium updatedAquarium = aquariumRepository.findByIdWithAllCollections(aquariumId)
+                .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
+        
+        return mappingService.mapAquariumDetailed(updatedAquarium);
+    }
+
     // ========== ACCESSORY OPERATIONS ==========
 
     public List<AccessoryResponse> getAllAccessories(Long ownerId) {

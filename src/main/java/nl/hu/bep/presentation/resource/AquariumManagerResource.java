@@ -108,6 +108,20 @@ public class AquariumManagerResource {
                 "Current state duration fetched successfully")).build();
     }
 
+    @PUT
+    @Path("/{id}/state")
+    @Secured
+    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "id")
+    public Response changeAquariumState(
+            @PathParam("id") Long aquariumId, 
+            StateChangeRequest request,
+            @Context SecurityContext securityContext) {
+        
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AquariumResponse updatedAquarium = aquariumManagerService.changeAquariumState(aquariumId, request, ownerId);
+        return Response.ok(ApiResponse.success(updatedAquarium, "Aquarium state changed successfully")).build();
+    }
+
     // ========== ACCESSORY OPERATIONS ==========
 
     @GET

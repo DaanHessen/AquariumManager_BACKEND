@@ -125,6 +125,13 @@ interface StateHistory {
 **Auth:** None  
 **Response:** `{aquariumId: number, currentStateDurationMinutes: number}`
 
+### PUT `/aquariums/{id}/state` 🔐
+
+**Auth:** Required + Ownership  
+**Body:** `{newState: AquariumState, durationInPreviousStateMinutes: number}`  
+**Response:** `Aquarium` (updated with new state)  
+**Description:** Changes aquarium state with frontend-provided duration for the previous state. The frontend manages timing and sends the duration (in minutes) that the aquarium was in the previous state. This creates a historical record with the provided duration and starts a new active state.
+
 ## Accessories `/aquariums`
 
 ### GET `/aquariums/accessories` 🔐

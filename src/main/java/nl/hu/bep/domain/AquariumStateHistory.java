@@ -54,6 +54,34 @@ public class AquariumStateHistory {
     }
     
     /**
+     * Creates a new state history record with frontend-provided duration for the previous state
+     * Used when frontend manages timing and sends duration on state change
+     */
+    public static AquariumStateHistory createWithDuration(Aquarium aquarium, AquariumState state, Long durationMinutes) {
+        AquariumStateHistory history = new AquariumStateHistory();
+        history.aquarium = aquarium;
+        history.state = state;
+        history.startTime = LocalDateTime.now();
+        history.durationMinutes = durationMinutes;
+        history.endTime = history.startTime; // Set end time same as start for completed states
+        history.createdAt = LocalDateTime.now();
+        return history;
+    }
+    
+    /**
+     * Creates a new active state history record (no end time, duration will be calculated by frontend)
+     */
+    public static AquariumStateHistory createActive(Aquarium aquarium, AquariumState state) {
+        AquariumStateHistory history = new AquariumStateHistory();
+        history.aquarium = aquarium;
+        history.state = state;
+        history.startTime = LocalDateTime.now();
+        history.createdAt = LocalDateTime.now();
+        // No endTime or durationMinutes - this represents the current active state
+        return history;
+    }
+    
+    /**
      * Ends the current state history record by setting end time and calculating duration
      */
     public void endState() {

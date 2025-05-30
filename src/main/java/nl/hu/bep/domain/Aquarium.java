@@ -113,7 +113,7 @@ public class Aquarium {
     aquarium.dateCreated = LocalDateTime.now();
 
     // Create initial state history record
-    AquariumStateHistory initialHistory = AquariumStateHistory.create(aquarium, aquarium.state);
+    AquariumStateHistory initialHistory = AquariumStateHistory.createActive(aquarium, aquarium.state);
     aquarium.stateHistory.add(initialHistory);
 
     return aquarium;
@@ -193,6 +193,36 @@ public class Aquarium {
 
     // Create new state history record
     AquariumStateHistory newHistory = AquariumStateHistory.create(this, newState);
+    this.stateHistory.add(newHistory);
+  }
+  
+  /**
+   * Handles state transition with frontend-provided duration for the previous state
+   */
+  public void transitionToStateWithDuration(AquariumState newState, Long previousStateDurationMinutes) {
+    if (this.state == newState) {
+      return; // No change needed
+    }
+
+    AquariumState previousState = this.state;
+
+    // End current active state history record and create a completed record with frontend duration
+    AquariumStateHistory currentHistory = getCurrentActiveStateHistory();
+    if (currentHistory != null) {
+      // Remove the current active history
+      this.stateHistory.remove(currentHistory);
+      
+      // Create a completed history record for the previous state with frontend duration
+      AquariumStateHistory completedHistory = AquariumStateHistory.createWithDuration(this, previousState, previousStateDurationMinutes);
+      this.stateHistory.add(completedHistory);
+    }
+
+    // Update current state and timestamp
+    this.state = newState;
+    this.currentStateStartTime = LocalDateTime.now();
+
+    // Create new active state history record for the new state
+    AquariumStateHistory newHistory = AquariumStateHistory.createActive(this, newState);
     this.stateHistory.add(newHistory);
   }
 
