@@ -5,9 +5,9 @@ public record OrnamentRequest(
     String color,
     String material,
     String description,
-    Boolean supportsAirPump,
+    Boolean isAirPumpCompatible,
     Long aquariumId) {
-  public boolean getSupportsAirPumpValue() {
-    return supportsAirPump != null ? supportsAirPump : false;
+  public boolean getIsAirPumpCompatibleValue() {
+    return isAirPumpCompatible != null ? isAirPumpCompatible : false;
   }
 }

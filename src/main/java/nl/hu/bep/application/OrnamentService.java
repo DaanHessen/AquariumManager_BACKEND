@@ -66,7 +66,7 @@ public class OrnamentService {
         request.name(),
         request.description(),
         request.color(),
-        request.getSupportsAirPumpValue(),
+        request.getIsAirPumpCompatibleValue(),
         ownerId,
         request.material());
 
@@ -115,7 +115,7 @@ public class OrnamentService {
         request.name(),
         request.description(),
         request.color(),
-        request.supportsAirPump(),
+        request.isAirPumpCompatible(),
         request.material());
 
     existingOrnament = ornamentRepository.save(existingOrnament);

@@ -163,8 +163,8 @@ class OrnamentServiceTest {
     when(request.name()).thenReturn("Castle");
     when(request.description()).thenReturn("A decorative castle");
     when(request.color()).thenReturn("Gray");
-    lenient().when(request.supportsAirPump()).thenReturn(false);
-    lenient().when(request.getSupportsAirPumpValue()).thenReturn(false);
+    lenient().when(request.isAirPumpCompatible()).thenReturn(false);
+    lenient().when(request.getIsAirPumpCompatibleValue()).thenReturn(false);
     when(request.aquariumId()).thenReturn(null);
 
     when(ornamentRepository.save(any(Ornament.class))).thenReturn(testOrnament);
@@ -184,8 +184,8 @@ class OrnamentServiceTest {
     when(request.name()).thenReturn("Castle");
     when(request.description()).thenReturn("A decorative castle");
     when(request.color()).thenReturn("Gray");
-    lenient().when(request.supportsAirPump()).thenReturn(false);
-    lenient().when(request.getSupportsAirPumpValue()).thenReturn(false);
+    lenient().when(request.isAirPumpCompatible()).thenReturn(false);
+    lenient().when(request.getIsAirPumpCompatibleValue()).thenReturn(false);
     when(request.aquariumId()).thenReturn(1L);
 
     when(aquariumRepository.findByIdWithOrnaments(1L)).thenReturn(Optional.of(testAquarium));

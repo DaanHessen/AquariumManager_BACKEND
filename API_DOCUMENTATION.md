@@ -304,7 +304,7 @@ interface StateHistory {
 #### POST `/ornaments` 🔐
 
 **Auth:** Required  
-**Body:** `{name: string, color?: string, material: string, description?: string, supportsAirPump?: boolean, aquariumId?: number}`  
+**Body:** `{name: string, color?: string, material: string, description?: string, isAirPumpCompatible?: boolean, aquariumId?: number}`  
 **Response:** `Ornament`
 
 #### PUT `/ornaments/{id}` 🔐

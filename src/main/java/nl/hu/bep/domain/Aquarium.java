@@ -430,11 +430,11 @@ public class Aquarium {
     }
   }
 
-  public Ornament createAndAddOrnament(String name, String description, String color, boolean supportsAirPump) {
+  public Ornament createAndAddOrnament(String name, String description, String color, boolean isAirPumpCompatible) {
     if (this.owner == null) {
         throw new DomainException("Cannot create ornament in an aquarium without an owner.");
     }
-    Ornament ornament = new Ornament(name, description, color, supportsAirPump, this.owner.getId(), null);
+    Ornament ornament = new Ornament(name, description, color, isAirPumpCompatible, this.owner.getId(), null);
     this.addToOrnaments(ornament);
     return ornament;
   }
