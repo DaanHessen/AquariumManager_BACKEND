@@ -6,12 +6,28 @@ import nl.hu.bep.domain.Aquarium;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import jakarta.persistence.EntityManager;
 
 @Singleton
 public class AquariumRepository extends BaseRepository<Aquarium, Long> {
     
     public AquariumRepository() {
         super(Aquarium.class);
+    }
+    
+    /**
+     * Public wrapper for executeInTransaction to be used by service layer
+     */
+    public <R> R executeInTransaction(Function<EntityManager, R> action) {
+        return super.executeInTransaction(action);
+    }
+    
+    /**
+     * Public wrapper for executeWithEntityManager to be used by service layer
+     */
+    public <R> R executeWithEntityManager(Function<EntityManager, R> action) {
+        return super.executeWithEntityManager(action);
     }
     
     /**

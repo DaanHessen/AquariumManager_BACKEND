@@ -74,7 +74,7 @@ interface StateHistory {
 **Auth:** None  
 **Response:** API metadata and available endpoints
 
-### GET `/health` - Detailed Health Check
+### GET `/status` - Detailed Health Check
 
 **Auth:** None  
 **Response:** Service status, database connectivity, environment info

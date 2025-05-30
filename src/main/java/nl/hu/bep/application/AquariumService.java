@@ -71,30 +71,55 @@ public class AquariumService {
   public AquariumResponse createAquarium(AquariumRequest request, Long ownerId) {
     Validator.notNull(request, "Request");
 
-    Aquarium aquarium = Aquarium.create(
-        request.name(),
-        request.length(),
-        request.width(),
-        request.height(),
-        request.substrate(),
-        request.waterType(),
-        request.color(),
-        request.description(),
-        request.state()
-    );
+    return aquariumRepository.executeInTransaction(em -> {
+      Aquarium aquarium = Aquarium.create(
+          request.name(),
+          request.length(),
+          request.width(),
+          request.height(),
+          request.substrate(),
+          request.waterType(),
+          request.color(),
+          request.description(),
+          request.state()
+      );
 
-    if (ownerId != null) {
-      Owner owner = findOwner(ownerId);
-      aquarium.assignToOwner(owner);
-    }
+      if (ownerId != null) {
+        // Fetch owner within the same transaction to avoid lazy loading issues
+        Owner owner = ownerRepository.executeWithEntityManager(emInner -> 
+          emInner.createQuery("SELECT o FROM Owner o LEFT JOIN FETCH o.ownedAquariums WHERE o.id = :id", Owner.class)
+            .setParameter("id", ownerId)
+            .getResultStream()
+            .findFirst()
+            .orElseThrow(() -> new ApplicationException.NotFoundException("Owner", ownerId))
+        );
+        
+        try {
+          aquarium.assignToOwner(owner);
+        } catch (Exception e) {
+          log.error("Failed to assign aquarium to owner: {}", e.getMessage(), e);
+          throw new ApplicationException.BadRequestException(
+              "Failed to assign aquarium to owner: " + e.getMessage(), e);
+        }
+      }
 
-    Aquarium savedAquarium = aquariumRepository.save(aquarium);
-    
-    // Fetch the aquarium with all required relationships to avoid LazyInitializationException
-    Aquarium aquariumWithAllData = aquariumRepository.findByIdWithAllCollections(savedAquarium.getId())
-        .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
-    
-    return mappingService.mapAquarium(aquariumWithAllData);
+      Aquarium savedAquarium = em.merge(aquarium);
+      em.flush(); // Ensure the entity is saved before fetching again
+      
+      // Fetch the aquarium with all required relationships within the same transaction
+      Aquarium aquariumWithAllData = em.createQuery(
+          "SELECT a FROM Aquarium a " +
+          "LEFT JOIN FETCH a.inhabitants " +
+          "LEFT JOIN FETCH a.accessories " +
+          "LEFT JOIN FETCH a.ornaments " +
+          "LEFT JOIN FETCH a.owner " +
+          "LEFT JOIN FETCH a.stateHistory " +
+          "WHERE a.id = :id", Aquarium.class)
+          .setParameter("id", savedAquarium.getId())
+          .getSingleResult();
+      
+      return mappingService.mapAquarium(aquariumWithAllData);
+    });
   }
 
   public AquariumResponse updateAquarium(Long id, AquariumRequest request) {

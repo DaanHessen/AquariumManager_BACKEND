@@ -103,7 +103,7 @@ This project is pre-configured to work with [Neon PostgreSQL](https://neon.tech)
 
 4. **Access the API**
    - API Base URL: `http://localhost:8080/api`
-   - Health Check: `http://localhost:8080/api/health`
+   - Health Check: `http://localhost:8080/api/status`
    - API Documentation: See `API_DOCUMENTATION.md`
 
 ## Railway Deployment
@@ -145,7 +145,7 @@ This application has been optimized for Railway's health check requirements:
 #### Health Check Endpoints
 
 - `/health` - **Railway Health Check**: Fast response, no database dependency (recommended for Railway)
-- `/api/health` - **Full Health Check**: Includes database connectivity verification
+- `/api/status` - **Full Health Check**: Includes database connectivity verification
 
 #### Health Check Configuration
 
@@ -228,7 +228,7 @@ This script will:
 - `DELETE /api/aquariums/{id}` - Delete aquarium
 
 ### Health Check
-- `GET /api/health` - Application health status
+- `GET /api/status` - Application health status
 
 For complete API documentation, see [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
 
@@ -354,7 +354,7 @@ The application uses Hibernate's automatic schema generation. Set `HIBERNATE_HBM
 
 3. **Health Check Failures**
    - If health checks fail, first check `/health` endpoint
-   - If basic health passes but `/api/health` fails, it's a database issue
+   - If basic health passes but `/api/status` fails, it's a database issue
    - Review application startup logs for database connection errors
 
 #### Adding PostgreSQL to Railway
@@ -393,7 +393,7 @@ The application uses Hibernate's automatic schema generation. Set `HIBERNATE_HBM
 
 3. **Test Full Health Check:**
    ```
-   GET https://your-app.railway.app/api/health
+   GET https://your-app.railway.app/api/status
    ```
    This will show detailed database connection status and environment info.
 
@@ -421,9 +421,9 @@ PORT=8080
 #### Health Check Endpoints
 
 - `/health` - **Railway Health Check**: Fast response, no database dependency (recommended for Railway)
-- `/api/health` - **Full Health Check**: Includes database connectivity verification
+- `/api/status` - **Full Health Check**: Includes database connectivity verification
 
-Use `/health` for initial deployment verification, then switch to `/api/health` once database is configured.
+Use `/health` for initial deployment verification, then switch to `/api/status` once database is configured.
 
 ## Contributing
 

@@ -2,15 +2,24 @@ package nl.hu.bep.data;
 
 import jakarta.inject.Singleton;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.EntityManager;
 import nl.hu.bep.domain.Owner;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 @Singleton
 public class OwnerRepository extends Repository<Owner, Long> {
     
     public OwnerRepository() {
         super(Owner.class);
+    }
+    
+    /**
+     * Public wrapper for executeWithEntityManager to be used by service layer
+     */
+    public <R> R executeWithEntityManager(Function<EntityManager, R> action) {
+        return super.executeWithEntityManager(action);
     }
     
     public Optional<Owner> findByEmail(String email) {

@@ -23,7 +23,7 @@ public class RootResource {
         endpoints.put("aquariums", "/api/aquariums");
         endpoints.put("inhabitants", "/api/inhabitants");
         endpoints.put("authentication", "/api/auth");
-        endpoints.put("health-detailed", "/api/health");
+        endpoints.put("status-detailed", "/api/status");
         endpoints.put("health-basic", "/health");
 
         Map<String, Object> apiInfo = new HashMap<>();
@@ -32,14 +32,14 @@ public class RootResource {
         apiInfo.put("endpoints", endpoints);
         apiInfo.put("notes", Map.of(
             "health-basic", "Simple health check for Railway deployment",
-            "health-detailed", "Detailed health check including database connectivity"
+            "status-detailed", "Detailed health check including database connectivity"
         ));
 
         return Response.ok(ApiResponse.success(apiInfo)).build();
     }
 
     @GET
-    @Path("/health")
+    @Path("/status")
     @Produces(MediaType.APPLICATION_JSON)
     public Response detailedHealthCheck() {
         Map<String, Object> health = new HashMap<>();
