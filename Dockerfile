@@ -20,7 +20,7 @@ RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Runtime stage - Use Tomcat for WAR deployment
-FROM tomcat:10-jre17-openjdk-slim
+FROM tomcat:10.1-jre17
 
 # Set memory-optimized JVM options for Railway
 ENV CATALINA_OPTS="-Xmx400m -Xms200m -XX:MaxMetaspaceSize=128m -XX:CompressedClassSpaceSize=32m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+DisableExplicitGC -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
