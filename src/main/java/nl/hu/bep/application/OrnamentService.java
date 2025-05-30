@@ -79,7 +79,22 @@ public class OrnamentService {
       ornament = findOrnament(ornament.getId());
     }
 
-    return mappingService.mapOrnament(ornament);
+    // Handle potential lazy loading issues when mapping
+    try {
+      return mappingService.mapOrnament(ornament);
+    } catch (Exception e) {
+      log.error("Error mapping ornament, creating fallback response: {}", e.getMessage(), e);
+      
+      // Fallback: create response directly to avoid lazy loading issues
+      return new OrnamentResponse(
+          ornament.getId(),
+          ornament.getName(),
+          ornament.getColor(),
+          ornament.getMaterial(),
+          ornament.getDescription(),
+          ornament.getDateCreated(),
+          ornament.isAirPumpCompatible());
+    }
   }
 
   public OrnamentResponse updateOrnament(Long id, OrnamentRequest request) {

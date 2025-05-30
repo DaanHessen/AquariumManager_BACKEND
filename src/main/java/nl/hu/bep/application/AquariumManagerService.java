@@ -142,16 +142,37 @@ public class AquariumManagerService {
             throw new ApplicationException.BadRequestException("Database operation failed while creating aquarium: " + e.getMessage(), e);
         }
         
-        // Fetch the aquarium with all required relationships to avoid LazyInitializationException
+        // Fetch the aquarium with owner relationship to avoid LazyInitializationException
         try {
-            Aquarium aquariumWithAllData = aquariumRepository.findByIdWithAllCollections(savedAquarium.getId())
+            Aquarium aquariumWithOwner = aquariumRepository.findByIdWithRelationships(savedAquarium.getId(), "owner")
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", savedAquarium.getId()));
             
-            return mappingService.mapAquarium(aquariumWithAllData);
+            return mappingService.mapAquarium(aquariumWithOwner);
         } catch (Exception e) {
-            log.error("Error fetching created aquarium: {}", e.getMessage(), e);
-            // Return basic mapping if detailed fetch fails
-            return mappingService.mapAquarium(savedAquarium);
+            log.error("Error fetching created aquarium with owner: {}", e.getMessage(), e);
+            
+            // Fallback: create a simple response without requiring lazy relationships
+            return new AquariumResponse(
+                savedAquarium.getId(),
+                savedAquarium.getName(),
+                savedAquarium.getDimensions().getLength(),
+                savedAquarium.getDimensions().getWidth(),
+                savedAquarium.getDimensions().getHeight(),
+                savedAquarium.getDimensions().getVolumeInLiters(),
+                savedAquarium.getSubstrate(),
+                savedAquarium.getWaterType(),
+                savedAquarium.getState(),
+                savedAquarium.getCurrentStateStartTime(),
+                savedAquarium.getCurrentStateDurationMinutes(),
+                ownerId, // Use the provided ownerId directly
+                owner != null ? owner.getEmail() : null, // Use the owner we already have
+                java.util.Collections.emptyList(), // Empty collections for create operation
+                java.util.Collections.emptyList(),
+                java.util.Collections.emptyList(),
+                savedAquarium.getColor(),
+                savedAquarium.getDescription(),
+                savedAquarium.getDateCreated()
+            );
         }
     }
 

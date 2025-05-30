@@ -95,7 +95,28 @@ public class InhabitantService {
             inhabitant = findInhabitant(inhabitant.getId());
         }
 
-        return mappingService.mapInhabitant(inhabitant);
+        // Handle potential lazy loading issues when mapping
+        try {
+            return mappingService.mapInhabitant(inhabitant);
+        } catch (Exception e) {
+            log.error("Error mapping inhabitant, creating fallback response: {}", e.getMessage(), e);
+            
+            // Fallback: create response directly to avoid lazy loading issues
+            return new InhabitantResponse(
+                inhabitant.getId(),
+                inhabitant.getSpecies(),
+                inhabitant.getColor(),
+                inhabitant.getDescription(),
+                inhabitant.getDateCreated(),
+                inhabitant.getCount(),
+                inhabitant.isSchooling(),
+                inhabitant.getWaterType(),
+                request.aquariumId(),
+                inhabitant.getClass().getSimpleName(),
+                request.getAggressiveEaterValue(),
+                request.getRequiresSpecialFoodValue(),
+                request.getSnailEaterValue());
+        }
     }
 
     public InhabitantResponse updateInhabitant(Long id, InhabitantRequest request) {

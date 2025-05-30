@@ -119,7 +119,35 @@ public class AccessoryService {
       }
     }
 
-    return mappingService.mapAccessory(accessory);
+    // Handle potential lazy loading issues when mapping
+    try {
+      return mappingService.mapAccessory(accessory);
+    } catch (Exception e) {
+      log.error("Error mapping accessory, creating fallback response: {}", e.getMessage(), e);
+      
+      // Fallback: create response directly to avoid lazy loading issues
+      return createAccessoryResponseFallback(accessory, request);
+    }
+  }
+
+  private AccessoryResponse createAccessoryResponseFallback(Accessory accessory, AccessoryRequest request) {
+    // Create response without accessing any potentially lazy relationships
+    return new AccessoryResponse(
+        accessory.getId(),
+        accessory.getModel(),
+        accessory.getSerialNumber(),
+        accessory.getClass().getSimpleName(),
+        request.getIsExternalValue(),
+        request.getCapacityInLitersValue(),
+        request.getIsLEDValue(),
+        request.getTimeOnValue(),
+        request.getTimeOffValue(),
+        request.getMinTemperatureValue(),
+        request.getMaxTemperatureValue(),
+        request.getCurrentTemperatureValue(),
+        accessory.getColor(),
+        accessory.getDescription(),
+        accessory.getDateCreated());
   }
 
   public AccessoryResponse updateAccessory(Long id, AccessoryRequest request) {
