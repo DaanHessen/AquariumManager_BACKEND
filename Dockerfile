@@ -32,28 +32,25 @@ ENV CATALINA_OPTS="-Xmx400m -Xms200m -XX:MaxMetaspaceSize=128m -XX:CompressedCla
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
-# Create startup script that properly handles Railway's PORT
-RUN cat > /start.sh << 'EOF'
-#!/bin/bash
-set -e
-
-# Get the port from environment, default to 8080
-export PORT=${PORT:-8080}
-
-echo "=================================================="
-echo "Railway Tomcat Startup"
-echo "PORT environment variable: $PORT"
-echo "=================================================="
-
-# Update server.xml to use the correct port
-echo "Updating Tomcat server.xml to use port $PORT..."
-sed -i "s/port=\"8080\"/port=\"$PORT\"/g" /usr/local/tomcat/conf/server.xml
-
-echo "Starting Tomcat on port $PORT..."
-exec catalina.sh run
-EOF
-
-RUN chmod +x /start.sh
+# Create startup script using echo commands
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'set -e' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo '# Get the port from environment, default to 8080' >> /start.sh && \
+    echo 'export PORT=${PORT:-8080}' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo 'echo "=================================================="' >> /start.sh && \
+    echo 'echo "Railway Tomcat Startup"' >> /start.sh && \
+    echo 'echo "PORT environment variable: $PORT"' >> /start.sh && \
+    echo 'echo "=================================================="' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo '# Update server.xml to use the correct port' >> /start.sh && \
+    echo 'echo "Updating Tomcat server.xml to use port $PORT..."' >> /start.sh && \
+    echo 'sed -i "s/port=\"8080\"/port=\"$PORT\"/g" /usr/local/tomcat/conf/server.xml' >> /start.sh && \
+    echo '' >> /start.sh && \
+    echo 'echo "Starting Tomcat on port $PORT..."' >> /start.sh && \
+    echo 'exec catalina.sh run' >> /start.sh && \
+    chmod +x /start.sh
 
 # Default port (Railway will override with environment variable)
 EXPOSE 8080
