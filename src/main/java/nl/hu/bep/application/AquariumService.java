@@ -63,7 +63,7 @@ public class AquariumService {
   }
 
   public AquariumResponse getAquariumDetailById(Long id) {
-    return aquariumRepository.findByIdWithInhabitants(id)
+    return aquariumRepository.findByIdWithAllCollections(id)
         .map(mappingService::mapAquariumDetailed)
         .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", id));
   }

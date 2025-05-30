@@ -84,6 +84,14 @@ public class AquariumMapper {
             return null;
         }
 
+        Long aquariumId = null;
+        try {
+            aquariumId = inhabitant.getAquarium() != null ? inhabitant.getAquarium().getId() : null;
+        } catch (Exception e) {
+            // Handle lazy loading exception gracefully
+            aquariumId = null;
+        }
+
         return new InhabitantResponse(
                 inhabitant.getId(),
                 inhabitant.getSpecies(),
@@ -93,7 +101,7 @@ public class AquariumMapper {
                 inhabitant.getCount(),
                 inhabitant.isSchooling(),
                 inhabitant.getWaterType(),
-                inhabitant.getAquarium() != null ? inhabitant.getAquarium().getId() : null,
+                aquariumId,
                 inhabitant.getClass().getSimpleName(),
                 getIsAggressiveEater(inhabitant),
                 getRequiresSpecialFood(inhabitant),
