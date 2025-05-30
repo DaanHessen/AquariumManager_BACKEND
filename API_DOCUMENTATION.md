@@ -1,6 +1,6 @@
 # Aquarium Manager API Documentation v2.0
 
-**Base URL:** `https://your-domain.com/api`
+**Base URL:** `https://web-production-8a8d.up.railway.app/api`
 
 ## Quick Start
 
@@ -78,6 +78,11 @@ interface StateHistory {
 
 **Auth:** None  
 **Response:** Service status, database connectivity, environment info
+
+### GET `/health` - Basic Health Check
+
+**Auth:** None  
+**Response:** Simple health status for Railway deployment
 
 ## Aquarium Management `/aquariums`
 

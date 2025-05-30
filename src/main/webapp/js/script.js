@@ -1,5 +1,59 @@
-
 var elements = [];
+
+// Dark Mode Functionality
+function initTheme() {
+    const savedTheme = localStorage.getItem('aquarium-api-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    
+    document.documentElement.setAttribute('data-theme', theme);
+    updateThemeToggle(theme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('aquarium-api-theme', newTheme);
+    updateThemeToggle(newTheme);
+}
+
+function updateThemeToggle(theme) {
+    const toggle = document.getElementById('theme-toggle');
+    const icon = toggle.querySelector('.theme-icon');
+    const text = toggle.querySelector('.theme-text');
+    
+    if (theme === 'dark') {
+        icon.textContent = '☀️';
+        text.textContent = 'Light Mode';
+        toggle.setAttribute('aria-label', 'Switch to light mode');
+    } else {
+        icon.textContent = '🌓';
+        text.textContent = 'Dark Mode';
+        toggle.setAttribute('aria-label', 'Switch to dark mode');
+    }
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initTheme();
+    
+    // Add theme toggle event listener
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+});
+
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+    if (!localStorage.getItem('aquarium-api-theme')) {
+        const theme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+        updateThemeToggle(theme);
+    }
+});
 
 [].forEach.call(document.querySelectorAll('.scroll-to-link'), function (div) {
     div.onclick = function (e) {

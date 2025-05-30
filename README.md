@@ -232,6 +232,21 @@ This script will:
 
 For complete API documentation, see [API_DOCUMENTATION.md](API_DOCUMENTATION.md).
 
+### 🌓 Interactive Documentation with Dark Mode
+
+The API includes a beautiful, interactive HTML documentation interface available at:
+- **Local Development**: `http://localhost:8080/index.html`
+- **Production**: Access via your deployed application root URL
+
+**Features:**
+- 🌓 **Dark/Light Mode Toggle**: Automatic system theme detection with manual override
+- 📱 **Fully Responsive**: Optimized for desktop, tablet, and mobile viewing
+- 🔗 **Interactive Navigation**: Smooth scrolling between sections
+- 💾 **Theme Persistence**: Remembers your theme preference across sessions
+- 🎨 **Modern Design**: Clean, professional interface with excellent readability
+
+The documentation interface provides comprehensive details for all endpoints, request/response examples, and usage patterns.
+
 ## Docker
 
 ### Build and run with Docker
