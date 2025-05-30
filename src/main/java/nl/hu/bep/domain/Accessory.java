@@ -106,7 +106,7 @@ public abstract class Accessory {
   }
 
   public static Accessory createFromType(String type, String model, String serialNumber,
-      boolean isExternal, int capacityInLiters,
+      boolean isExternal, int capacityLiters,
       boolean isLED, LocalTime timeOn, LocalTime timeOff,
       double minTemperature, double maxTemperature, double currentTemperature,
       Long ownerId, String color, String description) {
@@ -119,7 +119,7 @@ public abstract class Accessory {
 
     switch (type.toLowerCase()) {
       case "filter":
-        accessory = new Filter(model, serialNumber, isExternal, capacityInLiters, ownerId);
+        accessory = new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
         break;
       case "light":
         accessory = new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);

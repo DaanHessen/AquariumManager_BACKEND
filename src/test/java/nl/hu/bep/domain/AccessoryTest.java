@@ -23,11 +23,11 @@ class AccessoryTest {
     String model = "SuperFilter 3000";
     String serialNumber = "SF3000-12345";
     boolean isExternal = true;
-    int capacityInLiters = 200;
+    int capacityLiters = 200;
 
     Accessory accessory = Accessory.createFromType(
         type, model, serialNumber,
-        isExternal, capacityInLiters,
+        isExternal, capacityLiters,
         false, null, null,
         0.0, 0.0, 0.0,
         1L);
@@ -40,7 +40,7 @@ class AccessoryTest {
 
     Filter filter = (Filter) accessory;
     assertEquals(isExternal, filter.isExternal());
-    assertEquals(capacityInLiters, filter.getCapacityLiters());
+    assertEquals(capacityLiters, filter.getCapacityLiters());
   }
 
   @Test

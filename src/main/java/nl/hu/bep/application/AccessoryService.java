@@ -81,7 +81,7 @@ public class AccessoryService {
           request.model(),
           request.serialNumber(),
           request.getIsExternalValue(),
-          request.getCapacityInLitersValue(),
+          request.getCapacityLitersValue(),
           request.getIsLEDValue(),
           request.getTimeOnValue(),
           request.getTimeOffValue(),
@@ -138,7 +138,7 @@ public class AccessoryService {
         accessory.getSerialNumber(),
         accessory.getClass().getSimpleName(),
         request.getIsExternalValue(),
-        request.getCapacityInLitersValue(),
+        request.getCapacityLitersValue(),
         request.getIsLEDValue(),
         request.getTimeOnValue(),
         request.getTimeOffValue(),
@@ -170,7 +170,7 @@ public class AccessoryService {
     switch (type) {
       case "Filter" -> {
         nl.hu.bep.domain.accessories.Filter filter = (nl.hu.bep.domain.accessories.Filter) existingAccessory;
-        filter.updateProperties(request.getIsExternalValue(), request.getCapacityInLitersValue());
+        filter.updateProperties(request.getIsExternalValue(), request.getCapacityLitersValue());
       }
       case "Lighting" -> {
         nl.hu.bep.domain.accessories.Lighting lighting = (nl.hu.bep.domain.accessories.Lighting) existingAccessory;

@@ -258,7 +258,7 @@ interface StateHistory {
 #### POST `/accessories` 🔐
 
 **Auth:** Required  
-**Body:** `{model: string, serialNumber: string, type: string, aquariumId?: number, isExternal?: boolean, capacityInLiters?: number, isLED?: boolean, color?: string, description?: string, timeOn?: string, timeOff?: string, minTemperature?: number, maxTemperature?: number, currentTemperature?: number}`  
+**Body:** `{model: string, serialNumber: string, type: string, aquariumId?: number, isExternal?: boolean, capacityLiters?: number, isLED?: boolean, color?: string, description?: string, timeOn?: string, timeOff?: string, minTemperature?: number, maxTemperature?: number, currentTemperature?: number}`  
 **Response:** `Accessory`
 
 #### PUT `/accessories/{id}` 🔐

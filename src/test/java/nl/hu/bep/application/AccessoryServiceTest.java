@@ -172,7 +172,7 @@ class AccessoryServiceTest {
     when(request.model()).thenReturn("SuperFilter 3000");
     when(request.serialNumber()).thenReturn("SF3000-12345");
     when(request.getIsExternalValue()).thenReturn(true);
-    when(request.getCapacityInLitersValue()).thenReturn(200);
+    when(request.getCapacityLitersValue()).thenReturn(200);
     when(request.getIsLEDValue()).thenReturn(false);
     when(request.getTimeOnValue()).thenReturn(null);
     when(request.getTimeOffValue()).thenReturn(null);
@@ -199,7 +199,7 @@ class AccessoryServiceTest {
     when(request.model()).thenReturn("SuperFilter 3000");
     when(request.serialNumber()).thenReturn("SF3000-12345");
     when(request.getIsExternalValue()).thenReturn(true);
-    when(request.getCapacityInLitersValue()).thenReturn(200);
+    when(request.getCapacityLitersValue()).thenReturn(200);
     when(request.getIsLEDValue()).thenReturn(false);
     when(request.getTimeOnValue()).thenReturn(null);
     when(request.getTimeOffValue()).thenReturn(null);

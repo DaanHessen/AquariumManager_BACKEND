@@ -21,7 +21,7 @@ public record AccessoryRequest(
         Long aquariumId,
 
         Boolean isExternal,
-        Integer capacityInLiters,
+        Integer capacityLiters,
 
         Boolean isLED,
         
@@ -41,8 +41,8 @@ public record AccessoryRequest(
         return isExternal != null ? isExternal : false;
     }
 
-    public int getCapacityInLitersValue() {
-        return capacityInLiters != null ? capacityInLiters : 0;
+    public int getCapacityLitersValue() {
+        return capacityLiters != null ? capacityLiters : 0;
     }
 
     public boolean getIsLEDValue() {
