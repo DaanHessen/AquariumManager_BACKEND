@@ -61,10 +61,13 @@ public class AquariumStateHistory {
         AquariumStateHistory history = new AquariumStateHistory();
         history.aquarium = aquarium;
         history.state = state;
-        history.startTime = LocalDateTime.now();
         history.durationMinutes = durationMinutes;
-        history.endTime = history.startTime; // Set end time same as start for completed states
         history.createdAt = LocalDateTime.now();
+        
+        // For completed states, calculate startTime and endTime based on duration
+        history.endTime = LocalDateTime.now();
+        history.startTime = history.endTime.minusMinutes(durationMinutes);
+        
         return history;
     }
     
@@ -113,5 +116,19 @@ public class AquariumStateHistory {
      */
     public long getDurationMinutes() {
         return durationMinutes != null ? durationMinutes : getCurrentDurationMinutes();
+    }
+    
+    /**
+     * Sets the duration in minutes for completed state transitions
+     */
+    public void setDurationMinutes(Long durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
+    
+    /**
+     * Sets the end time for completed state transitions
+     */
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 } 

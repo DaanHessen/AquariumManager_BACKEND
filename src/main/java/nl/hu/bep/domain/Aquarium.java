@@ -204,17 +204,12 @@ public class Aquarium {
       return; // No change needed
     }
 
-    AquariumState previousState = this.state;
-
-    // End current active state history record and create a completed record with frontend duration
+    // End current active state history record with frontend-provided duration
     AquariumStateHistory currentHistory = getCurrentActiveStateHistory();
     if (currentHistory != null) {
-      // Remove the current active history
-      this.stateHistory.remove(currentHistory);
-      
-      // Create a completed history record for the previous state with frontend duration
-      AquariumStateHistory completedHistory = AquariumStateHistory.createWithDuration(this, previousState, previousStateDurationMinutes);
-      this.stateHistory.add(completedHistory);
+      // Instead of removing and creating new, update the existing record with frontend duration
+      currentHistory.setDurationMinutes(previousStateDurationMinutes);
+      currentHistory.setEndTime(LocalDateTime.now());
     }
 
     // Update current state and timestamp

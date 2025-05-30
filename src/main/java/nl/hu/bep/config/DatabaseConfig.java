@@ -137,10 +137,12 @@ public class DatabaseConfig {
         
         // Configure Hibernate to use HikariCP connection pool
         props.put("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
-        props.put("hibernate.hikari.maximumPoolSize", "10");
-        props.put("hibernate.hikari.minimumIdle", "2");
-        props.put("hibernate.hikari.idleTimeout", "30000");
-        props.put("hibernate.hikari.connectionTimeout", "30000");
+        props.put("hibernate.hikari.maximumPoolSize", "5");
+        props.put("hibernate.hikari.minimumIdle", "1");
+        props.put("hibernate.hikari.idleTimeout", "300000");
+        props.put("hibernate.hikari.connectionTimeout", "10000");
+        props.put("hibernate.hikari.maxLifetime", "1200000");
+        props.put("hibernate.hikari.leakDetectionThreshold", "60000");
         
         emf = Persistence.createEntityManagerFactory("aquariumPU", props);
         log.info("EntityManagerFactory created successfully");
@@ -186,12 +188,42 @@ public class DatabaseConfig {
             }
         }
         
-        try (EntityManager em = emf.createEntityManager()) {
-            em.getTransaction().begin();
-            em.createNativeQuery("SELECT 1").getSingleResult();
-            em.getTransaction().commit();
-            log.debug("Database health check passed");
-            return true;
+        // Add timeout for database health check to prevent hanging
+        try {
+            EntityManager em = null;
+            try {
+                // Set a short timeout for health check
+                em = emf.createEntityManager();
+                em.getTransaction().begin();
+                
+                // Simple lightweight query with timeout
+                em.createNativeQuery("SELECT 1")
+                    .setHint("jakarta.persistence.query.timeout", 5000) // 5 second timeout
+                    .getSingleResult();
+                    
+                em.getTransaction().commit();
+                log.debug("Database health check passed");
+                return true;
+            } catch (Exception e) {
+                // Rollback transaction if it's active
+                if (em != null && em.getTransaction().isActive()) {
+                    try {
+                        em.getTransaction().rollback();
+                    } catch (Exception rollbackEx) {
+                        log.warn("Failed to rollback transaction during health check: {}", rollbackEx.getMessage());
+                    }
+                }
+                throw e;
+            } finally {
+                // Always close the EntityManager
+                if (em != null) {
+                    try {
+                        em.close();
+                    } catch (Exception closeEx) {
+                        log.warn("Failed to close EntityManager during health check: {}", closeEx.getMessage());
+                    }
+                }
+            }
         } catch (Exception e) {
             log.error("Database health check failed with exception: {}", e.getMessage());
             return false;
