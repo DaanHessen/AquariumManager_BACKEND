@@ -8,8 +8,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.presentation.dto.ApiResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +15,6 @@ import java.util.Map;
 @Path("/")
 @Singleton
 public class RootResource {
-
-    private static final Logger log = LoggerFactory.getLogger(RootResource.class);
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -54,16 +50,14 @@ public class RootResource {
         // Add environment info for debugging
         health.put("environment", getEnvironmentInfo());
         
-        // Check database health with timeout protection
+        // Check database health
         boolean dbHealthy = false;
         String dbError = null;
         
         try {
-            // Use a simple timeout mechanism for the database health check
-            dbHealthy = checkDatabaseHealthWithTimeout();
+            dbHealthy = DatabaseConfig.isHealthy();
         } catch (Exception e) {
             dbError = e.getMessage();
-            log.warn("Database health check failed: {}", e.getMessage());
         }
         
         health.put("database", dbHealthy ? "UP" : "DOWN");
@@ -71,34 +65,12 @@ public class RootResource {
             health.put("database_error", dbError);
         }
         
-        // Always return 200 OK for the status endpoint to prevent health check failures
-        // Only mark as unavailable if it's a critical error
         if (dbHealthy) {
             return Response.ok(ApiResponse.success(health, "Service is healthy")).build();
         } else {
-            // Return 200 but indicate database is down - allows application to stay running
-            health.put("status", "DEGRADED");
-            return Response.ok(ApiResponse.success(health, "Service is running but database is unavailable"))
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
+                    .entity(ApiResponse.error(health, "Service is unhealthy - database connection failed"))
                     .build();
-        }
-    }
-    
-    private boolean checkDatabaseHealthWithTimeout() {
-        try {
-            // Quick timeout check - if database takes more than 3 seconds, consider it unhealthy
-            long startTime = System.currentTimeMillis();
-            boolean result = DatabaseConfig.isHealthy();
-            long duration = System.currentTimeMillis() - startTime;
-            
-            if (duration > 3000) {
-                log.warn("Database health check took {}ms, which is too slow", duration);
-                return false;
-            }
-            
-            return result;
-        } catch (Exception e) {
-            log.error("Database health check failed with exception: {}", e.getMessage());
-            return false;
         }
     }
     

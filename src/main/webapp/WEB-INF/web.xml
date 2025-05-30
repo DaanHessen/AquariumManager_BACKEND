@@ -17,6 +17,11 @@
         <param-value>true</param-value>
     </context-param>
     
+    <!-- Database lifecycle listener for proper resource cleanup -->
+    <listener>
+        <listener-class>nl.hu.bep.config.DatabaseLifecycleListener</listener-class>
+    </listener>
+    
     <!-- Health check servlet is now configured via @WebServlet annotation -->
     
     <!-- Jersey servlet for REST API -->
@@ -65,17 +70,5 @@
     <!-- Welcome File List -->
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
-        <welcome-file>index.htm</welcome-file>
     </welcome-file-list>
-    
-    <!-- Error pages for better user experience -->
-    <error-page>
-        <error-code>404</error-code>
-        <location>/index.html</location>
-    </error-page>
-    
-    <error-page>
-        <error-code>500</error-code>
-        <location>/index.html</location>
-    </error-page>
 </web-app> 

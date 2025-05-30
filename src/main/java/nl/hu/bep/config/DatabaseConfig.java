@@ -8,9 +8,13 @@ import nl.hu.bep.data.exception.RepositoryException;
 
 import javax.sql.DataSource;
 import java.net.URI;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Enumeration;
 
 @Slf4j
 public class DatabaseConfig {
@@ -131,21 +135,35 @@ public class DatabaseConfig {
         
         props.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         props.put("hibernate.hbm2ddl.auto", getEnv("HIBERNATE_HBM2DDL", "update"));
-        props.put("hibernate.show_sql", "true");
-        props.put("hibernate.format_sql", "true");
-        props.put("hibernate.use_sql_comments", "true");
         
-        // Configure Hibernate to use HikariCP connection pool
+        // Railway memory optimization - disable SQL logging
+        props.put("hibernate.show_sql", "false");
+        props.put("hibernate.format_sql", "false");
+        props.put("hibernate.use_sql_comments", "false");
+        
+        // Configure Hibernate to use HikariCP connection pool with Railway constraints
         props.put("hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider");
-        props.put("hibernate.hikari.maximumPoolSize", "5");
+        
+        // Ultra-conservative settings for Railway memory limits
+        props.put("hibernate.hikari.maximumPoolSize", "3");
         props.put("hibernate.hikari.minimumIdle", "1");
-        props.put("hibernate.hikari.idleTimeout", "300000");
-        props.put("hibernate.hikari.connectionTimeout", "10000");
-        props.put("hibernate.hikari.maxLifetime", "1200000");
+        props.put("hibernate.hikari.idleTimeout", "30000");
+        props.put("hibernate.hikari.connectionTimeout", "15000");
+        props.put("hibernate.hikari.maxLifetime", "180000");
         props.put("hibernate.hikari.leakDetectionThreshold", "60000");
+        props.put("hibernate.hikari.keepaliveTime", "30000");
+        
+        // Additional memory optimizations
+        props.put("hibernate.jdbc.batch_size", "5");
+        props.put("hibernate.cache.use_second_level_cache", "false");
+        props.put("hibernate.cache.use_query_cache", "false");
+        props.put("hibernate.bytecode.use_reflection_optimizer", "false");
+        props.put("hibernate.query.plan_cache_max_size", "64");
+        props.put("hibernate.query.plan_parameter_metadata_max_size", "32");
+        props.put("hibernate.generate_statistics", "false");
         
         emf = Persistence.createEntityManagerFactory("aquariumPU", props);
-        log.info("EntityManagerFactory created successfully");
+        log.info("EntityManagerFactory created successfully with memory-optimized settings");
     }
 
     private static void testConnection() {
@@ -188,42 +206,12 @@ public class DatabaseConfig {
             }
         }
         
-        // Add timeout for database health check to prevent hanging
-        try {
-            EntityManager em = null;
-            try {
-                // Set a short timeout for health check
-                em = emf.createEntityManager();
-                em.getTransaction().begin();
-                
-                // Simple lightweight query with timeout
-                em.createNativeQuery("SELECT 1")
-                    .setHint("jakarta.persistence.query.timeout", 5000) // 5 second timeout
-                    .getSingleResult();
-                    
-                em.getTransaction().commit();
-                log.debug("Database health check passed");
-                return true;
-            } catch (Exception e) {
-                // Rollback transaction if it's active
-                if (em != null && em.getTransaction().isActive()) {
-                    try {
-                        em.getTransaction().rollback();
-                    } catch (Exception rollbackEx) {
-                        log.warn("Failed to rollback transaction during health check: {}", rollbackEx.getMessage());
-                    }
-                }
-                throw e;
-            } finally {
-                // Always close the EntityManager
-                if (em != null) {
-                    try {
-                        em.close();
-                    } catch (Exception closeEx) {
-                        log.warn("Failed to close EntityManager during health check: {}", closeEx.getMessage());
-                    }
-                }
-            }
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            em.createNativeQuery("SELECT 1").getSingleResult();
+            em.getTransaction().commit();
+            log.debug("Database health check passed");
+            return true;
         } catch (Exception e) {
             log.error("Database health check failed with exception: {}", e.getMessage());
             return false;
@@ -231,13 +219,55 @@ public class DatabaseConfig {
     }
 
     public static synchronized void shutdown() {
-        if (emf != null && emf.isOpen()) {
-            emf.close();
-            emf = null;
-        }
+        log.info("Starting database shutdown procedure...");
         
-        initialized.set(false);
-        log.info("Database resources shut down");
+        try {
+            // Close EntityManagerFactory first
+            if (emf != null && emf.isOpen()) {
+                log.info("Closing EntityManagerFactory...");
+                emf.close();
+                emf = null;
+                log.info("EntityManagerFactory closed successfully");
+            }
+            
+            // Force JDBC driver cleanup to prevent memory leaks
+            cleanupJdbcDrivers();
+            
+            // Clear system properties
+            System.clearProperty("aquarium.db.url");
+            System.clearProperty("aquarium.db.username");
+            System.clearProperty("aquarium.db.password");
+            
+            initialized.set(false);
+            log.info("Database resources shut down successfully");
+            
+        } catch (Exception e) {
+            log.error("Error during database shutdown: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Clean up JDBC drivers to prevent memory leaks
+     */
+    private static void cleanupJdbcDrivers() {
+        try {
+            log.info("Cleaning up JDBC drivers...");
+            Enumeration<Driver> drivers = DriverManager.getDrivers();
+            while (drivers.hasMoreElements()) {
+                Driver driver = drivers.nextElement();
+                try {
+                    if (driver.getClass().getName().contains("postgresql")) {
+                        log.info("Deregistering PostgreSQL JDBC driver: {}", driver.getClass().getName());
+                        DriverManager.deregisterDriver(driver);
+                    }
+                } catch (SQLException e) {
+                    log.warn("Error deregistering JDBC driver {}: {}", driver.getClass().getName(), e.getMessage());
+                }
+            }
+            log.info("JDBC driver cleanup completed");
+        } catch (Exception e) {
+            log.error("Error during JDBC driver cleanup: {}", e.getMessage(), e);
+        }
     }
     
     private static String getEnv(String name, String defaultValue) {

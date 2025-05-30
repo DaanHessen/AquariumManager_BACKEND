@@ -41,13 +41,10 @@ public class AquariumApplication extends ResourceConfig {
             
             // Initialize database in a way that doesn't block application startup
             try {
-                log.info("Starting database initialization...");
-                long startTime = System.currentTimeMillis();
                 DatabaseConfig.initialize();
-                long duration = System.currentTimeMillis() - startTime;
-                log.info("Database initialized successfully in {}ms", duration);
+                log.info("Database initialized successfully during application startup");
             } catch (Exception e) {
-                log.warn("Database initialization encountered issues during startup (took longer than expected or failed), but continuing with application startup. Database will be initialized on first use. Error: {}", e.getMessage());
+                log.warn("Database initialization encountered issues during startup, but continuing with application startup. Database will be initialized on first use. Error: {}", e.getMessage());
                 // Continue with application startup even if database initialization fails
                 // The health check endpoints will handle database availability separately
             }

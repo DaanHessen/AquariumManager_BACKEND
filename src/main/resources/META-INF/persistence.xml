@@ -17,6 +17,7 @@
         <class>nl.hu.bep.domain.Ornament</class>
         <class>nl.hu.bep.domain.Owner</class>
         <class>nl.hu.bep.domain.AquariumManager</class>
+        <class>nl.hu.bep.domain.AquariumStateHistory</class>
         
         <!-- Include any other entity classes in your domain model -->
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
@@ -39,21 +40,35 @@
             <property name="hibernate.transaction.flush_before_completion" value="true"/>
             <property name="hibernate.connection.isolation" value="2"/>
             
-            <!-- Memory-efficient connection pool settings for Railway -->
-            <property name="hibernate.hikari.minimumIdle" value="2"/>
-            <property name="hibernate.hikari.maximumPoolSize" value="5"/>
-            <property name="hibernate.hikari.idleTimeout" value="60000"/>
-            <property name="hibernate.hikari.connectionTimeout" value="20000"/>
-            <property name="hibernate.hikari.maxLifetime" value="300000"/>
+            <!-- Memory-efficient connection pool settings for Railway (reduced further) -->
+            <property name="hibernate.hikari.minimumIdle" value="1"/>
+            <property name="hibernate.hikari.maximumPoolSize" value="3"/>
+            <property name="hibernate.hikari.idleTimeout" value="30000"/>
+            <property name="hibernate.hikari.connectionTimeout" value="15000"/>
+            <property name="hibernate.hikari.maxLifetime" value="180000"/>
+            <property name="hibernate.hikari.leakDetectionThreshold" value="60000"/>
+            <property name="hibernate.hikari.keepaliveTime" value="30000"/>
             
             <!-- Additional memory optimization -->
-            <property name="hibernate.jdbc.batch_size" value="10"/>
+            <property name="hibernate.jdbc.batch_size" value="5"/>
             <property name="hibernate.order_inserts" value="true"/>
             <property name="hibernate.order_updates" value="true"/>
             <property name="hibernate.jdbc.batch_versioned_data" value="true"/>
             <property name="hibernate.cache.use_second_level_cache" value="false"/>
             <property name="hibernate.cache.use_query_cache" value="false"/>
             <property name="hibernate.session.events.log.LOG_QUERIES_SLOWER_THAN_MS" value="1000"/>
+            
+            <!-- JVM memory optimizations -->
+            <property name="hibernate.bytecode.use_reflection_optimizer" value="false"/>
+            <property name="hibernate.temp.use_jdbc_metadata_defaults" value="false"/>
+            <property name="hibernate.query.plan_cache_max_size" value="64"/>
+            <property name="hibernate.query.plan_parameter_metadata_max_size" value="32"/>
+            
+            <!-- Statistics and logging (minimal for production) -->
+            <property name="hibernate.generate_statistics" value="false"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.format_sql" value="false"/>
+            <property name="hibernate.use_sql_comments" value="false"/>
         </properties>
 
     </persistence-unit>

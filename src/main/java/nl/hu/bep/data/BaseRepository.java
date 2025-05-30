@@ -176,8 +176,9 @@ public abstract class BaseRepository<T, ID> {
     }
     
     protected <R> R executeWithEntityManager(Function<EntityManager, R> action) {
-        EntityManager em = getEntityManager();
+        EntityManager em = null;
         try {
+            em = getEntityManager();
             return action.apply(em);
         } catch (PersistenceException e) {
             throw new RepositoryException.ConnectionException(
@@ -186,49 +187,68 @@ public abstract class BaseRepository<T, ID> {
             throw new RepositoryException.DatabaseConfigException(
                 "Unexpected error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
         } finally {
-            closeEntityManager(em);
+            closeEntityManagerSafely(em);
         }
     }
 
     protected <R> R executeInTransaction(Function<EntityManager, R> action) {
-        EntityManager em = getEntityManager();
-        EntityTransaction tx = em.getTransaction();
+        EntityManager em = null;
+        EntityTransaction tx = null;
         
         try {
+            em = getEntityManager();
+            tx = em.getTransaction();
             tx.begin();
             R result = action.apply(em);
             tx.commit();
             return result;
         } catch (PersistenceException e) {
-            rollbackTransaction(tx);
+            rollbackTransactionSafely(tx);
             throw new RepositoryException.ConnectionException(
                 "Database error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
         } catch (Exception e) {
-            rollbackTransaction(tx);
+            rollbackTransactionSafely(tx);
             throw new RepositoryException.DatabaseConfigException(
                 "Unexpected error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
         } finally {
-            closeEntityManager(em);
+            closeEntityManagerSafely(em);
         }
     }
     
-    private void rollbackTransaction(EntityTransaction tx) {
-        try {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
+    private void rollbackTransactionSafely(EntityTransaction tx) {
+        if (tx != null) {
+            try {
+                if (tx.isActive()) {
+                    tx.rollback();
+                }
+            } catch (Exception e) {
+                // Log error but don't throw to avoid suppressing original exception
+                System.err.println("Error during transaction rollback: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("Error during transaction rollback: " + e.getMessage());
         }
+    }
+    
+    private void closeEntityManagerSafely(EntityManager em) {
+        if (em != null) {
+            try {
+                // Clear persistence context to help with memory cleanup
+                if (em.isOpen()) {
+                    em.clear();
+                    em.close();
+                }
+            } catch (Exception e) {
+                // Log error but don't throw to avoid suppressing original exception
+                System.err.println("Error closing EntityManager: " + e.getMessage());
+            }
+        }
+    }
+    
+    // Compatibility methods to maintain backward compatibility
+    private void rollbackTransaction(EntityTransaction tx) {
+        rollbackTransactionSafely(tx);
     }
     
     private void closeEntityManager(EntityManager em) {
-        try {
-            if (em != null && em.isOpen()) {
-                em.close();
-            }
-        } catch (Exception e) {
-            System.err.println("Error closing EntityManager: " + e.getMessage());
-        }
+        closeEntityManagerSafely(em);
     }
 } 
