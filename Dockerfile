@@ -19,22 +19,22 @@ RUN chmod +x mvnw
 # Build the application
 RUN ./mvnw clean package -DskipTests
 
-# Runtime stage
-FROM eclipse-temurin:17-jre-alpine
+# Runtime stage - Use Tomcat for WAR deployment
+FROM tomcat:10-jre17-openjdk-slim
 
 # Set memory-optimized JVM options for Railway
-ENV JAVA_OPTS="-Xmx400m -Xms200m -XX:MaxMetaspaceSize=128m -XX:CompressedClassSpaceSize=32m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+DisableExplicitGC -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+ENV CATALINA_OPTS="-Xmx400m -Xms200m -XX:MaxMetaspaceSize=128m -XX:CompressedClassSpaceSize=32m -XX:+UseG1GC -XX:G1HeapRegionSize=8m -XX:+UseStringDeduplication -XX:+DisableExplicitGC -XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 
-# Create app directory and user for security
-RUN addgroup -g 1001 -S appgroup && adduser -u 1001 -S appuser -G appgroup
-WORKDIR /app
+# Remove default webapps and copy our WAR as ROOT
+RUN rm -rf /usr/local/tomcat/webapps/*
+COPY --from=builder /app/target/*.war /usr/local/tomcat/webapps/ROOT.war
 
-# Copy WAR file from build stage
-COPY --from=builder /app/target/*.war app.war
-
-# Change ownership to app user
-RUN chown -R appuser:appgroup /app
-USER appuser
+# Create startup script to handle PORT environment variable
+RUN echo '#!/bin/sh' > /usr/local/tomcat/bin/start-tomcat.sh && \
+    echo 'export PORT=${PORT:-8080}' >> /usr/local/tomcat/bin/start-tomcat.sh && \
+    echo 'sed -i "s/8080/$PORT/g" /usr/local/tomcat/conf/server.xml' >> /usr/local/tomcat/bin/start-tomcat.sh && \
+    echo 'exec /usr/local/tomcat/bin/catalina.sh run' >> /usr/local/tomcat/bin/start-tomcat.sh && \
+    chmod +x /usr/local/tomcat/bin/start-tomcat.sh
 
 # Expose port
 EXPOSE 8080
@@ -43,5 +43,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=60s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Run with optimized settings
-CMD ["sh", "-c", "java $JAVA_OPTS -jar app.war"] 
+# Run Tomcat
+CMD ["/usr/local/tomcat/bin/start-tomcat.sh"] 
