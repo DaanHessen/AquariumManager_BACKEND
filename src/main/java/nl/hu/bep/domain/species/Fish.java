@@ -1,6 +1,5 @@
 package nl.hu.bep.domain.species;
 
-import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,43 +9,43 @@ import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.utils.Validator;
 
-@Entity
-@DiscriminatorValue("Fish")
+/**
+ * Represents a fish in an aquarium.
+ * Clean POJO implementation following DDD principles.
+ */
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
 @Setter(AccessLevel.PRIVATE)
 public class Fish extends Inhabitant {
-    @Column(name = "is_aggressive_eater")
     private boolean isAggressiveEater;
-
-    @Column(name = "requires_special_food")
     private boolean requiresSpecialFood;
-
-    @Column(name = "is_snail_eater")
     private boolean isSnailEater;
+
+    // Private constructor for factory method
+    private Fish(String species, String color, int count, boolean isSchooling,
+                WaterType waterType, Long ownerId, String name, String description,
+                boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
+        super(species, color, count, isSchooling, waterType, ownerId, name, description);
+        this.isAggressiveEater = isAggressiveEater;
+        this.requiresSpecialFood = requiresSpecialFood;
+        this.isSnailEater = isSnailEater;
+    }
 
     public static Fish create(String species, String color, int count, boolean isSchooling,
             boolean isAggressiveEater, boolean requiresSpecialFood,
             WaterType waterType, boolean isSnailEater, Long ownerId, String name, String description) {
         Validator.notEmpty(species, "Species");
         Validator.notNull(waterType, "Water type");
+        Validator.notNull(ownerId, "Owner ID");
 
-        Fish fish = new Fish();
-        fish.initializeInhabitant(species, color, count, isSchooling, waterType);
-        fish.isAggressiveEater = isAggressiveEater;
-        fish.requiresSpecialFood = requiresSpecialFood;
-        fish.isSnailEater = isSnailEater;
+        return new Fish(species, color, count, isSchooling, waterType, ownerId, name, description,
+                       isAggressiveEater, requiresSpecialFood, isSnailEater);
+    }
 
-        fish.setOwnerIdInternal(ownerId);
-        if (name != null) {
-            fish.setNameInternal(name);
-        }
-        if (description != null) {
-            fish.updateDescription(description);
-        }
-
-        return fish;
+    @Override
+    public String getType() {
+        return "Fish";
     }
 
     public void updateProperties(boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {

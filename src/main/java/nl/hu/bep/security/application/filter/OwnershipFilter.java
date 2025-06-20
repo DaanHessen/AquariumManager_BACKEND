@@ -16,12 +16,15 @@ import nl.hu.bep.data.AquariumRepository;
 import nl.hu.bep.data.AccessoryRepository;
 import nl.hu.bep.data.InhabitantRepository;
 import nl.hu.bep.data.OrnamentRepository;
-import nl.hu.bep.domain.services.OwnershipDomainService;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 
+/**
+ * Security filter for ownership validation using native domain methods.
+ * Follows DDD principles by delegating ownership checks to domain entities.
+ */
 @Slf4j
 @Provider
 @RequiresOwnership.Checker
@@ -122,14 +125,17 @@ public class OwnershipFilter implements ContainerRequestFilter {
                         .build());
     }
 
-    // DDD-compliant ownership verification using domain services
+    // DDD-compliant ownership verification using native domain methods
     private boolean verifyAquariumOwnership(Long aquariumId, Long ownerId) {
         try {
             var aquarium = aquariumRepository.findById(aquariumId).orElse(null);
             if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            
+            // Use native domain validation - DDD compliant
+            aquarium.verifyOwnership(ownerId);
             return true;
         } catch (Exception e) {
+            log.debug("Aquarium ownership verification failed: {}", e.getMessage());
             return false;
         }
     }
@@ -137,12 +143,13 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private boolean verifyInhabitantOwnership(Long inhabitantId, Long ownerId) {
         try {
             var inhabitant = inhabitantRepository.findById(inhabitantId).orElse(null);
-            if (inhabitant == null || inhabitant.getAquariumId() == null) return false;
-            var aquarium = aquariumRepository.findById(inhabitant.getAquariumId()).orElse(null);
-            if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            if (inhabitant == null) return false;
+            
+            // Use native domain validation - DDD compliant
+            inhabitant.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
+            log.debug("Inhabitant ownership verification failed: {}", e.getMessage());
             return false;
         }
     }
@@ -150,12 +157,12 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private boolean verifyAccessoryOwnership(Long accessoryId, Long ownerId) {
         try {
             var accessory = accessoryRepository.findById(accessoryId).orElse(null);
-            if (accessory == null || accessory.getAquariumId() == null) return false;
-            var aquarium = aquariumRepository.findById(accessory.getAquariumId()).orElse(null);
-            if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
-            return true;
+            if (accessory == null) return false;
+            
+            // Direct ownership check - accessories are owned directly by users
+            return accessory.getOwnerId().equals(ownerId);
         } catch (Exception e) {
+            log.debug("Accessory ownership verification failed: {}", e.getMessage());
             return false;
         }
     }
@@ -163,12 +170,13 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private boolean verifyOrnamentOwnership(Long ornamentId, Long ownerId) {
         try {
             var ornament = ornamentRepository.findById(ornamentId).orElse(null);
-            if (ornament == null || ornament.getAquariumId() == null) return false;
-            var aquarium = aquariumRepository.findById(ornament.getAquariumId()).orElse(null);
-            if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            if (ornament == null) return false;
+            
+            // Use native domain validation - DDD compliant
+            ornament.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
+            log.debug("Ornament ownership verification failed: {}", e.getMessage());
             return false;
         }
     }

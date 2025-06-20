@@ -8,13 +8,13 @@ public abstract class AssignableEntity {
     
     protected Long aquariumId;
     
-    // Package-private - only domain layer can call these methods
-    // This enforces proper encapsulation and security boundaries
-    void assignToAquarium(Long aquariumId) {
+    // Protected - can be called by subclasses for domain-level validation
+    // This enforces proper encapsulation and allows subclass customization
+    protected void assignToAquarium(Long aquariumId) {
         this.aquariumId = aquariumId;
     }
 
-    void removeFromAquarium() {
+    protected void removeFromAquarium() {
         this.aquariumId = null;
     }
     

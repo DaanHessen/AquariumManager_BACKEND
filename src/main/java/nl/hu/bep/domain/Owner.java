@@ -145,6 +145,54 @@ public class Owner {
         return this.aquariumManagerId == null;
     }
 
+    public Set<Aquarium> getOwnedAquariums() {
+        // This method returns an empty set for now since Owner uses aquariumIds
+        // In a full implementation, this would need to be resolved by the repository layer
+        return new HashSet<>();
+    }
+
+    public void addToAquariums(Aquarium aquarium) {
+        // This method is called by Aquarium.assignToOwner() for bidirectional relationship
+        // Since Owner uses aquariumIds, we add the ID if the aquarium has one
+        if (aquarium != null && aquarium.getId() != null) {
+            this.aquariumIds.add(aquarium.getId());
+        }
+    }
+
+    // Native domain ownership validation methods - DDD compliant
+    public void validateOwnsAquarium(Long aquariumId) {
+        if (aquariumId == null) {
+            throw new DomainException("Aquarium ID is required for ownership validation");
+        }
+        
+        if (isAdmin()) {
+            return; // Admins can access any aquarium
+        }
+        
+        if (!aquariumIds.contains(aquariumId)) {
+            throw new DomainException("Access denied: You do not own this aquarium");
+        }
+    }
+
+    public void validateCanModifyEntity(Long entityOwnerId) {
+        if (entityOwnerId == null) {
+            throw new DomainException("Entity owner ID is required for validation");
+        }
+        
+        if (isAdmin()) {
+            return; // Admins can modify any entity
+        }
+        
+        if (!this.id.equals(entityOwnerId)) {
+            throw new DomainException("Access denied: You can only modify your own entities");
+        }
+    }
+
+    public void validateCanAssignToAquarium(Long aquariumId, Long entityOwnerId) {
+        validateOwnsAquarium(aquariumId);
+        validateCanModifyEntity(entityOwnerId);
+    }
+
     // Public method for repository reconstruction only
     public static Owner reconstruct(Long id, String firstName, String lastName, String email, 
                            String password, Role role, LocalDateTime lastLogin, 

@@ -34,11 +34,11 @@ public class OrnamentRepository extends Repository<Ornament, Long> {
                 rs.getString("name"),
                 rs.getString("description"),
                 rs.getString("color"),
+                rs.getString("material"),
                 rs.getBoolean("is_air_pump_compatible"),
                 rs.getLong("owner_id"),
-                rs.getString("material"),
-                rs.getTimestamp("date_created").toLocalDateTime(),
-                getLongOrNull(rs, "aquarium_id")
+                getLongOrNull(rs, "aquarium_id"),
+                rs.getTimestamp("date_created").toLocalDateTime()
         );
     }
     

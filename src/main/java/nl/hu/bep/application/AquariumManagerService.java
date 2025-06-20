@@ -2,7 +2,6 @@ package nl.hu.bep.application;
 
 import nl.hu.bep.data.*;
 import nl.hu.bep.domain.*;
-import nl.hu.bep.domain.services.OwnershipDomainService;
 import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.*;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
@@ -55,9 +54,7 @@ public class AquariumManagerService {
     public AquariumResponse getAquarium(Long aquariumId, Long requestingOwnerId) {
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        
-        // Domain service handles security - no business logic in service
-        OwnershipDomainService.verifyOwnership(aquarium, requestingOwnerId);
+        aquarium.verifyOwnership(requestingOwnerId);
         
         return entityMapper.mapToAquariumResponse(aquarium);
     }
@@ -95,9 +92,11 @@ public class AquariumManagerService {
                 request.state()
         );
 
-        // Domain method handles assignment
+        // Domain method handles assignment - need to get Owner object first
         if (ownerId != null) {
-            aquarium.assignToOwner(ownerId);
+            Owner owner = ownerRepository.findById(ownerId)
+                    .orElseThrow(() -> new ApplicationException.NotFoundException("Owner", ownerId));
+            aquarium.assignToOwner(owner);
         }
 
         Aquarium savedAquarium = aquariumRepository.insert(aquarium);
@@ -162,10 +161,10 @@ public class AquariumManagerService {
 
         // Assign to aquarium if specified
         if (request.aquariumId() != null) {
-            // Verify aquarium ownership first
+            // Verify aquarium ownership first using domain method
             Aquarium aquarium = aquariumRepository.findById(request.aquariumId())
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", request.aquariumId()));
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            aquarium.verifyOwnership(ownerId);
             
             // Assign accessory to aquarium
             accessory.assignToAquarium(request.aquariumId(), ownerId);
@@ -195,10 +194,10 @@ public class AquariumManagerService {
 
         // Handle aquarium assignment change
         if (request.aquariumId() != null && !request.aquariumId().equals(accessory.getAquariumId())) {
-            // Verify new aquarium ownership
+            // Verify new aquarium ownership using domain method
             Aquarium aquarium = aquariumRepository.findById(request.aquariumId())
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", request.aquariumId()));
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            aquarium.verifyOwnership(ownerId);
             
             // Assign to new aquarium
             accessory.assignToAquarium(request.aquariumId(), ownerId);
@@ -222,10 +221,10 @@ public class AquariumManagerService {
     }
 
     public AquariumResponse addAccessoryToAquarium(Long aquariumId, Long accessoryId, Map<String, Object> properties, Long ownerId) {
-        // Verify aquarium ownership
+        // Verify aquarium ownership using domain method
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+        aquarium.verifyOwnership(ownerId);
         
         // Get and verify accessory
         Accessory accessory = accessoryRepository.findById(accessoryId)
@@ -241,10 +240,10 @@ public class AquariumManagerService {
     }
 
     public AquariumResponse removeAccessoryFromAquarium(Long aquariumId, Long accessoryId, Long ownerId) {
-        // Verify aquarium ownership
+        // Verify aquarium ownership using domain method
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+        aquarium.verifyOwnership(ownerId);
         
         // Get and verify accessory
         Accessory accessory = accessoryRepository.findById(accessoryId)
@@ -274,11 +273,11 @@ public class AquariumManagerService {
     }
 
     public OrnamentResponse createOrnament(OrnamentRequest request, Long ownerId) {
-        // Verify aquarium ownership if assigned
+        // Verify aquarium ownership if assigned using domain method
         if (request.aquariumId() != null) {
             Aquarium aquarium = aquariumRepository.findById(request.aquariumId())
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", request.aquariumId()));
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            aquarium.verifyOwnership(ownerId);
         }
 
         // Create ornament using domain factory
@@ -315,16 +314,16 @@ public class AquariumManagerService {
                 request.name(),
                 request.description(),
                 request.color(),
-                request.isAirPumpCompatible(),
-                request.material()
+                request.material(),
+                request.isAirPumpCompatible()
         );
 
         // Handle aquarium assignment change
         if (request.aquariumId() != null && !request.aquariumId().equals(ornament.getAquariumId())) {
-            // Verify new aquarium ownership
+            // Verify new aquarium ownership using domain method
             Aquarium aquarium = aquariumRepository.findById(request.aquariumId())
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", request.aquariumId()));
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            aquarium.verifyOwnership(ownerId);
             
             // Assign to new aquarium
             ornament.assignToAquarium(request.aquariumId(), ownerId);
@@ -357,10 +356,10 @@ public class AquariumManagerService {
     }
 
     public AquariumResponse addOrnamentToAquarium(Long aquariumId, Long ornamentId, Map<String, Object> properties, Long ownerId) {
-        // Verify aquarium ownership
+        // Verify aquarium ownership using domain method
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+        aquarium.verifyOwnership(ownerId);
         
         // Get and verify ornament
         Ornament ornament = ornamentRepository.findById(ornamentId)
@@ -376,10 +375,10 @@ public class AquariumManagerService {
     }
 
     public AquariumResponse removeOrnamentFromAquarium(Long aquariumId, Long ornamentId, Long ownerId) {
-        // Verify aquarium ownership
+        // Verify aquarium ownership using domain method
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+        aquarium.verifyOwnership(ownerId);
         
         // Get and verify ornament
         Ornament ornament = ornamentRepository.findById(ornamentId)
@@ -409,11 +408,11 @@ public class AquariumManagerService {
     }
 
     public InhabitantResponse createInhabitant(InhabitantRequest request, Long ownerId) {
-        // Verify aquarium ownership if assigned
+        // Verify aquarium ownership if assigned using domain method
         if (request.aquariumId() != null) {
             Aquarium aquarium = aquariumRepository.findById(request.aquariumId())
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", request.aquariumId()));
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            aquarium.verifyOwnership(ownerId);
         }
 
         // Create inhabitant using domain factory
@@ -470,10 +469,10 @@ public class AquariumManagerService {
 
         // Handle aquarium assignment change
         if (request.aquariumId() != null && !request.aquariumId().equals(inhabitant.getAquariumId())) {
-            // Verify new aquarium ownership
+            // Verify new aquarium ownership using domain method
             Aquarium aquarium = aquariumRepository.findById(request.aquariumId())
                     .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", request.aquariumId()));
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            aquarium.verifyOwnership(ownerId);
             
             // Assign to new aquarium
             inhabitant.assignToAquarium(request.aquariumId(), ownerId);
@@ -506,10 +505,10 @@ public class AquariumManagerService {
     }
 
     public AquariumResponse addInhabitantToAquarium(Long aquariumId, Long inhabitantId, Map<String, Object> properties, Long ownerId) {
-        // Verify aquarium ownership
+        // Verify aquarium ownership using domain method
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+        aquarium.verifyOwnership(ownerId);
         
         // Get and verify inhabitant
         Inhabitant inhabitant = inhabitantRepository.findById(inhabitantId)
@@ -525,10 +524,10 @@ public class AquariumManagerService {
     }
 
     public AquariumResponse removeInhabitantFromAquarium(Long aquariumId, Long inhabitantId, Long ownerId) {
-        // Verify aquarium ownership
+        // Verify aquarium ownership using domain method
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
-        OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+        aquarium.verifyOwnership(ownerId);
         
         // Get and verify inhabitant
         Inhabitant inhabitant = inhabitantRepository.findById(inhabitantId)

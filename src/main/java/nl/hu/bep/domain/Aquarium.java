@@ -87,6 +87,9 @@ public class Aquarium {
   @JoinColumn(name = "owner_id")
   private Owner owner;
 
+  private Long ownerId;
+  private Long aquariumManagerId;
+
   public static Aquarium create(String name, double length, double width, double height,
       SubstrateType substrate, WaterType waterType, String color, String description, AquariumState state) {
     Validator.notEmpty(name, "Aquarium name");
@@ -108,6 +111,33 @@ public class Aquarium {
     aquarium.description = description;
     aquarium.dateCreated = LocalDateTime.now();
 
+    return aquarium;
+  }
+
+  // Repository reconstruction method for JDBC mapping
+  public static Aquarium reconstruct(Long id, String name, Dimensions dimensions, 
+                                   SubstrateType substrate, WaterType waterType, Double temperature,
+                                   AquariumState state, LocalDateTime currentStateStartTime,
+                                   String color, String description, LocalDateTime dateCreated,
+                                   Long aquariumManagerId, Long ownerId,
+                                   Set<Accessory> accessories, Set<Inhabitant> inhabitants, Set<Ornament> ornaments) {
+    Aquarium aquarium = new Aquarium();
+    aquarium.id = id;
+    aquarium.name = name;
+    aquarium.dimensions = dimensions;
+    aquarium.substrate = substrate;
+    aquarium.waterType = waterType;
+    aquarium.temperature = temperature;
+    aquarium.state = state;
+    aquarium.currentStateStartTime = currentStateStartTime;
+    aquarium.color = color;
+    aquarium.description = description;
+    aquarium.dateCreated = dateCreated;
+    aquarium.aquariumManagerId = aquariumManagerId;
+    aquarium.ownerId = ownerId;
+    aquarium.accessories = accessories != null ? accessories : new HashSet<>();
+    aquarium.inhabitants = inhabitants != null ? inhabitants : new HashSet<>();
+    aquarium.ornaments = ornaments != null ? ornaments : new HashSet<>();
     return aquarium;
   }
 
@@ -198,30 +228,26 @@ public class Aquarium {
     if (currentStateStartTime == null) {
       return 0;
     }
-    return java.time.temporal.ChronoUnit.MINUTES.between(currentStateStartTime, LocalDateTime.now());
+    return java.time.Duration.between(currentStateStartTime, LocalDateTime.now()).toMinutes();
   }
 
   public void addToInhabitants(Inhabitant inhabitant) {
-    Validator.notNull(inhabitant, "Inhabitant");
-
-    if (this.state == AquariumState.INACTIVE) {
-      throw new DomainException("Cannot add inhabitants to an inactive aquarium");
+    if (inhabitant == null) {
+      throw new IllegalArgumentException("Inhabitant cannot be null");
     }
 
+    // Validate compatibility before adding
     validateInhabitantCompatibility(inhabitant);
 
-    if (inhabitant.getAquarium() != null && inhabitant.getAquarium() != this) {
-      inhabitant.getAquarium().getInhabitants().remove(inhabitant);
-    }
-
+    // Add to collection with proper bidirectional relationship
     addToCollection(inhabitants, inhabitant, this::setInhabitantAquarium);
   }
 
   private void validateInhabitantCompatibility(Inhabitant inhabitant) {
+    // Water type compatibility check
     if (inhabitant.getWaterType() != this.waterType) {
-      throw new DomainException.IncompatibleWaterTypeException(
-          "Incompatible water types: Aquarium has " + this.waterType +
-              " but inhabitant requires " + inhabitant.getWaterType());
+      throw new DomainException("Inhabitant water type (" + inhabitant.getWaterType() + 
+          ") is not compatible with aquarium water type (" + this.waterType + ")");
     }
   }
 
@@ -234,208 +260,198 @@ public class Aquarium {
   }
 
   private void setAccessoryAquarium(Accessory accessory, Aquarium aquarium) {
-    accessory.setAquarium(aquarium);
+    // For JDBC-based entities, we set the aquarium ID
+    // This method will be implemented in the Accessory class
   }
 
   private <T> void addToCollection(Set<T> collection, T item, BiConsumer<T, Aquarium> setter) {
-    if (item == null || collection.contains(item)) {
-      return;
+    if (!collection.contains(item)) {
+      collection.add(item);
+      setter.accept(item, this);
     }
-
-    collection.add(item);
-    setter.accept(item, this);
   }
 
   private <T> void removeFromCollection(Set<T> collection, T item, BiConsumer<T, Aquarium> setter) {
-    if (item == null || !collection.contains(item)) {
-      return;
+    if (collection.remove(item)) {
+      setter.accept(item, null);
     }
-
-    collection.remove(item);
-    setter.accept(item, null);
   }
 
   public void addToAccessories(Accessory accessory) {
-    Validator.notNull(accessory, "Accessory");
-
-    if (accessories.contains(accessory)) {
-      throw new DomainException("Accessory is already in this aquarium");
+    if (accessory == null) {
+      throw new IllegalArgumentException("Accessory cannot be null");
     }
-
-    addToCollection(accessories, accessory, this::setAccessoryAquarium);
+    
+    // For JDBC-based entities, we handle the relationship differently
+    accessories.add(accessory);
   }
 
   public void removeFromAccessories(Accessory accessory) {
-    Validator.notNull(accessory, "Accessory");
-    removeFromCollection(accessories, accessory, this::setAccessoryAquarium);
+    accessories.remove(accessory);
   }
 
   public void removeFromInhabitants(Inhabitant inhabitant) {
-    Validator.notNull(inhabitant, "Inhabitant");
     removeFromCollection(inhabitants, inhabitant, this::setInhabitantAquarium);
   }
 
   public void addToOrnaments(Ornament ornament) {
-    Validator.notNull(ornament, "Ornament");
-
-    if (ornaments.contains(ornament)) {
-      throw new DomainException("Ornament is already in this aquarium");
+    if (ornament == null) {
+      throw new IllegalArgumentException("Ornament cannot be null");
     }
-
+    
     addToCollection(ornaments, ornament, this::setOrnamentAquarium);
   }
 
   public void removeFromOrnaments(Ornament ornament) {
-    Validator.notNull(ornament, "Ornament");
     removeFromCollection(ornaments, ornament, this::setOrnamentAquarium);
   }
 
   public void assignToOwner(Owner owner) {
-    Validator.notNull(owner, "Owner");
-
-    unassignFromOwner();
-
-    this.owner = owner;
-    // Only try to update owner's collection if it's already initialized (not a proxy)
-    // This prevents lazy loading issues during entity creation
-    try {
-      if (!owner.getOwnedAquariums().contains(this)) {
-        owner.addToAquariums(this);
-      }
-    } catch (Exception e) {
-      // If accessing the collection fails (e.g., lazy loading issue),
-      // the bidirectional relationship will be handled at the persistence layer
-      // or when the collection is properly initialized
-      log.debug("Could not update owner's aquarium collection during assignment: {}", e.getMessage());
+    if (owner == null) {
+      throw new IllegalArgumentException("Owner cannot be null");
     }
+
+    // Remove from current owner if exists
+    if (this.owner != null) {
+      this.owner.unregisterAquarium(this.id);
+    }
+
+    // Assign to new owner
+    this.owner = owner;
+    this.ownerId = owner.getId();
+    owner.addToAquariums(this);
   }
 
   /**
-   * Assigns this aquarium to an owner without trying to update the owner's collection.
-   * This is safer to use during entity creation when lazy collections may not be initialized.
-   * The bidirectional relationship should be handled at the persistence/service layer.
+   * Safe assignment that checks if owner exists and handles the relationship properly
    */
   public void assignToOwnerSafely(Owner owner) {
-    Validator.notNull(owner, "Owner");
-    
-    unassignFromOwner();
-    this.owner = owner;
+    if (owner != null) {
+      assignToOwner(owner);
+    }
   }
 
   public void unassignFromOwner() {
     if (this.owner != null) {
-      Owner currentOwner = this.owner;
+      this.owner.unregisterAquarium(this.id);
       this.owner = null;
-      currentOwner.getOwnedAquariums().remove(this);
+      this.ownerId = null;
     }
   }
 
   public void assignToManager(AquariumManager manager) {
-    Validator.notNull(manager, "Aquarium Manager");
-
-    unassignFromManager();
-
-    this.aquariumManager = manager;
-    if (!manager.getAquariums().contains(this)) {
-      manager.addToAquariums(this);
+    if (manager == null) {
+      throw new IllegalArgumentException("Manager cannot be null");
     }
+
+    // Remove from current manager if exists
+    if (this.aquariumManager != null) {
+      // This would need to be implemented in AquariumManager
+    }
+
+    // Assign to new manager
+    this.aquariumManager = manager;
+    this.aquariumManagerId = manager.getId();
   }
 
   public void unassignFromManager() {
     if (this.aquariumManager != null) {
-      AquariumManager currentManager = this.aquariumManager;
+      // Remove from current manager's collection
       this.aquariumManager = null;
-      currentManager.getAquariums().remove(this);
+      this.aquariumManagerId = null;
     }
   }
 
   public boolean isOwnedBy(Long ownerId) {
-    return this.owner != null && this.owner.getId() != null && this.owner.getId().equals(ownerId);
+    return this.ownerId != null && this.ownerId.equals(ownerId);
+  }
+
+  public Long getOwnerId() {
+    return this.ownerId != null ? this.ownerId : (this.owner != null ? this.owner.getId() : null);
+  }
+
+  public Long getAquariumManagerId() {
+    return this.aquariumManagerId;
   }
 
   public double getVolume() {
-    return dimensions != null ? dimensions.getVolumeInLiters() : 0;
+    return dimensions.getVolume();
   }
 
   public Set<Inhabitant> getInhabitantsByWaterType(WaterType waterType) {
-    return this.inhabitants.stream()
+    return inhabitants.stream()
         .filter(i -> i.getWaterType() == waterType)
         .collect(Collectors.toSet());
   }
 
   public Set<Inhabitant> getSchoolingInhabitants() {
-    return this.inhabitants.stream()
+    return inhabitants.stream()
         .filter(Inhabitant::isSchooling)
         .collect(Collectors.toSet());
   }
 
   public void transferOrnament(Ornament ornament, Aquarium targetAquarium) {
-    if (ornament == null) {
-      return;
+    if (ornament == null || targetAquarium == null) {
+      throw new IllegalArgumentException("Ornament and target aquarium cannot be null");
     }
 
-    if (this.ornaments.contains(ornament)) {
-      this.removeFromOrnaments(ornament);
+    if (!this.ornaments.contains(ornament)) {
+      throw new DomainException("Ornament does not belong to this aquarium");
     }
 
-    if (targetAquarium != null && targetAquarium != this) {
-      targetAquarium.addToOrnaments(ornament);
-    }
+    this.removeFromOrnaments(ornament);
+    targetAquarium.addToOrnaments(ornament);
   }
 
   public Ornament createAndAddOrnament(String name, String description, String color, boolean isAirPumpCompatible) {
-    if (this.owner == null) {
-        throw new DomainException("Cannot create ornament in an aquarium without an owner.");
-    }
-    Ornament ornament = new Ornament(name, description, color, isAirPumpCompatible, this.owner.getId(), null);
+    Ornament ornament = Ornament.create(name, description, color, isAirPumpCompatible, this.getOwnerId());
     this.addToOrnaments(ornament);
     return ornament;
   }
 
   public void transferAccessory(Accessory accessory, Aquarium targetAquarium) {
-    if (accessory == null) {
-      return;
+    if (accessory == null || targetAquarium == null) {
+      throw new IllegalArgumentException("Accessory and target aquarium cannot be null");
     }
 
-    if (this.accessories.contains(accessory)) {
-      this.removeFromAccessories(accessory);
+    if (!this.accessories.contains(accessory)) {
+      throw new DomainException("Accessory does not belong to this aquarium");
     }
 
-    if (targetAquarium != null && targetAquarium != this) {
-      targetAquarium.addToAccessories(accessory);
-    }
+    this.removeFromAccessories(accessory);
+    targetAquarium.addToAccessories(accessory);
   }
 
   public void transferInhabitant(Inhabitant inhabitant, Aquarium targetAquarium) {
-    if (inhabitant == null) {
-      return;
+    if (inhabitant == null || targetAquarium == null) {
+      throw new IllegalArgumentException("Inhabitant and target aquarium cannot be null");
     }
 
-    if (this.inhabitants.contains(inhabitant)) {
-      this.removeFromInhabitants(inhabitant);
+    if (!this.inhabitants.contains(inhabitant)) {
+      throw new DomainException("Inhabitant does not belong to this aquarium");
     }
 
-    if (targetAquarium != null && targetAquarium != this) {
-      targetAquarium.addToInhabitants(inhabitant);
-    }
+    this.removeFromInhabitants(inhabitant);
+    targetAquarium.addToInhabitants(inhabitant);
   }
 
   public Fish createAndAddFish(String species, String color, int count, boolean isSchooling,
       boolean isAggressiveEater, boolean requiresSpecialFood, WaterType waterType, boolean isSnailEater, String description) {
     
-    if (this.owner == null) {
-        throw new DomainException("Cannot create fish in an aquarium without an owner.");
-    }
-    Fish fish = Fish.create(species, color, count, isSchooling, isAggressiveEater,
-        requiresSpecialFood, waterType, isSnailEater, this.owner.getId(), null, description);
-
+    Fish fish = Fish.create(species, color, count, isSchooling, isAggressiveEater, 
+        requiresSpecialFood, waterType, isSnailEater, this.getOwnerId(), null, description);
     this.addToInhabitants(fish);
     return fish;
   }
 
-  public void verifyOwnership(Long ownerId) {
-    if (!isOwnedBy(ownerId)) {
-      throw new DomainException("This aquarium is not owned by the user with ID: " + ownerId);
+  // Native domain ownership validation - DDD compliant
+  public void verifyOwnership(Long requestingOwnerId) {
+    if (requestingOwnerId == null) {
+      throw new DomainException("Owner ID is required for ownership verification");
+    }
+    
+    if (!isOwnedBy(requestingOwnerId)) {
+      throw new DomainException("Access denied: You do not own this aquarium");
     }
   }
 
@@ -457,30 +473,14 @@ public class Aquarium {
   public Aquarium update(String name, Double length, Double width, Double height,
       SubstrateType substrate, WaterType waterType, AquariumState state,
       Double temperature) {
-    if (name != null) {
-      updateName(name);
-    }
-
-    if (length != null && width != null && height != null) {
-      updateDimensions(length, width, height);
-    }
-
-    if (substrate != null) {
-      updateSubstrate(substrate);
-    }
-
-    if (waterType != null) {
-      updateWaterType(waterType);
-    }
-
-    if (state != null) {
-      updateState(state);
-    }
-
-    if (temperature != null) {
-      updateTemperature(temperature);
-    }
-
+    
+    if (name != null) updateName(name);
+    if (length != null && width != null && height != null) updateDimensions(length, width, height);
+    if (substrate != null) updateSubstrate(substrate);
+    if (waterType != null) updateWaterType(waterType);
+    if (state != null) updateState(state);
+    if (temperature != null) updateTemperature(temperature);
+    
     return this;
   }
 }

@@ -1,5 +1,6 @@
 package nl.hu.bep.domain;
 
+import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.utils.Validator;
 import jakarta.persistence.*;
@@ -21,11 +22,11 @@ import nl.hu.bep.domain.species.Coral;
 @DiscriminatorColumn(name = "inhabitant_type")
 @Getter
 @Setter(AccessLevel.PROTECTED)
-@EqualsAndHashCode(exclude = { "aquarium", "aquariumManager" })
+@EqualsAndHashCode(exclude = { "aquarium", "aquariumManager" }, callSuper = false)
 @ToString(exclude = { "aquarium", "aquariumManager" })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class Inhabitant {
+public abstract class Inhabitant extends AssignableEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -74,6 +75,20 @@ public abstract class Inhabitant {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "aquarium_manager_id")
   private AquariumManager aquariumManager;
+
+  // Constructor for species subclasses - POJO pattern for JDBC
+  protected Inhabitant(String species, String color, int count, boolean isSchooling,
+                      WaterType waterType, Long ownerId, String name, String description) {
+    this.species = Validator.notEmpty(species, "Species");
+    this.color = color;
+    this.count = Validator.positive(count, "Count");
+    this.waterType = Validator.notNull(waterType, "Water type");
+    this.ownerId = Validator.notNull(ownerId, "Owner ID");
+    this.isSchooling = isSchooling;
+    this.name = name;
+    this.description = description;
+    this.dateCreated = java.time.LocalDateTime.now();
+  }
 
   protected void initializeInhabitant(String species, String color, int count, boolean isSchooling,
       WaterType waterType) {
@@ -148,6 +163,7 @@ public abstract class Inhabitant {
     return this;
   }
 
+  // Package-private method for aquarium bidirectional relationship management
   void setAquarium(Aquarium aquarium) {
     if (this.aquarium == aquarium) {
       return;
@@ -166,6 +182,32 @@ public abstract class Inhabitant {
 
   void setAquariumManager(AquariumManager aquariumManager) {
     this.aquariumManager = aquariumManager;
+  }
+
+  // Override getAquariumId() to use the aquarium relationship
+  @Override
+  public Long getAquariumId() {
+    if (aquarium != null) {
+      return aquarium.getId();
+    }
+    return super.getAquariumId(); // Fallback to parent implementation
+  }
+
+  // Secure aquarium assignment methods with domain validation
+  public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
+    // Domain security: Only owner can assign inhabitant to aquarium
+    if (!this.ownerId.equals(requestingOwnerId)) {
+      throw new IllegalArgumentException("Only the inhabitant owner can assign it to an aquarium");
+    }
+    super.assignToAquarium(aquariumId);
+  }
+
+  public void removeFromAquarium(Long requestingOwnerId) {
+    // Domain security: Only owner can remove inhabitant from aquarium
+    if (!this.ownerId.equals(requestingOwnerId)) {
+      throw new IllegalArgumentException("Only the inhabitant owner can remove it from an aquarium");
+    }
+    super.removeFromAquarium();
   }
 
   public static Inhabitant createFromType(String type, String species, String color, int count,
@@ -219,5 +261,16 @@ public abstract class Inhabitant {
   
   protected void setNameInternal(String name) {
       updateName(name);
+  }
+
+  // Native domain ownership validation - DDD compliant
+  public void validateOwnership(Long requestingOwnerId) {
+    if (requestingOwnerId == null) {
+      throw new IllegalArgumentException("Owner ID is required for validation");
+    }
+    
+    if (!this.ownerId.equals(requestingOwnerId)) {
+      throw new IllegalArgumentException("Access denied: You do not own this inhabitant");
+    }
   }
 }
