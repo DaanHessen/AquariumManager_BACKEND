@@ -1,20 +1,23 @@
 package nl.hu.bep.security.application.service;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.data.OwnerRepository;
 import nl.hu.bep.domain.Owner;
-import nl.hu.bep.security.model.AuthRequest;
+import nl.hu.bep.exception.security.SecurityException;
+import nl.hu.bep.presentation.dto.security.AuthRequest;
 import nl.hu.bep.security.model.AuthResponse;
 import nl.hu.bep.security.model.RegisterRequest;
-import nl.hu.bep.security.exception.SecurityException;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.Optional;
 
 @Slf4j
-@Singleton
+@ApplicationScoped
+@Transactional
 public class AuthenticationService {
     private final JwtService jwtService;
     private final OwnerRepository ownerRepository;
@@ -39,7 +42,7 @@ public class AuthenticationService {
                 request.email(),
                 request.password());
 
-        owner = ownerRepository.save(owner);
+        owner = ownerRepository.insert(owner);
         log.info("New owner registered with ID: {}", owner.getId());
 
         String token = jwtService.generateToken(owner.getId(), owner.getEmail());
@@ -66,8 +69,9 @@ public class AuthenticationService {
 
         log.info("User authenticated successfully: {}", owner.getEmail());
 
-        owner.updateLastLogin();
-        ownerRepository.save(owner);
+        // Domain method handles login recording
+        owner.recordLogin();
+        ownerRepository.update(owner);
 
         String token = jwtService.generateToken(owner.getId(), owner.getEmail());
         log.info("JWT token generated for user: {}", owner.getEmail());

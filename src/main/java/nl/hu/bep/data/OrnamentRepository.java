@@ -1,37 +1,90 @@
 package nl.hu.bep.data;
 
-import jakarta.inject.Singleton;
 import nl.hu.bep.domain.Ornament;
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
-@Singleton
-public class OrnamentRepository extends BaseRepository<Ornament, Long> {
+public class OrnamentRepository extends Repository<Ornament, Long> {
     
-    public OrnamentRepository() {
-        super(Ornament.class);
+    @Override
+    protected String getTableName() {
+        return "ornaments";
+    }
+    
+    @Override
+    protected String getIdColumn() {
+        return "id";
+    }
+    
+    @Override
+    protected String getInsertSql() {
+        return "INSERT INTO ornaments (name, description, color, material, is_air_pump_compatible, owner_id, aquarium_id, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    }
+    
+    @Override
+    protected String getUpdateSql() {
+        return "UPDATE ornaments SET name = ?, description = ?, color = ?, material = ?, is_air_pump_compatible = ?, owner_id = ?, aquarium_id = ?, date_created = ? WHERE id = ?";
+    }
+    
+    @Override
+    protected Ornament mapRow(ResultSet rs) throws SQLException {
+        return Ornament.reconstruct(
+                rs.getLong("id"),
+                rs.getString("name"),
+                rs.getString("description"),
+                rs.getString("color"),
+                rs.getBoolean("is_air_pump_compatible"),
+                rs.getLong("owner_id"),
+                rs.getString("material"),
+                rs.getTimestamp("date_created").toLocalDateTime(),
+                getLongOrNull(rs, "aquarium_id")
+        );
+    }
+    
+    @Override
+    protected void setInsertParameters(PreparedStatement ps, Ornament ornament) throws SQLException {
+        ps.setString(1, ornament.getName());
+        ps.setString(2, ornament.getDescription());
+        ps.setString(3, ornament.getColor());
+        ps.setString(4, ornament.getMaterial());
+        ps.setBoolean(5, ornament.isAirPumpCompatible());
+        ps.setLong(6, ornament.getOwnerId());
+        setLongOrNull(ps, 7, ornament.getAquariumId());
+        ps.setTimestamp(8, Timestamp.valueOf(ornament.getDateCreated()));
+    }
+    
+    @Override
+    protected void setUpdateParameters(PreparedStatement ps, Ornament ornament) throws SQLException {
+        setInsertParameters(ps, ornament);
+        ps.setLong(9, ornament.getId());
     }
 
-    /**
-     * Find ornaments by aquarium owner ID
-     * Using the base repository's flexible method
-     */
-    public List<Ornament> findByAquariumOwnerId(Long ownerId) {
-        return findByNestedField("aquarium.owner.id", ownerId);
+    // Helper methods for nullable Long values
+    private Long getLongOrNull(ResultSet rs, String columnName) throws SQLException {
+        long value = rs.getLong(columnName);
+        return rs.wasNull() ? null : value;
     }
-
+    
+    private void setLongOrNull(PreparedStatement ps, int parameterIndex, Long value) throws SQLException {
+        if (value != null) {
+            ps.setLong(parameterIndex, value);
+        } else {
+            ps.setNull(parameterIndex, Types.BIGINT);
+        }
+    }
+    
     /**
-     * Find ornaments directly by ownerId
-     * Using the base repository's flexible method
+     * Find ornaments by owner ID
      */
     public List<Ornament> findByOwnerId(Long ownerId) {
-        return findByField("ownerId", ownerId);
+        return findByField("owner_id", ownerId);
     }
     
     /**
      * Find ornaments by aquarium ID
-     * Using the base repository's flexible method
      */
     public List<Ornament> findByAquariumId(Long aquariumId) {
-        return findByNestedField("aquarium.id", aquariumId);
+        return findByField("aquarium_id", aquariumId);
     }
-} 
+}

@@ -1,7 +1,7 @@
 package nl.hu.bep.security.application.context;
 
 import jakarta.ws.rs.core.SecurityContext;
-import nl.hu.bep.security.exception.SecurityException;
+import nl.hu.bep.exception.security.SecurityException;
 
 public class SecurityContextHelper {
 

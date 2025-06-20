@@ -1,32 +1,38 @@
 package nl.hu.bep.domain.species;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.domain.base.SpeciesValidation;
 
-@Entity
-@DiscriminatorValue("Plant")
+/**
+ * Represents a plant in an aquarium.
+ * Clean POJO implementation without JPA dependencies.
+ */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
+@ToString(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Plant extends Inhabitant {
-    public static Plant create(String species, String color, int count, boolean isSchooling, WaterType waterType, Long ownerId, String name, String description) {
-        Plant plant = new Plant();
-        plant.initializeInhabitant(species, color, count, isSchooling, waterType);
-        plant.setOwnerIdInternal(ownerId);
-        if (name != null) {
-            plant.setNameInternal(name);
-        }
-        if (description != null) {
-            plant.updateDescription(description);
-        }
-        return plant;
+
+    // Private constructor for factory method
+    private Plant(String species, String color, int count, boolean isSchooling,
+                 WaterType waterType, Long ownerId, String name, String description) {
+        super(species, color, count, isSchooling, waterType, ownerId, name, description);
+    }
+
+    // Factory method with validation
+    public static Plant create(String species, String color, int count, boolean isSchooling, 
+            WaterType waterType, Long ownerId, String name, String description) {
+        
+        // Use shared validation - no more duplication!
+        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
+        
+        return new Plant(species, color, count, isSchooling, waterType, ownerId, name, description);
+    }
+
+    @Override
+    public String getType() {
+        return "Plant";
     }
 }

@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import nl.hu.bep.application.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.AccessoryRequest;
 import nl.hu.bep.presentation.dto.AquariumRequest;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.exception.ApplicationException;
 
 class ValidationTest {
 

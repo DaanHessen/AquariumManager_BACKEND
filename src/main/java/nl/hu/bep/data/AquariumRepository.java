@@ -1,81 +1,81 @@
 package nl.hu.bep.data;
 
-import jakarta.inject.Singleton;
-import jakarta.persistence.TypedQuery;
 import nl.hu.bep.domain.Aquarium;
-
+import nl.hu.bep.domain.enums.AquariumState;
+import nl.hu.bep.domain.enums.SubstrateType;
+import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.domain.value.Dimensions;
+import java.sql.*;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import jakarta.persistence.EntityManager;
 
-@Singleton
-public class AquariumRepository extends BaseRepository<Aquarium, Long> {
+/**
+ * Ultra-simple AquariumRepository - PURE JDBC operations only.
+ */
+public class AquariumRepository extends Repository<Aquarium, Long> {
     
-    public AquariumRepository() {
-        super(Aquarium.class);
+    @Override
+    protected String getTableName() { return "aquariums"; }
+    
+    @Override
+    protected String getIdColumn() { return "id"; }
+    
+    @Override
+    protected String getInsertSql() {
+        return "INSERT INTO aquariums (name, length, width, height, substrate, water_type, temperature, state, current_state_start_time, color, description, owner_id, aquarium_manager_id, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     }
     
-    /**
-     * Public wrapper for executeInTransaction to be used by service layer
-     */
-    public <R> R executeInTransaction(Function<EntityManager, R> action) {
-        return super.executeInTransaction(action);
+    @Override
+    protected String getUpdateSql() {
+        return "UPDATE aquariums SET name = ?, length = ?, width = ?, height = ?, substrate = ?, water_type = ?, temperature = ?, state = ?, current_state_start_time = ?, color = ?, description = ?, owner_id = ?, aquarium_manager_id = ? WHERE id = ?";
     }
     
-    /**
-     * Public wrapper for executeWithEntityManager to be used by service layer
-     */
-    public <R> R executeWithEntityManager(Function<EntityManager, R> action) {
-        return super.executeWithEntityManager(action);
+    @Override
+    protected Aquarium mapRow(ResultSet rs) throws SQLException {
+        return Aquarium.reconstruct(
+                rs.getLong("id"),
+                rs.getString("name"),
+                new Dimensions(rs.getDouble("length"), rs.getDouble("width"), rs.getDouble("height")),
+                SubstrateType.valueOf(rs.getString("substrate")),
+                WaterType.valueOf(rs.getString("water_type")),
+                rs.getDouble("temperature"),
+                AquariumState.valueOf(rs.getString("state")),
+                rs.getTimestamp("current_state_start_time").toLocalDateTime(),
+                rs.getString("color"),
+                rs.getString("description"),
+                rs.getTimestamp("date_created").toLocalDateTime(),
+                getLong(rs, "aquarium_manager_id"),
+                getLong(rs, "owner_id"),
+                new HashSet<>(), new HashSet<>(), new HashSet<>()
+        );
     }
     
-    /**
-     * Find aquarium by ID with inhabitants loaded
-     * Using the base repository's flexible method
-     */
-    public Optional<Aquarium> findByIdWithInhabitants(Long id) {
-        return findByIdWithRelationships(id, "inhabitants");
+    @Override
+    protected void setInsertParameters(PreparedStatement ps, Aquarium aquarium) throws SQLException {
+        ps.setString(1, aquarium.getName());
+        ps.setDouble(2, aquarium.getDimensions().getLength());
+        ps.setDouble(3, aquarium.getDimensions().getWidth());
+        ps.setDouble(4, aquarium.getDimensions().getHeight());
+        ps.setString(5, aquarium.getSubstrate().name());
+        ps.setString(6, aquarium.getWaterType().name());
+        ps.setDouble(7, aquarium.getTemperature());
+        ps.setString(8, aquarium.getState().name());
+        ps.setTimestamp(9, Timestamp.valueOf(aquarium.getCurrentStateStartTime()));
+        ps.setString(10, aquarium.getColor());
+        ps.setString(11, aquarium.getDescription());
+        setLong(ps, 12, aquarium.getOwnerId());
+        setLong(ps, 13, aquarium.getAquariumManagerId());
+        ps.setTimestamp(14, Timestamp.valueOf(aquarium.getDateCreated()));
     }
     
-    /**
-     * Find aquarium by ID with all collections loaded
-     * Using the base repository's flexible method
-     */
-    public Optional<Aquarium> findByIdWithAllCollections(Long id) {
-        return findByIdWithRelationships(id, "inhabitants", "accessories", "ornaments", "owner", "stateHistory");
+    @Override
+    protected void setUpdateParameters(PreparedStatement ps, Aquarium aquarium) throws SQLException {
+        setInsertParameters(ps, aquarium);
+        ps.setLong(14, aquarium.getId());
     }
     
-    /**
-     * Find all aquariums with all collections for a specific owner
-     * Using the base repository's flexible method
-     */
-    public List<Aquarium> findByOwnerIdWithCollections(Long ownerId) {
-        return findByNestedFieldWithRelationships("owner.id", ownerId, 
-            "inhabitants", "accessories", "ornaments", "owner", "stateHistory");
+    // Simple query - NO business logic
+    public List<Aquarium> findByOwnerId(Long ownerId) {
+        return findByField("owner_id", ownerId);
     }
-    
-    /**
-     * Find all aquariums with all collections
-     * Custom method since base repository doesn't handle "find all with relationships" 
-     */
-    public List<Aquarium> findAllWithCollections() {
-        return executeWithEntityManager(em -> {
-            TypedQuery<Aquarium> query = em.createQuery(
-                "SELECT DISTINCT a FROM Aquarium a " +
-                "LEFT JOIN FETCH a.inhabitants " +
-                "LEFT JOIN FETCH a.accessories " +
-                "LEFT JOIN FETCH a.ornaments " +
-                "LEFT JOIN FETCH a.owner " +
-                "LEFT JOIN FETCH a.stateHistory", Aquarium.class);
-            
-            return query.getResultList();
-        });
-    }
-    
-    // Note: The following methods are now replaced by the generic base repository methods:
-    // - findByIdWithAccessories(id) -> findByIdWithRelationships(id, "accessories")
-    // - findByIdWithOrnaments(id) -> findByIdWithRelationships(id, "ornaments") 
-    // - findByIdWithOwner(id) -> findByIdWithRelationships(id, "owner")
-    // - findByIdWithManager(id) -> findByIdWithRelationships(id, "aquariumManager")
-} 
+}

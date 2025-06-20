@@ -1,38 +1,38 @@
 package nl.hu.bep.domain.species;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.DiscriminatorValue;
+import lombok.*;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
-import lombok.AccessLevel;
-import lombok.extern.slf4j.Slf4j;
+import nl.hu.bep.domain.base.SpeciesValidation;
 
-@Entity
-@DiscriminatorValue("SHRIMP")
+/**
+ * Represents a shrimp in an aquarium.
+ * Clean POJO implementation without JPA dependencies.
+ */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
-@Slf4j
+@ToString(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Shrimp extends Inhabitant {
 
-  public static Shrimp create(String species, String color, int count, boolean isSchooling,
-      WaterType waterType, Long ownerId, String name, String description) {
-    Shrimp shrimp = new Shrimp();
-    shrimp.initializeInhabitant(species, color, count, isSchooling, waterType);
-    shrimp.setOwnerIdInternal(ownerId);
-    if (name != null) {
-      shrimp.setNameInternal(name);
+    // Private constructor for factory method
+    private Shrimp(String species, String color, int count, boolean isSchooling,
+                  WaterType waterType, Long ownerId, String name, String description) {
+        super(species, color, count, isSchooling, waterType, ownerId, name, description);
     }
-    if (description != null) {
-      shrimp.updateDescription(description);
+
+    // Factory method with validation
+    public static Shrimp create(String species, String color, int count, boolean isSchooling,
+            WaterType waterType, Long ownerId, String name, String description) {
+        
+        // Use shared validation - no more duplication!
+        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
+        
+        return new Shrimp(species, color, count, isSchooling, waterType, ownerId, name, description);
     }
-    log.info("Creating new Shrimp: species={}, color={}, count={}, isSchooling={}, waterType={}",
-        species, color, count, isSchooling, waterType);
-    return shrimp;
-  }
+
+    @Override
+    public String getType() {
+        return "Shrimp";
+    }
 }

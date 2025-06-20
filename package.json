@@ -1,0 +1,78 @@
+{
+  "name": "AquariumManager_BACKEND",
+  "version": "1.0.0",
+  "description": "Backend API for the Aquarium Management System",
+  "main": "src/main/webapp/js/script.js",
+  "private": true,
+  "scripts": {
+    "build": "mvn clean package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/aquarium-manager-backend.git"
+  },
+  "keywords": [
+    "java",
+    "jakarta-ee",
+    "postgresql",
+    "api",
+    "aquarium",
+    "backend",
+    "rest",
+    "maven",
+    "docker",
+    "railway"
+  ],
+  "author": "Daan Hessen",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@railway/cli": "^3.0.19",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "^3.2.5",
+    "postcss": "^8.4.35",
+    "postcss-cli": "^11.0.0",
+    "autoprefixer": "^10.4.18",
+    "cssnano": "^6.0.5",
+    "clean-css-cli": "^5.6.3",
+    "uglify-js": "^3.17.4",
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.0",
+    "chokidar-cli": "^3.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
+  "eslintConfig": {
+    "extends": ["eslint:recommended"],
+    "env": {
+      "browser": true,
+      "es2021": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 12,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "warn",
+      "no-unused-vars": "error"
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 2
+  }
+}

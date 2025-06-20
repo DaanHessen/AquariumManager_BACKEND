@@ -1,80 +1,48 @@
 package nl.hu.bep.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Lighting;
 import nl.hu.bep.domain.accessories.Thermostat;
 import java.time.LocalTime;
+import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "accessories")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "accessory_type")
+/**
+ * Abstract base class for all aquarium accessories.
+
+ */
 @Getter
-@EqualsAndHashCode(exclude = { "aquarium" })
-@ToString(exclude = { "aquarium" })
-@NoArgsConstructor
-@AllArgsConstructor
-public abstract class Accessory {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+@EqualsAndHashCode(of = "id", callSuper = false)
+@ToString(exclude = {"aquariumId"})
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class Accessory extends AssignableEntity {
   private Long id;
-
-  @NotNull
-  @Size(min = 1, max = 50)
   private String model;
-
-  @NotNull
-  @Size(min = 1, max = 50)
   private String serialNumber;
-
-  @NotNull
-  @Column(name = "owner_id")
   private Long ownerId;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "aquarium_id")
-  private Aquarium aquarium;
-
-  @Column(name = "color")
+  private Long aquariumId; // ID-based relationship
   private String color;
-
-  @Column(name = "description", length = 255)
   private String description;
+  private LocalDateTime dateCreated;
 
-  @Column(name = "date_created", updatable = false)
-  private java.time.LocalDateTime dateCreated;
-
-  public Accessory(String model, String serialNumber, Long ownerId) {
+  // Protected constructor for subclasses
+  protected Accessory(String model, String serialNumber, Long ownerId) {
     this.model = Validator.notEmpty(model, "Accessory model");
     this.serialNumber = Validator.notEmpty(serialNumber, "Accessory serial number");
     this.ownerId = Validator.notNull(ownerId, "Owner ID");
+    this.dateCreated = LocalDateTime.now();
   }
 
-  void setAquarium(Aquarium aquarium) {
-    this.aquarium = aquarium;
-  }
-
+  // Business methods
   public void updateModel(String model) {
     this.model = Validator.notEmpty(model, "Accessory model");
   }
 
   public void updateSerialNumber(String serialNumber) {
     this.serialNumber = Validator.notEmpty(serialNumber, "Accessory serial number");
-  }
-
-  public void updateProperties(String model, String serialNumber) {
-    if (model != null) {
-      updateModel(model);
-    }
-
-    if (serialNumber != null) {
-      updateSerialNumber(serialNumber);
-    }
   }
 
   public void updateColor(String color) {
@@ -85,26 +53,66 @@ public abstract class Accessory {
     this.description = description;
   }
 
+  // Comprehensive update method
   public Accessory update(String model, String serialNumber, String color, String description) {
-    if (model != null) {
-      updateModel(model);
-    }
-
-    if (serialNumber != null) {
-      updateSerialNumber(serialNumber);
-    }
-    
-    if (color != null) {
-      updateColor(color);
-    }
-    
-    if (description != null) {
-      updateDescription(description);
-    }
-
+    if (model != null) updateModel(model);
+    if (serialNumber != null) updateSerialNumber(serialNumber);
+    if (color != null) updateColor(color);
+    if (description != null) updateDescription(description);
     return this;
   }
 
+  // Secure aquarium assignment methods with domain validation
+  public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
+      // Domain security: Only owner can assign accessory to aquarium
+      if (!this.ownerId.equals(requestingOwnerId)) {
+          throw new IllegalArgumentException("Only the accessory owner can assign it to an aquarium");
+      }
+      // Direct assignment with validation passed
+      this.aquariumId = aquariumId;
+  }
+
+  public void removeFromAquarium(Long requestingOwnerId) {
+      // Domain security: Only owner can remove accessory from aquarium
+      if (!this.ownerId.equals(requestingOwnerId)) {
+          throw new IllegalArgumentException("Only the accessory owner can remove it from an aquarium");
+      }
+      // Direct removal with validation passed
+      this.aquariumId = null;
+  }
+
+  // Abstract method for accessory type
+  public abstract String getAccessoryType();
+
+  // Public method for repository reconstruction only
+  public static Accessory reconstruct(String type, Long id, String model, String serialNumber, 
+                                     Long ownerId, Long aquariumId, String color, String description,
+                                     LocalDateTime dateCreated, boolean isExternal, int capacityLiters,
+                                     boolean isLED, LocalTime timeOn, LocalTime timeOff,
+                                     double minTemperature, double maxTemperature, double currentTemperature) {
+    
+    if (type == null || type.isEmpty()) {
+      throw new IllegalArgumentException("Accessory type is required for reconstruction");
+    }
+
+    Accessory accessory = switch (type.toLowerCase()) {
+      case "filter" -> new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
+      case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
+      case "heater", "thermostat" -> new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
+      default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
+    };
+
+    // Set reconstructed properties
+    accessory.id = id;
+    accessory.aquariumId = aquariumId;
+    accessory.color = color;
+    accessory.description = description;
+    accessory.dateCreated = dateCreated;
+    
+    return accessory;
+  }
+
+  // Factory method for creating accessories from type
   public static Accessory createFromType(String type, String model, String serialNumber,
       boolean isExternal, int capacityLiters,
       boolean isLED, LocalTime timeOn, LocalTime timeOff,
@@ -115,25 +123,16 @@ public abstract class Accessory {
       throw new IllegalArgumentException("Accessory type is required");
     }
 
-    Accessory accessory;
-
-    switch (type.toLowerCase()) {
-      case "filter":
-        accessory = new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
-        break;
-      case "light":
-        accessory = new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
-        break;
-      case "heater":
-        accessory = new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
-        break;
-      default:
-        throw new IllegalArgumentException("Unsupported accessory type: " + type);
-    }
+    Accessory accessory = switch (type.toLowerCase()) {
+      case "filter" -> new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
+      case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
+      case "heater", "thermostat" -> new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
+      default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
+    };
 
     accessory.color = color;
     accessory.description = description;
-    accessory.dateCreated = java.time.LocalDateTime.now();
+    accessory.dateCreated = LocalDateTime.now();
     return accessory;
   }
 }

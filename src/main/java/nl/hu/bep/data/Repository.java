@@ -1,125 +1,126 @@
 package nl.hu.bep.data;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.PersistenceException;
-import jakarta.persistence.TypedQuery;
 import nl.hu.bep.config.DatabaseConfig;
-import nl.hu.bep.data.exception.RepositoryException;
+import nl.hu.bep.exception.infrastructure.RepositoryException;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.*;
 
+/**
+ * Ultra-simple base repository - PURE JDBC operations only.
+ * No business logic, no complex conversions, just SQL.
+ */
 public abstract class Repository<T, ID> {
     
-    private final Class<T> entityClass;
-    
-    protected Repository(Class<T> entityClass) {
-        this.entityClass = entityClass;
-    }
-    
+    // Abstract methods - minimal and focused
+    protected abstract T mapRow(ResultSet rs) throws SQLException;
+    protected abstract void setInsertParameters(PreparedStatement ps, T entity) throws SQLException;
+    protected abstract void setUpdateParameters(PreparedStatement ps, T entity) throws SQLException;
+    protected abstract String getTableName();
+    protected abstract String getIdColumn();
+    protected abstract String getInsertSql();
+    protected abstract String getUpdateSql();
+
+    // Pure JDBC operations - no logic
     public Optional<T> findById(ID id) {
-        return executeWithEntityManager(em -> {
-            T entity = em.find(entityClass, id);
-            return Optional.ofNullable(entity);
-        });
+        String sql = "SELECT * FROM " + getTableName() + " WHERE " + getIdColumn() + " = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RepositoryException("Find by ID failed: " + id, e);
+        }
     }
-    
+
     public List<T> findAll() {
-        return executeWithEntityManager(em -> {
-            String entityName = entityClass.getSimpleName();
-            String query = String.format("SELECT e FROM %s e", entityName);
-            TypedQuery<T> typedQuery = em.createQuery(query, entityClass);
-            return typedQuery.getResultList();
-        });
+        String sql = "SELECT * FROM " + getTableName();
+        List<T> result = new ArrayList<>();
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                result.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            throw new RepositoryException("Find all failed", e);
+        }
+        return result;
     }
-    
-    public T save(T entity) {
-        return executeInTransaction(em -> {
-            T managedEntity = em.merge(entity);
-            return managedEntity;
-        });
+
+    public T insert(T entity) {
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(getInsertSql())) {
+            setInsertParameters(ps, entity);
+            ps.executeUpdate();
+            return entity;
+        } catch (SQLException e) {
+            throw new RepositoryException("Insert failed", e);
+        }
     }
-    
+
+    public T update(T entity) {
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(getUpdateSql())) {
+            setUpdateParameters(ps, entity);
+            ps.executeUpdate();
+            return entity;
+        } catch (SQLException e) {
+            throw new RepositoryException("Update failed", e);
+        }
+    }
+
     public void deleteById(ID id) {
-        executeInTransaction(em -> {
-            T entity = em.find(entityClass, id);
-            if (entity != null) {
-                em.remove(entity);
-            }
-            return null;
-        });
-    }
-    
-    public boolean existsById(ID id) {
-        return executeWithEntityManager(em -> {
-            String queryStr = String.format("SELECT COUNT(e) FROM %s e WHERE e.id = :id", entityClass.getSimpleName());
-            Long count = em.createQuery(queryStr, Long.class)
-                           .setParameter("id", id)
-                           .getSingleResult();
-            return count > 0;
-        });
-    }
-
-    protected EntityManager getEntityManager() {
-        return DatabaseConfig.createEntityManager();
-    }
-    
-    protected <R> R executeWithEntityManager(Function<EntityManager, R> action) {
-        EntityManager em = getEntityManager();
-        try {
-            return action.apply(em);
-        } catch (PersistenceException e) {
-            throw new RepositoryException.ConnectionException(
-                "Database error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new RepositoryException.DatabaseConfigException(
-                "Unexpected error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
-        } finally {
-            closeEntityManager(em);
+        String sql = "DELETE FROM " + getTableName() + " WHERE " + getIdColumn() + " = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RepositoryException("Delete failed: " + id, e);
         }
     }
 
-    protected <R> R executeInTransaction(Function<EntityManager, R> action) {
-        EntityManager em = getEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        
-        try {
-            tx.begin();
-            R result = action.apply(em);
-            tx.commit();
-            return result;
-        } catch (PersistenceException e) {
-            rollbackTransaction(tx);
-            throw new RepositoryException.ConnectionException(
-                "Database error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
-        } catch (Exception e) {
-            rollbackTransaction(tx);
-            throw new RepositoryException.DatabaseConfigException(
-                "Unexpected error in " + entityClass.getSimpleName() + " repository: " + e.getMessage(), e);
-        } finally {
-            closeEntityManager(em);
-        }
-    }
-    
-    private void rollbackTransaction(EntityTransaction tx) {
-        try {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
+    // Simple field search - no complex logic
+    protected List<T> findByField(String fieldName, Object value) {
+        String sql = "SELECT * FROM " + getTableName() + " WHERE " + fieldName + " = ?";
+        List<T> result = new ArrayList<>();
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, value);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapRow(rs));
+                }
             }
-        } catch (Exception e) {
-            System.err.println("Error during transaction rollback: " + e.getMessage());
+        } catch (SQLException e) {
+            throw new RepositoryException("Find by field failed: " + fieldName, e);
         }
+        return result;
     }
-    
-    private void closeEntityManager(EntityManager em) {
-        try {
-            if (em != null && em.isOpen()) {
-                em.close();
-            }
-        } catch (Exception e) {
-            System.err.println("Error closing EntityManager: " + e.getMessage());
-        }
+
+    // Minimal helpers - ONLY for null handling
+    protected static Long getLong(ResultSet rs, String col) throws SQLException {
+        long val = rs.getLong(col);
+        return rs.wasNull() ? null : val;
     }
-} 
+
+    protected static void setLong(PreparedStatement ps, int idx, Long val) throws SQLException {
+        if (val != null) ps.setLong(idx, val);
+        else ps.setNull(idx, Types.BIGINT);
+    }
+
+    protected static LocalDateTime getDateTime(ResultSet rs, String col) throws SQLException {
+        Timestamp ts = rs.getTimestamp(col);
+        return ts != null ? ts.toLocalDateTime() : null;
+    }
+
+    protected static void setDateTime(PreparedStatement ps, int idx, LocalDateTime val) throws SQLException {
+        if (val != null) ps.setTimestamp(idx, Timestamp.valueOf(val));
+        else ps.setNull(idx, Types.TIMESTAMP);
+    }
+}

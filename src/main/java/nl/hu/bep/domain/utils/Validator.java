@@ -3,7 +3,7 @@ package nl.hu.bep.domain.utils;
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import nl.hu.bep.domain.exception.DomainException;
+import nl.hu.bep.exception.domain.DomainException;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Validator {

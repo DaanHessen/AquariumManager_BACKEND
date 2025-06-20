@@ -16,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import nl.hu.bep.application.exception.ApplicationException;
 import nl.hu.bep.application.mapper.EntityMappingService;
 import nl.hu.bep.data.AccessoryRepository;
 import nl.hu.bep.data.AquariumRepository;
@@ -25,6 +24,7 @@ import nl.hu.bep.domain.Aquarium;
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.AccessoryRequest;
 import nl.hu.bep.presentation.dto.AccessoryResponse;
 import nl.hu.bep.presentation.dto.AquariumResponse;

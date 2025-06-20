@@ -1,51 +1,47 @@
 package nl.hu.bep.domain.species;
 
+import lombok.*;
 import nl.hu.bep.domain.enums.WaterType;
-
-import jakarta.persistence.Entity;
 import nl.hu.bep.domain.Inhabitant;
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
-import lombok.AccessLevel;
-import lombok.extern.slf4j.Slf4j;
+import nl.hu.bep.domain.base.SpeciesValidation;
 
-@Entity
-@DiscriminatorValue("Snail")
+/**
+ * Represents a snail in an aquarium.
+ * Contains snail-specific properties.
+ * Clean POJO implementation without JPA dependencies.
+ */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
-@Slf4j
+@ToString(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Snail extends Inhabitant {
-  @NotNull
-  @Column(name = "is_snail_eater")
-  private boolean isSnailEater;
+    private boolean isSnailEater;
 
-  public static Snail create(String species, String color, int count, boolean isSchooling, boolean isSnailEater,
-      WaterType waterType, Long ownerId, String name, String description) {
-    Snail snail = new Snail();
-    snail.initializeInhabitant(species, color, count, isSchooling, waterType);
-    snail.isSnailEater = isSnailEater;
-    snail.setOwnerIdInternal(ownerId);
-    if (name != null) {
-      snail.setNameInternal(name);
+    // Private constructor for factory method
+    private Snail(String species, String color, int count, boolean isSchooling,
+                 WaterType waterType, Long ownerId, String name, String description,
+                 boolean isSnailEater) {
+        super(species, color, count, isSchooling, waterType, ownerId, name, description);
+        this.isSnailEater = isSnailEater;
     }
-    if (description != null) {
-      snail.updateDescription(description);
-    }
-    log.info("Creating new Snail: species={}, color={}, count={}, isSchooling={}, isSnailEater={}, waterType={}",
-        species, color, count, isSchooling, isSnailEater, waterType);
-    return snail;
-  }
 
-  public void updateProperties(boolean isSnailEater) {
-    this.isSnailEater = isSnailEater;
-  }
+    // Factory method with validation
+    public static Snail create(String species, String color, int count, boolean isSchooling, boolean isSnailEater,
+            WaterType waterType, Long ownerId, String name, String description) {
+        
+        // Use shared validation - no more duplication!
+        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
+        
+        return new Snail(species, color, count, isSchooling, waterType, ownerId, name, description, isSnailEater);
+    }
+
+    @Override
+    public String getType() {
+        return "Snail";
+    }
+
+    // Business logic methods
+    public void updateProperties(boolean isSnailEater) {
+        this.isSnailEater = isSnailEater;
+    }
 }

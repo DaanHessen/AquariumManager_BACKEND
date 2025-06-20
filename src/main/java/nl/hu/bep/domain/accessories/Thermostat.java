@@ -2,58 +2,74 @@ package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.domain.utils.Validator;
+import lombok.*;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Setter;
-import lombok.AccessLevel;
-import jakarta.persistence.Entity;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+/**
+ * Represents a temperature control accessory for aquariums.
 
-@Entity
-@DiscriminatorValue("THERMOSTAT")
+ */
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Thermostat extends Accessory {
-  @NotNull
-  @Positive
-  private double minTemperature;
+    private double minTemperature;
+    private double maxTemperature;
+    private double currentTemperature;
 
-  @NotNull
-  @Positive
-  private double maxTemperature;
+    public Thermostat(String model, String serialNumber, double minTemperature, 
+                     double maxTemperature, double currentTemperature, Long ownerId) {
+        super(model, serialNumber, ownerId);
+        this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
+        this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
+        this.currentTemperature = currentTemperature;
+    }
 
-  @NotNull
-  private double currentTemperature;
+    @Override
+    public String getAccessoryType() {
+        return "Thermostat";
+    }
 
-  public Thermostat(String model, String serialNumber, double minTemperature, double maxTemperature,
-      double currentTemperature, Long ownerId) {
-    super(model, serialNumber, ownerId);
-    this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
-    this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
-    this.currentTemperature = Validator.positive(currentTemperature, "Current temperature");
-  }
+    // Business logic methods
+    public void updateProperties(double minTemperature, double maxTemperature, double currentTemperature) {
+        this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
+        this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
+        this.currentTemperature = currentTemperature;
+    }
 
-  public void updateProperties(double minTemperature, double maxTemperature, double currentTemperature) {
-    this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
-    this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
-    this.currentTemperature = currentTemperature;
-  }
+    public void adjustMinTemperature(double minTemperature) {
+        this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
+    }
 
-  public void adjustMinTemperature(double minTemperature) {
-    this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
-  }
+    public void adjustMaxTemperature(double maxTemperature) {
+        this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
+    }
 
-  public void adjustMaxTemperature(double maxTemperature) {
-    this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
-  }
+    public void updateCurrentTemperature(double currentTemperature) {
+        this.currentTemperature = currentTemperature;
+    }
+
+    // Business calculations
+    public boolean isWithinRange() {
+        return currentTemperature >= minTemperature && currentTemperature <= maxTemperature;
+    }
+
+    public boolean requiresHeating() {
+        return currentTemperature < minTemperature;
+    }
+
+    public boolean requiresCooling() {
+        return currentTemperature > maxTemperature;
+    }
+
+    public double getTemperatureVariance() {
+        return maxTemperature - minTemperature;
+    }
+
+    public String getTemperatureStatus() {
+        if (requiresHeating()) return "TOO_COLD";
+        if (requiresCooling()) return "TOO_HOT";
+        return "OPTIMAL";
+    }
 }

@@ -1,38 +1,43 @@
 package nl.hu.bep.domain.species;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.DiscriminatorValue;
+import lombok.*;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
-import lombok.AccessLevel;
-import lombok.extern.slf4j.Slf4j;
+import nl.hu.bep.domain.base.SpeciesValidation;
 
-@Entity
-@DiscriminatorValue("CRAYFISH")
+/**
+ * Represents a crayfish in an aquarium.
+ * Clean POJO implementation without JPA dependencies.
+ */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
-@Slf4j
+@ToString(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Crayfish extends Inhabitant {
 
-  public static Crayfish create(String species, String color, int count, boolean isSchooling,
-      WaterType waterType, Long ownerId, String name, String description) {
-    Crayfish crayfish = new Crayfish();
-    crayfish.initializeInhabitant(species, color, count, isSchooling, waterType);
-    crayfish.setOwnerIdInternal(ownerId);
-    if (name != null) {
-      crayfish.setNameInternal(name);
+    // Private constructor for factory method
+    private Crayfish(String species, String color, int count, boolean isSchooling,
+                    WaterType waterType, Long ownerId, String name, String description) {
+        super(species, color, count, isSchooling, waterType, ownerId, name, description);
     }
-    if (description != null) {
-      crayfish.updateDescription(description);
+
+    // Factory method with validation
+    public static Crayfish create(String species, String color, int count, boolean isSchooling,
+            WaterType waterType, Long ownerId, String name, String description) {
+        
+        // Use shared validation - no more duplication!
+        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
+        
+        // Business rule: Crayfish typically require freshwater
+        if (waterType != WaterType.FRESH) {
+            throw new IllegalArgumentException("Crayfish require freshwater environment");
+        }
+
+        return new Crayfish(species, color, count, isSchooling, waterType, ownerId, name, description);
     }
-    log.info("Creating new Crayfish: species={}, color={}, count={}, isSchooling={}, waterType={}",
-        species, color, count, isSchooling, waterType);
-    return crayfish;
-  }
+
+    @Override
+    public String getType() {
+        return "Crayfish";
+    }
 }

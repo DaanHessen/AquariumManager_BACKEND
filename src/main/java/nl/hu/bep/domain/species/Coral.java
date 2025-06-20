@@ -1,32 +1,38 @@
 package nl.hu.bep.domain.species;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.domain.base.SpeciesValidation;
 
-@Entity
-@DiscriminatorValue("Coral")
+/**
+ * Represents a coral in an aquarium.
+ * Clean POJO implementation without JPA dependencies.
+ */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
+@ToString(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Coral extends Inhabitant {
-    public static Coral create(String species, String color, int count, boolean isSchooling, WaterType waterType, Long ownerId, String name, String description) {
-        Coral coral = new Coral();
-        coral.initializeInhabitant(species, color, count, isSchooling, waterType);
-        coral.setOwnerIdInternal(ownerId);
-        if (name != null) {
-            coral.setNameInternal(name);
-        }
-        if (description != null) {
-            coral.updateDescription(description);
-        }
-        return coral;
+
+    // Private constructor for factory method
+    private Coral(String species, String color, int count, boolean isSchooling,
+                 WaterType waterType, Long ownerId, String name, String description) {
+        super(species, color, count, isSchooling, waterType, ownerId, name, description);
+    }
+
+    // Factory method with validation
+    public static Coral create(String species, String color, int count, boolean isSchooling, 
+            WaterType waterType, Long ownerId, String name, String description) {
+        
+        // Use shared validation - no more duplication!
+        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
+        
+        return new Coral(species, color, count, isSchooling, waterType, ownerId, name, description);
+    }
+
+    @Override
+    public String getType() {
+        return "Coral";
     }
 }

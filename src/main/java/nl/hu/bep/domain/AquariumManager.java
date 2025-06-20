@@ -1,120 +1,109 @@
 package nl.hu.bep.domain;
 
-import jakarta.persistence.*;
 import lombok.*;
 import nl.hu.bep.domain.utils.Validator;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
 
-@Entity
-@Table(name = "aquarium_manager")
+/**
+ * Root aggregate for the aquarium management domain.
+ * Manages the overall aquarium system for an installation.
+
+ */
 @Getter
-@Setter(AccessLevel.PRIVATE)
-@EqualsAndHashCode(exclude = { "owners", "aquariums", "inhabitants" })
-@ToString(exclude = { "owners", "aquariums", "inhabitants" })
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = {"ownerIds", "aquariumIds", "inhabitantIds"})
+@Builder(access = AccessLevel.PACKAGE)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public class AquariumManager {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    private Long id;
+    private LocalDate installationDate;
+    private String description;
+    private LocalDateTime dateCreated;
+    
+    // ID-based relationships for clean separation
+    @Builder.Default
+    private Set<Long> ownerIds = new HashSet<>();
+    @Builder.Default
+    private Set<Long> aquariumIds = new HashSet<>();
+    @Builder.Default
+    private Set<Long> inhabitantIds = new HashSet<>();
 
-  @NotNull
-  @PastOrPresent
-  @Column(name = "installation_date")
-  private LocalDate installationDate;
-
-  @OneToMany(mappedBy = "aquariumManager", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private Set<Owner> owners = new HashSet<>();
-
-  @OneToMany(mappedBy = "aquariumManager", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private Set<Aquarium> aquariums = new HashSet<>();
-
-  @OneToMany(mappedBy = "aquariumManager", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private Set<Inhabitant> inhabitants = new HashSet<>();
-
-  public static AquariumManager create(LocalDate installationDate) {
-    AquariumManager manager = new AquariumManager();
-    manager.installationDate = Validator.notNull(installationDate, "Installation date");
-    manager.owners = new HashSet<>();
-    manager.aquariums = new HashSet<>();
-    manager.inhabitants = new HashSet<>();
-    return manager;
-  }
-
-  public void addToOwners(Owner owner) {
-    Validator.notNull(owner, "Owner");
-
-    if (owners.contains(owner)) {
-      return;
+    // Factory method for new installations
+    public static AquariumManager create(LocalDate installationDate, String description) {
+        return AquariumManager.builder()
+                .installationDate(Validator.notNull(installationDate, "Installation date"))
+                .description(description)
+                .dateCreated(LocalDateTime.now())
+                .build();
     }
 
-    this.owners.add(owner);
-    if (owner.getAquariumManager() != this) {
-      owner.setAquariumManager(this);
-    }
-  }
-
-  public void removeFromOwners(Owner owner) {
-    Validator.notNull(owner, "Owner");
-
-    if (this.owners.contains(owner)) {
-      this.owners.remove(owner);
-      if (owner.getAquariumManager() == this) {
-        owner.unassignFromManager();
-      }
-    }
-  }
-
-  public void addToAquariums(Aquarium aquarium) {
-    Validator.notNull(aquarium, "Aquarium");
-
-    if (aquariums.contains(aquarium)) {
-      return;
+    // Public method for repository reconstruction only
+    public static AquariumManager reconstruct(Long id, LocalDate installationDate, String description,
+                                             LocalDateTime dateCreated, Set<Long> ownerIds,
+                                             Set<Long> aquariumIds, Set<Long> inhabitantIds) {
+        return AquariumManager.builder()
+                .id(id)
+                .installationDate(installationDate)
+                .description(description)
+                .dateCreated(dateCreated)
+                .ownerIds(ownerIds != null ? ownerIds : new HashSet<>())
+                .aquariumIds(aquariumIds != null ? aquariumIds : new HashSet<>())
+                .inhabitantIds(inhabitantIds != null ? inhabitantIds : new HashSet<>())
+                .build();
     }
 
-    this.aquariums.add(aquarium);
-    if (aquarium.getAquariumManager() != this) {
-      aquarium.assignToManager(this);
-    }
-  }
-
-  public void removeFromAquariums(Aquarium aquarium) {
-    Validator.notNull(aquarium, "Aquarium");
-
-    if (this.aquariums.contains(aquarium)) {
-      this.aquariums.remove(aquarium);
-      if (aquarium.getAquariumManager() == this) {
-        aquarium.unassignFromManager();
-      }
-    }
-  }
-
-  public void addToInhabitants(Inhabitant inhabitant) {
-    Validator.notNull(inhabitant, "Inhabitant");
-
-    if (inhabitants.contains(inhabitant)) {
-      return;
+    // Business logic methods
+    public void updateDescription(String description) {
+        this.description = description;
     }
 
-    this.inhabitants.add(inhabitant);
-    if (inhabitant.getAquariumManager() != this) {
-      inhabitant.setAquariumManager(this);
+    // Owner management
+    public void addOwner(Long ownerId) {
+        if (ownerId != null) {
+            this.ownerIds.add(ownerId);
+        }
     }
-  }
 
-  public void removeFromInhabitants(Inhabitant inhabitant) {
-    Validator.notNull(inhabitant, "Inhabitant");
-
-    if (this.inhabitants.contains(inhabitant)) {
-      this.inhabitants.remove(inhabitant);
-      if (inhabitant.getAquariumManager() == this) {
-        inhabitant.setAquariumManager(null);
-      }
+    public void removeOwner(Long ownerId) {
+        this.ownerIds.remove(ownerId);
     }
-  }
+
+    // Aquarium management
+    public void addAquarium(Long aquariumId) {
+        if (aquariumId != null) {
+            this.aquariumIds.add(aquariumId);
+        }
+    }
+
+    public void removeAquarium(Long aquariumId) {
+        this.aquariumIds.remove(aquariumId);
+    }
+
+    // Inhabitant management
+    public void addInhabitant(Long inhabitantId) {
+        if (inhabitantId != null) {
+            this.inhabitantIds.add(inhabitantId);
+        }
+    }
+
+    public void removeInhabitant(Long inhabitantId) {
+        this.inhabitantIds.remove(inhabitantId);
+    }
+
+    // Business calculations
+    public boolean hasAquariums() {
+        return !aquariumIds.isEmpty();
+    }
+
+    public boolean hasOwners() {
+        return !ownerIds.isEmpty();
+    }
+
+    public int getTotalAquariumCount() {
+        return aquariumIds.size();
+    }
 }

@@ -3,10 +3,11 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.exception.DomainException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import nl.hu.bep.domain.species.Fish;
+import nl.hu.bep.exception.domain.DomainException;
 
 import static org.junit.jupiter.api.Assertions.*;
 

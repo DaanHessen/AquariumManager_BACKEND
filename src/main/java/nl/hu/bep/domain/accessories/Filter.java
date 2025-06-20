@@ -2,43 +2,47 @@ package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.domain.utils.Validator;
+import lombok.*;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import lombok.Setter;
-import lombok.AccessLevel;
-import jakarta.persistence.Entity;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.persistence.DiscriminatorValue;
+/**
+ * Represents a water filter accessory for aquariums.
 
-@Entity
-@DiscriminatorValue("FILTER")
+ */
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class Filter extends Accessory {
-  @NotNull
-  private boolean isExternal;
+    private boolean isExternal;
+    private int capacityLiters;
 
-  @NotNull
-  @Positive
-  private int capacityLiters;
+    public Filter(String model, String serialNumber, boolean isExternal, int capacityLiters, Long ownerId) {
+        super(model, serialNumber, ownerId);
+        this.isExternal = isExternal;
+        this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
+    }
 
-  public Filter(String model, String serialNumber, boolean isExternal, int capacityLiters, Long ownerId) {
-    super(model, serialNumber, ownerId);
-    this.isExternal = isExternal;
-    this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
-  }
+    @Override
+    public String getAccessoryType() {
+        return "Filter";
+    }
 
-  public void updateProperties(boolean isExternal, int capacityLiters) {
-    this.isExternal = isExternal;
-    this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
-  }
+    public void updateProperties(boolean isExternal, int capacityLiters) {
+        this.isExternal = isExternal;
+        this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
+    }
+
+    public boolean isSuitableForAquarium(double aquariumVolumeLiters) {
+        // we're going to assume the filter is OK if it's capable of handling 2x the aquarium volume
+        return capacityLiters >= (aquariumVolumeLiters * 2);
+    }
+
+    public void updateCapacity(int capacityLiters) {
+        this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
+    }
+
+    public void updateExternal(boolean isExternal) {
+        this.isExternal = isExternal;
+    }
 }

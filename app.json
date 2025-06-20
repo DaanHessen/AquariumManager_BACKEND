@@ -1,13 +1,9 @@
 {
   "name": "Aquarium Manager Backend API",
-  "description": "Backend API for the Aquarium Management System",
+  "description": "Backend API for the Aquarium Management System (Jakarta EE, EclipseLink)",
   "repository": "https://github.com/your-username/aquarium-manager-backend",
   "keywords": ["java", "jakarta-ee", "postgresql", "api", "aquarium"],
   "env": {
-    "HIBERNATE_HBM2DDL": {
-      "description": "Hibernate DDL auto mode",
-      "value": "update"
-    },
     "JWT_SECRET": {
       "description": "JWT secret key for token signing",
       "generator": "secret"
@@ -17,4 +13,4 @@
       "value": "86400000"
     }
   }
-} 
+}

@@ -6,7 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.security.exception.SecurityException;
+import nl.hu.bep.exception.security.SecurityException;
 
 import java.util.Date;
 

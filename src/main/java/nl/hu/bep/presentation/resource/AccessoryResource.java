@@ -2,92 +2,68 @@ package nl.hu.bep.presentation.resource;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
-import nl.hu.bep.application.AccessoryService;
-import nl.hu.bep.presentation.dto.AccessoryRequest;
-import nl.hu.bep.presentation.dto.AccessoryResponse;
-import nl.hu.bep.presentation.dto.ApiResponse;
-import nl.hu.bep.security.application.annotation.RequiresOwnership;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Context;
+import nl.hu.bep.application.AquariumManagerService;
+import nl.hu.bep.presentation.dto.*;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
-import lombok.extern.slf4j.Slf4j;
-import jakarta.ws.rs.core.SecurityContext;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Map;
 
 @Path("/accessories")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Slf4j
+@Secured
 public class AccessoryResource {
 
-  private final AccessoryService accessoryService;
+    @Inject
+    private AquariumManagerService aquariumManagerService;
 
-  @Inject
-  public AccessoryResource(AccessoryService accessoryService) {
-    this.accessoryService = accessoryService;
-  }
+    @GET
+    public Response getAllAccessories(@Context SecurityContext securityContext) {
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        List<AccessoryResponse> accessories = aquariumManagerService.getAllAccessories(ownerId);
+        return Response.ok(ApiResponse.success(accessories, "Accessories retrieved successfully")).build();
+    }
 
-  @GET
-  @Secured
-  public Response getAllAccessories(@Context SecurityContext securityContext) {
-    Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-    log.info("Fetching accessories for ownerId: {}", ownerId);
-    List<AccessoryResponse> accessories = accessoryService.getAllAccessories(ownerId);
-    return Response.ok(ApiResponse.success(accessories, "Accessories fetched successfully")).build();
-  }
+    @GET
+    @Path("/{id}")
+    public Response getAccessoryById(@PathParam("id") Long id) {
+        AccessoryResponse accessory = aquariumManagerService.getAccessoryById(id);
+        return Response.ok(ApiResponse.success(accessory, "Accessory retrieved successfully")).build();
+    }
 
-  @GET
-  @Path("/{id}")
-  public Response getAccessoryById(@PathParam("id") Long id) {
-    AccessoryResponse accessory = accessoryService.getAccessoryById(id);
-    return Response.ok(ApiResponse.success(accessory, "Accessory fetched successfully")).build();
-  }
+    @GET
+    @Path("/aquarium/{aquariumId}")
+    public Response getAccessoriesByAquarium(@PathParam("aquariumId") Long aquariumId) {
+        List<AccessoryResponse> accessories = aquariumManagerService.getAccessoriesByAquarium(aquariumId);
+        return Response.ok(ApiResponse.success(accessories, "Accessories retrieved successfully")).build();
+    }
 
-  @GET
-  @Path("/byAquarium/{aquariumId}")
-  public Response getAccessoriesByAquarium(@PathParam("aquariumId") Long aquariumId) {
-    List<AccessoryResponse> accessories = accessoryService.getAccessoriesByAquarium(aquariumId);
-    return Response.ok(ApiResponse.success(accessories, "Accessories fetched successfully")).build();
-  }
+    @POST
+    public Response createAccessory(AccessoryRequest request, @Context SecurityContext securityContext) {
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AccessoryResponse createdAccessory = aquariumManagerService.createAccessory(request, ownerId);
+        return Response.status(Response.Status.CREATED)
+                .entity(ApiResponse.success(createdAccessory, "Accessory created successfully"))
+                .build();
+    }
 
-  @POST
-  @Secured
-  public Response createAccessory(
-      AccessoryRequest request,
-      @Context UriInfo uriInfo,
-      @Context SecurityContext securityContext) {
+    @PUT
+    @Path("/{id}")
+    public Response updateAccessory(@PathParam("id") Long id, AccessoryRequest request, @Context SecurityContext securityContext) {
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AccessoryResponse updatedAccessory = aquariumManagerService.updateAccessory(id, request, ownerId);
+        return Response.ok(ApiResponse.success(updatedAccessory, "Accessory updated successfully")).build();
+    }
 
-    Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-    AccessoryResponse createdAccessory = accessoryService.createAccessory(request, ownerId);
-    URI location = uriInfo.getAbsolutePathBuilder().path(createdAccessory.id().toString()).build();
-    return Response.created(location)
-        .entity(ApiResponse.success(createdAccessory, "Accessory created successfully"))
-        .build();
-  }
-
-  @PUT
-  @Path("/{id}")
-  @Secured
-  @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.ACCESSORY, paramName = "id")
-  public Response updateAccessory(
-      @PathParam("id") Long id,
-      AccessoryRequest request) {
-
-    AccessoryResponse updatedAccessory = accessoryService.updateAccessory(id, request);
-    return Response.ok(ApiResponse.success(updatedAccessory, "Accessory updated successfully")).build();
-  }
-
-  @DELETE
-  @Path("/{id}")
-  @Secured
-  @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.ACCESSORY, paramName = "id")
-  public Response deleteAccessory(@PathParam("id") Long id) {
-    accessoryService.deleteAccessory(id);
-    return Response.ok(ApiResponse.success(
-        Map.of("accessoryId", id),
-        "Accessory deleted successfully")).build();
-  }
+    @DELETE
+    @Path("/{id}")
+    public Response deleteAccessory(@PathParam("id") Long id) {
+        aquariumManagerService.deleteAccessory(id);
+        return Response.ok(ApiResponse.success(null, "Accessory deleted successfully")).build();
+    }
 }

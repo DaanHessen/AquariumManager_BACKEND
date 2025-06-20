@@ -12,7 +12,11 @@ import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.security.application.service.AuthorizationService;
+import nl.hu.bep.data.AquariumRepository;
+import nl.hu.bep.data.AccessoryRepository;
+import nl.hu.bep.data.InhabitantRepository;
+import nl.hu.bep.data.OrnamentRepository;
+import nl.hu.bep.domain.services.OwnershipDomainService;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -28,7 +32,16 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private ResourceInfo resourceInfo;
 
     @Inject
-    private AuthorizationService authorizationService;
+    private AquariumRepository aquariumRepository;
+    
+    @Inject
+    private AccessoryRepository accessoryRepository;
+    
+    @Inject
+    private InhabitantRepository inhabitantRepository;
+    
+    @Inject
+    private OrnamentRepository ornamentRepository;
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
@@ -58,10 +71,10 @@ public class OwnershipFilter implements ContainerRequestFilter {
             }
 
             boolean isOwner = switch (resourceType) {
-                case AQUARIUM -> authorizationService.verifyAquariumOwnership(resourceId, authenticatedOwnerId);
-                case INHABITANT -> authorizationService.verifyInhabitantOwnership(resourceId, authenticatedOwnerId);
-                case ACCESSORY -> authorizationService.verifyAccessoryOwnership(resourceId, authenticatedOwnerId);
-                case ORNAMENT -> authorizationService.verifyOrnamentOwnership(resourceId, authenticatedOwnerId);
+                case AQUARIUM -> verifyAquariumOwnership(resourceId, authenticatedOwnerId);
+                case INHABITANT -> verifyInhabitantOwnership(resourceId, authenticatedOwnerId);
+                case ACCESSORY -> verifyAccessoryOwnership(resourceId, authenticatedOwnerId);
+                case ORNAMENT -> verifyOrnamentOwnership(resourceId, authenticatedOwnerId);
                 default -> false;
             };
 
@@ -107,5 +120,56 @@ public class OwnershipFilter implements ContainerRequestFilter {
                 Response.status(Response.Status.FORBIDDEN)
                         .entity(Map.of("error", message))
                         .build());
+    }
+
+    // DDD-compliant ownership verification using domain services
+    private boolean verifyAquariumOwnership(Long aquariumId, Long ownerId) {
+        try {
+            var aquarium = aquariumRepository.findById(aquariumId).orElse(null);
+            if (aquarium == null) return false;
+            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean verifyInhabitantOwnership(Long inhabitantId, Long ownerId) {
+        try {
+            var inhabitant = inhabitantRepository.findById(inhabitantId).orElse(null);
+            if (inhabitant == null || inhabitant.getAquariumId() == null) return false;
+            var aquarium = aquariumRepository.findById(inhabitant.getAquariumId()).orElse(null);
+            if (aquarium == null) return false;
+            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean verifyAccessoryOwnership(Long accessoryId, Long ownerId) {
+        try {
+            var accessory = accessoryRepository.findById(accessoryId).orElse(null);
+            if (accessory == null || accessory.getAquariumId() == null) return false;
+            var aquarium = aquariumRepository.findById(accessory.getAquariumId()).orElse(null);
+            if (aquarium == null) return false;
+            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean verifyOrnamentOwnership(Long ornamentId, Long ownerId) {
+        try {
+            var ornament = ornamentRepository.findById(ornamentId).orElse(null);
+            if (ornament == null || ornament.getAquariumId() == null) return false;
+            var aquarium = aquariumRepository.findById(ornament.getAquariumId()).orElse(null);
+            if (aquarium == null) return false;
+            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

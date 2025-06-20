@@ -90,38 +90,6 @@ public class AquariumManagerResource {
                 "Aquarium deleted successfully")).build();
     }
 
-    // ========== STATE HISTORY OPERATIONS ==========
-
-    @GET
-    @Path("/{id}/state-history")
-    public Response getAquariumStateHistory(@PathParam("id") Long aquariumId) {
-        List<AquariumStateHistoryResponse> stateHistory = aquariumManagerService.getAquariumStateHistory(aquariumId);
-        return Response.ok(ApiResponse.success(stateHistory, "State history fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/{id}/current-state-duration")
-    public Response getCurrentStateDuration(@PathParam("id") Long aquariumId) {
-        Long duration = aquariumManagerService.getCurrentStateDuration(aquariumId);
-        return Response.ok(ApiResponse.success(
-                Map.of("aquariumId", aquariumId, "currentStateDurationMinutes", duration),
-                "Current state duration fetched successfully")).build();
-    }
-
-    @PUT
-    @Path("/{id}/state")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "id")
-    public Response changeAquariumState(
-            @PathParam("id") Long aquariumId, 
-            StateChangeRequest request,
-            @Context SecurityContext securityContext) {
-        
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.changeAquariumState(aquariumId, request, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Aquarium state changed successfully")).build();
-    }
-
     // ========== ACCESSORY OPERATIONS ==========
 
     @GET
@@ -266,6 +234,32 @@ public class AquariumManagerResource {
         return Response.ok(ApiResponse.success(inhabitants, "Aquarium inhabitants fetched successfully")).build();
     }
 
-    // Note: Inhabitant add/remove operations would be added here following the same pattern
-    // as accessories and ornaments, but are not implemented yet in the service layer
+    @POST
+    @Path("/{aquariumId}/inhabitants/{inhabitantId}")
+    @Secured
+    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
+    public Response addInhabitantToAquarium(
+            @PathParam("aquariumId") Long aquariumId,
+            @PathParam("inhabitantId") Long inhabitantId,
+            Map<String, Object> properties,
+            @Context SecurityContext securityContext) {
+
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AquariumResponse updatedAquarium = aquariumManagerService.addInhabitantToAquarium(aquariumId, inhabitantId, properties, ownerId);
+        return Response.ok(ApiResponse.success(updatedAquarium, "Inhabitant added successfully")).build();
+    }
+
+    @DELETE
+    @Path("/{aquariumId}/inhabitants/{inhabitantId}")
+    @Secured
+    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
+    public Response removeInhabitantFromAquarium(
+            @PathParam("aquariumId") Long aquariumId,
+            @PathParam("inhabitantId") Long inhabitantId,
+            @Context SecurityContext securityContext) {
+
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AquariumResponse updatedAquarium = aquariumManagerService.removeInhabitantFromAquarium(aquariumId, inhabitantId, ownerId);
+        return Response.ok(ApiResponse.success(updatedAquarium, "Inhabitant removed successfully")).build();
+    }
 } 
