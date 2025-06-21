@@ -3,41 +3,52 @@ package nl.hu.bep.domain.species;
 import lombok.*;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.Inhabitant;
-import nl.hu.bep.domain.base.SpeciesValidation;
+import nl.hu.bep.domain.utils.Validator;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Represents a snail in an aquarium.
- * Contains snail-specific properties.
- * Clean POJO implementation without JPA dependencies.
+ * Clean POJO implementation following DDD principles.
  */
 @Getter
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(callSuper = true)
+@Setter(AccessLevel.PRIVATE)
 public class Snail extends Inhabitant {
     private boolean isSnailEater;
 
-    // Private constructor for factory method
-    private Snail(String species, String color, int count, boolean isSchooling,
-                 WaterType waterType, Long ownerId, String name, String description,
-                 boolean isSnailEater) {
-        super(species, color, count, isSchooling, waterType, ownerId, name, description);
+    // Private constructor for creating new entities
+    private Snail(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description, InhabitantProperties properties) {
+        super(name, species, ownerId, color, count, isSchooling, waterType, description);
+        this.isSnailEater = properties.isSnailEater();
+    }
+
+    // Private constructor for repository reconstruction
+    private Snail(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId, boolean isSnailEater) {
+        super(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
         this.isSnailEater = isSnailEater;
     }
 
-    // Factory method with validation
-    public static Snail create(String species, String color, int count, boolean isSchooling, boolean isSnailEater,
-            WaterType waterType, Long ownerId, String name, String description) {
-        
-        // Use shared validation - no more duplication!
-        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
-        
-        return new Snail(species, color, count, isSchooling, waterType, ownerId, name, description, isSnailEater);
+    // Static factory method for creating a new Snail instance
+    public static Snail create(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description, InhabitantProperties properties) {
+        return new Snail(name, species, ownerId, color, count, isSchooling, waterType, description, properties);
+    }
+
+    // Static factory method for repository reconstruction
+    public static Snail reconstruct(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId, boolean isSnailEater) {
+        return new Snail(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId, isSnailEater);
     }
 
     @Override
     public String getType() {
         return "Snail";
+    }
+
+    @Override
+    public InhabitantProperties getTypeSpecificProperties() {
+        return new InhabitantProperties(false, false, isSnailEater);
     }
 
     // Business logic methods

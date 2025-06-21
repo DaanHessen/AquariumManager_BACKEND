@@ -54,9 +54,16 @@ public abstract class Repository<T, ID> {
 
     public T insert(T entity) {
         try (Connection conn = DatabaseConfig.getConnection();
-             PreparedStatement ps = conn.prepareStatement(getInsertSql())) {
+             PreparedStatement ps = conn.prepareStatement(getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
             setInsertParameters(ps, entity);
             ps.executeUpdate();
+            
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    ID generatedId = (ID) rs.getObject(1);
+                    return findById(generatedId).orElse(entity);
+                }
+            }
             return entity;
         } catch (SQLException e) {
             throw new RepositoryException("Insert failed", e);

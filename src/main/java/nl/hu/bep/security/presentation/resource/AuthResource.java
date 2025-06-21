@@ -1,6 +1,5 @@
 package nl.hu.bep.security.presentation.resource;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -17,17 +16,16 @@ import java.util.Map;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthResource {
-    private final AuthenticationService authService;
+    private final AuthenticationService authenticationService;
 
-    @Inject
-    public AuthResource(AuthenticationService authService) {
-        this.authService = authService;
+    public AuthResource() {
+        this.authenticationService = new AuthenticationService();
     }
 
     @POST
     @Path("/register")
     public Response register(RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+        AuthResponse response = authenticationService.register(request);
 
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("ownerId", response.ownerId());
@@ -41,7 +39,7 @@ public class AuthResource {
     @POST
     @Path("/login")
     public Response login(AuthRequest request) {
-        AuthResponse response = authService.authenticate(request);
+        AuthResponse response = authenticationService.authenticate(request);
 
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("ownerId", response.ownerId());

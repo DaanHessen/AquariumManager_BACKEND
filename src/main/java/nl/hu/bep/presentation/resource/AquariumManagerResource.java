@@ -1,19 +1,26 @@
 package nl.hu.bep.presentation.resource;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 import nl.hu.bep.application.AquariumManagerService;
 import nl.hu.bep.presentation.dto.*;
-import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.annotation.Secured;
+import nl.hu.bep.security.application.context.SecurityContextHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Resource class for Aquarium operations ONLY - NO LOGIC, pure delegation to service.
+ * Follows DDD principles with thin orchestration.
+ * Other entities have their own dedicated resource classes.
+ */
 @Path("/aquariums")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -22,34 +29,25 @@ public class AquariumManagerResource {
 
     private final AquariumManagerService aquariumManagerService;
 
-    @Inject
-    public AquariumManagerResource(AquariumManagerService aquariumManagerService) {
-        this.aquariumManagerService = aquariumManagerService;
+    public AquariumManagerResource() {
+        this.aquariumManagerService = new AquariumManagerService();
     }
-
-    // ========== AQUARIUM OPERATIONS ==========
 
     @GET
     @Secured
     public Response getAllAquariums(@Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        log.info("Fetching aquariums for ownerId: {}", ownerId);
         List<AquariumResponse> aquariums = aquariumManagerService.getAllAquariums(ownerId);
         return Response.ok(ApiResponse.success(aquariums, "Aquariums fetched successfully")).build();
     }
 
     @GET
     @Path("/{id}")
-    public Response getAquariumById(@PathParam("id") Long id) {
-        AquariumResponse aquarium = aquariumManagerService.getAquariumById(id);
+    @Secured
+    public Response getAquarium(@PathParam("id") Long id, @Context SecurityContext securityContext) {
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AquariumResponse aquarium = aquariumManagerService.getAquarium(id, ownerId);
         return Response.ok(ApiResponse.success(aquarium, "Aquarium fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/{id}/detail")
-    public Response getAquariumDetailById(@PathParam("id") Long id) {
-        AquariumResponse aquarium = aquariumManagerService.getAquariumDetailById(id);
-        return Response.ok(ApiResponse.success(aquarium, "Aquarium detail fetched successfully")).build();
     }
 
     @POST
@@ -73,193 +71,21 @@ public class AquariumManagerResource {
     public Response updateAquarium(
             @PathParam("id") Long id,
             AquariumRequest request,
-            @Context UriInfo uriInfo) {
+            @Context SecurityContext securityContext) {
 
-        AquariumResponse updatedAquarium = aquariumManagerService.updateAquarium(id, request);
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        AquariumResponse updatedAquarium = aquariumManagerService.updateAquarium(id, request, ownerId);
         return Response.ok(ApiResponse.success(updatedAquarium, "Aquarium updated successfully")).build();
     }
 
     @DELETE
     @Path("/{id}")
     @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "id")
-    public Response deleteAquarium(@PathParam("id") Long id, @Context UriInfo uriInfo) {
-        aquariumManagerService.deleteAquarium(id);
+    public Response deleteAquarium(@PathParam("id") Long id, @Context SecurityContext securityContext) {
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        aquariumManagerService.deleteAquarium(id, ownerId);
         return Response.ok(ApiResponse.success(
                 Map.of("aquariumId", id),
                 "Aquarium deleted successfully")).build();
-    }
-
-    // ========== ACCESSORY OPERATIONS ==========
-
-    @GET
-    @Path("/accessories")
-    @Secured
-    public Response getAllAccessories(@Context SecurityContext securityContext) {
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        List<AccessoryResponse> accessories = aquariumManagerService.getAllAccessories(ownerId);
-        return Response.ok(ApiResponse.success(accessories, "Accessories fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/accessories/{id}")
-    public Response getAccessoryById(@PathParam("id") Long id) {
-        AccessoryResponse accessory = aquariumManagerService.getAccessoryById(id);
-        return Response.ok(ApiResponse.success(accessory, "Accessory fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/{aquariumId}/accessories")
-    public Response getAccessoriesByAquarium(@PathParam("aquariumId") Long aquariumId) {
-        List<AccessoryResponse> accessories = aquariumManagerService.getAccessoriesByAquarium(aquariumId);
-        return Response.ok(ApiResponse.success(accessories, "Aquarium accessories fetched successfully")).build();
-    }
-
-    @DELETE
-    @Path("/accessories/{id}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.ACCESSORY, paramName = "id")
-    public Response deleteAccessory(@PathParam("id") Long id) {
-        aquariumManagerService.deleteAccessory(id);
-        return Response.ok(ApiResponse.success(
-                Map.of("accessoryId", id),
-                "Accessory deleted successfully")).build();
-    }
-
-    @POST
-    @Path("/{aquariumId}/accessories/{accessoryId}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
-    public Response addAccessoryToAquarium(
-            @PathParam("aquariumId") Long aquariumId,
-            @PathParam("accessoryId") Long accessoryId,
-            Map<String, Object> properties,
-            @Context SecurityContext securityContext) {
-
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.addAccessoryToAquarium(aquariumId, accessoryId, properties, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Accessory added successfully")).build();
-    }
-
-    @DELETE
-    @Path("/{aquariumId}/accessories/{accessoryId}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
-    public Response removeAccessoryFromAquarium(
-            @PathParam("aquariumId") Long aquariumId,
-            @PathParam("accessoryId") Long accessoryId,
-            @Context SecurityContext securityContext) {
-
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.removeAccessoryFromAquarium(aquariumId, accessoryId, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Accessory removed successfully")).build();
-    }
-
-    // ========== ORNAMENT OPERATIONS ==========
-
-    @GET
-    @Path("/ornaments")
-    @Secured
-    public Response getAllOrnaments(@Context SecurityContext securityContext) {
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        List<OrnamentResponse> ornaments = aquariumManagerService.getAllOrnaments(ownerId);
-        return Response.ok(ApiResponse.success(ornaments, "Ornaments fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/ornaments/{id}")
-    public Response getOrnamentById(@PathParam("id") Long id) {
-        OrnamentResponse ornament = aquariumManagerService.getOrnamentById(id);
-        return Response.ok(ApiResponse.success(ornament, "Ornament fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/{aquariumId}/ornaments")
-    public Response getOrnamentsByAquarium(@PathParam("aquariumId") Long aquariumId) {
-        List<OrnamentResponse> ornaments = aquariumManagerService.getOrnamentsByAquarium(aquariumId);
-        return Response.ok(ApiResponse.success(ornaments, "Aquarium ornaments fetched successfully")).build();
-    }
-
-    @POST
-    @Path("/{aquariumId}/ornaments/{ornamentId}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
-    public Response addOrnamentToAquarium(
-            @PathParam("aquariumId") Long aquariumId,
-            @PathParam("ornamentId") Long ornamentId,
-            Map<String, Object> properties,
-            @Context SecurityContext securityContext) {
-
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.addOrnamentToAquarium(aquariumId, ornamentId, properties, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Ornament added successfully")).build();
-    }
-
-    @DELETE
-    @Path("/{aquariumId}/ornaments/{ornamentId}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
-    public Response removeOrnamentFromAquarium(
-            @PathParam("aquariumId") Long aquariumId,
-            @PathParam("ornamentId") Long ornamentId,
-            @Context SecurityContext securityContext) {
-
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.removeOrnamentFromAquarium(aquariumId, ornamentId, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Ornament removed successfully")).build();
-    }
-
-    // ========== INHABITANT OPERATIONS ==========
-
-    @GET
-    @Path("/inhabitants")
-    @Secured
-    public Response getAllInhabitants(@Context SecurityContext securityContext) {
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        List<InhabitantResponse> inhabitants = aquariumManagerService.getAllInhabitants(ownerId);
-        return Response.ok(ApiResponse.success(inhabitants, "Inhabitants fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/inhabitants/{id}")
-    public Response getInhabitantById(@PathParam("id") Long id) {
-        InhabitantResponse inhabitant = aquariumManagerService.getInhabitantById(id);
-        return Response.ok(ApiResponse.success(inhabitant, "Inhabitant fetched successfully")).build();
-    }
-
-    @GET
-    @Path("/{aquariumId}/inhabitants")
-    public Response getInhabitantsByAquarium(@PathParam("aquariumId") Long aquariumId) {
-        List<InhabitantResponse> inhabitants = aquariumManagerService.getInhabitantsByAquarium(aquariumId);
-        return Response.ok(ApiResponse.success(inhabitants, "Aquarium inhabitants fetched successfully")).build();
-    }
-
-    @POST
-    @Path("/{aquariumId}/inhabitants/{inhabitantId}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
-    public Response addInhabitantToAquarium(
-            @PathParam("aquariumId") Long aquariumId,
-            @PathParam("inhabitantId") Long inhabitantId,
-            Map<String, Object> properties,
-            @Context SecurityContext securityContext) {
-
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.addInhabitantToAquarium(aquariumId, inhabitantId, properties, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Inhabitant added successfully")).build();
-    }
-
-    @DELETE
-    @Path("/{aquariumId}/inhabitants/{inhabitantId}")
-    @Secured
-    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.AQUARIUM, paramName = "aquariumId")
-    public Response removeInhabitantFromAquarium(
-            @PathParam("aquariumId") Long aquariumId,
-            @PathParam("inhabitantId") Long inhabitantId,
-            @Context SecurityContext securityContext) {
-
-        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        AquariumResponse updatedAquarium = aquariumManagerService.removeInhabitantFromAquarium(aquariumId, inhabitantId, ownerId);
-        return Response.ok(ApiResponse.success(updatedAquarium, "Inhabitant removed successfully")).build();
     }
 } 

@@ -1,8 +1,5 @@
 package nl.hu.bep.security.application.service;
 
-import jakarta.inject.Inject;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.data.OwnerRepository;
 import nl.hu.bep.domain.Owner;
@@ -16,16 +13,13 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.util.Optional;
 
 @Slf4j
-@ApplicationScoped
-@Transactional
 public class AuthenticationService {
     private final JwtService jwtService;
     private final OwnerRepository ownerRepository;
 
-    @Inject
-    public AuthenticationService(JwtService jwtService, OwnerRepository ownerRepository) {
-        this.jwtService = jwtService;
-        this.ownerRepository = ownerRepository;
+    public AuthenticationService() {
+        this.jwtService = new JwtService();
+        this.ownerRepository = new OwnerRepository();
     }
 
     public AuthResponse register(RegisterRequest request) {

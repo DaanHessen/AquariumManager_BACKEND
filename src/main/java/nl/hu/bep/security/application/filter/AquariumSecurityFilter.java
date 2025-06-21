@@ -3,7 +3,6 @@ package nl.hu.bep.security.application.filter;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -19,10 +18,13 @@ import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.AquariumSecurityContext;
 import nl.hu.bep.security.application.service.JwtService;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Security filter for JWT authentication.
+ * Uses manual instantiation instead of DI to avoid HK2 complexity.
+ */
 @Slf4j
 @Provider
 @Secured
@@ -31,11 +33,14 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     private static final String AUTHENTICATION_SCHEME = "Bearer";
     private static final String[] PUBLIC_ENDPOINTS = { "/api/auth/register", "/api/auth/login" };
 
-    @Inject
-    private JwtService jwtService;
+    private final JwtService jwtService;
 
     @Context
     private ResourceInfo resourceInfo;
+
+    public AquariumSecurityFilter() {
+        this.jwtService = new JwtService();
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
@@ -85,7 +90,7 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     }
 
     private boolean requiresAuthentication(ResourceInfo resourceInfo) {
-        Method method = resourceInfo.getResourceMethod();
+        var method = resourceInfo.getResourceMethod();
         return method.isAnnotationPresent(Secured.class) ||
                 resourceInfo.getResourceClass().isAnnotationPresent(Secured.class);
     }

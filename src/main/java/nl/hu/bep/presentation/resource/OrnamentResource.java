@@ -1,26 +1,38 @@
 package nl.hu.bep.presentation.resource;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
-import jakarta.ws.rs.core.Context;
+import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.application.AquariumManagerService;
-import nl.hu.bep.presentation.dto.*;
+import nl.hu.bep.presentation.dto.ApiResponse;
+import nl.hu.bep.presentation.dto.OrnamentRequest;
+import nl.hu.bep.presentation.dto.OrnamentResponse;
+import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
 
 import java.util.List;
+import java.util.Map;
 
+/**
+ * Resource class for Ornament operations - NO LOGIC, pure delegation to service.
+ * Follows DDD principles with thin orchestration.
+ */
+@Slf4j
 @Path("/ornaments")
-@Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 @Secured
 public class OrnamentResource {
 
-    @Inject
-    private AquariumManagerService aquariumManagerService;
+    private final AquariumManagerService aquariumManagerService;
+
+    public OrnamentResource() {
+        this.aquariumManagerService = new AquariumManagerService();
+    }
 
     @GET
     public Response getAllOrnaments(@Context SecurityContext securityContext) {
@@ -31,8 +43,10 @@ public class OrnamentResource {
 
     @GET
     @Path("/{id}")
-    public Response getOrnamentById(@PathParam("id") Long id) {
-        OrnamentResponse ornament = aquariumManagerService.getOrnamentById(id);
+    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.ORNAMENT, paramName = "id")
+    public Response getOrnament(@PathParam("id") Long id, @Context SecurityContext securityContext) {
+        Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
+        OrnamentResponse ornament = aquariumManagerService.getOrnament(id, ownerId);
         return Response.ok(ApiResponse.success(ornament, "Ornament retrieved successfully")).build();
     }
 
@@ -46,22 +60,30 @@ public class OrnamentResource {
     @POST
     public Response createOrnament(OrnamentRequest request, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        OrnamentResponse createdOrnament = aquariumManagerService.createOrnament(request, ownerId);
+        OrnamentResponse ornament = aquariumManagerService.createOrnament(request, ownerId);
+        
+        Map<String, Object> responseData = Map.of(
+            "ornament", ornament,
+            "id", ornament.id()
+        );
+        
         return Response.status(Response.Status.CREATED)
-                .entity(ApiResponse.success(createdOrnament, "Ornament created successfully"))
+                .entity(ApiResponse.success(responseData, "Ornament created successfully"))
                 .build();
     }
 
     @PUT
     @Path("/{id}")
+    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.ORNAMENT, paramName = "id")
     public Response updateOrnament(@PathParam("id") Long id, OrnamentRequest request, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        OrnamentResponse updatedOrnament = aquariumManagerService.updateOrnament(id, request, ownerId);
-        return Response.ok(ApiResponse.success(updatedOrnament, "Ornament updated successfully")).build();
+        OrnamentResponse ornament = aquariumManagerService.updateOrnament(id, request, ownerId);
+        return Response.ok(ApiResponse.success(ornament, "Ornament updated successfully")).build();
     }
 
     @DELETE
     @Path("/{id}")
+    @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.ORNAMENT, paramName = "id")
     public Response deleteOrnament(@PathParam("id") Long id, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
         aquariumManagerService.deleteOrnament(id, ownerId);

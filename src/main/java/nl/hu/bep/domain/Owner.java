@@ -48,6 +48,7 @@ public class Owner {
                 .role(Role.OWNER)
                 .dateCreated(LocalDateTime.now())
                 .aquariumIds(new HashSet<>())
+                .aquariumManagerId(1L) // Default manager (business rule)
                 .build();
     }
 
@@ -114,6 +115,10 @@ public class Owner {
         if (!this.aquariumIds.remove(aquariumId)) {
             throw new DomainException("Aquarium is not registered to this owner");
         }
+    }
+
+    public void assignToManager(Long managerId) {
+        this.aquariumManagerId = managerId;
     }
 
     // Query methods

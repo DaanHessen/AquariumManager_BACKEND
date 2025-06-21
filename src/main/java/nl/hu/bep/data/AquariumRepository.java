@@ -11,6 +11,7 @@ import java.util.List;
 
 /**
  * Ultra-simple AquariumRepository - PURE JDBC operations only.
+ * No business logic is handled here.
  */
 public class AquariumRepository extends Repository<Aquarium, Long> {
     
@@ -45,8 +46,7 @@ public class AquariumRepository extends Repository<Aquarium, Long> {
                 rs.getString("description"),
                 rs.getTimestamp("date_created").toLocalDateTime(),
                 getLong(rs, "aquarium_manager_id"),
-                getLong(rs, "owner_id"),
-                new HashSet<>(), new HashSet<>(), new HashSet<>()
+                getLong(rs, "owner_id")
         );
     }
     

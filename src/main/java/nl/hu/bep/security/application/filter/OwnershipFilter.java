@@ -1,7 +1,6 @@
 package nl.hu.bep.security.application.filter;
 
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -17,13 +16,12 @@ import nl.hu.bep.data.AccessoryRepository;
 import nl.hu.bep.data.InhabitantRepository;
 import nl.hu.bep.data.OrnamentRepository;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Map;
 
 /**
  * Security filter for ownership validation using native domain methods.
  * Follows DDD principles by delegating ownership checks to domain entities.
+ * Uses manual instantiation instead of DI to avoid HK2 complexity.
  */
 @Slf4j
 @Provider
@@ -34,21 +32,21 @@ public class OwnershipFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    @Inject
-    private AquariumRepository aquariumRepository;
-    
-    @Inject
-    private AccessoryRepository accessoryRepository;
-    
-    @Inject
-    private InhabitantRepository inhabitantRepository;
-    
-    @Inject
-    private OrnamentRepository ornamentRepository;
+    private final AquariumRepository aquariumRepository;
+    private final AccessoryRepository accessoryRepository;
+    private final InhabitantRepository inhabitantRepository;
+    private final OrnamentRepository ornamentRepository;
+
+    public OwnershipFilter() {
+        this.aquariumRepository = new AquariumRepository();
+        this.accessoryRepository = new AccessoryRepository();
+        this.inhabitantRepository = new InhabitantRepository();
+        this.ornamentRepository = new OrnamentRepository();
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        Method method = resourceInfo.getResourceMethod();
+        var method = resourceInfo.getResourceMethod();
 
         RequiresOwnership ownershipAnnotation = method.getAnnotation(RequiresOwnership.class);
         if (ownershipAnnotation == null) {
@@ -65,7 +63,7 @@ public class OwnershipFilter implements ContainerRequestFilter {
 
             RequiresOwnership.ResourceType resourceType = ownershipAnnotation.resourceType();
             String paramName = ownershipAnnotation.paramName();
-            Long resourceId = extractResourceId(method, paramName, requestContext);
+            Long resourceId = extractResourceIdFromPath(paramName, requestContext);
 
             if (resourceId == null) {
                 log.error("Failed to extract resource ID for parameter: {}", paramName);
@@ -96,23 +94,19 @@ public class OwnershipFilter implements ContainerRequestFilter {
         }
     }
 
-    private Long extractResourceId(Method method, String paramName, ContainerRequestContext requestContext) {
-        Parameter[] parameters = method.getParameters();
-        for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].getName().equals(paramName)) {
-                try {
-                    String pathParamValue = requestContext.getUriInfo()
-                            .getPathParameters()
-                            .getFirst(paramName);
+    // NO REFLECTION - direct path parameter extraction
+    private Long extractResourceIdFromPath(String paramName, ContainerRequestContext requestContext) {
+        try {
+            String pathParamValue = requestContext.getUriInfo()
+                    .getPathParameters()
+                    .getFirst(paramName);
 
-                    if (pathParamValue != null) {
-                        return Long.parseLong(pathParamValue);
-                    }
-                } catch (NumberFormatException e) {
-                    log.error("Invalid resource ID format for parameter {}", paramName);
-                    throw new IllegalArgumentException("Invalid resource ID format");
-                }
+            if (pathParamValue != null) {
+                return Long.parseLong(pathParamValue);
             }
+        } catch (NumberFormatException e) {
+            log.error("Invalid resource ID format for parameter {}", paramName);
+            throw new IllegalArgumentException("Invalid resource ID format");
         }
 
         throw new IllegalArgumentException("Resource ID parameter not found: " + paramName);
@@ -132,7 +126,7 @@ public class OwnershipFilter implements ContainerRequestFilter {
             if (aquarium == null) return false;
             
             // Use native domain validation - DDD compliant
-            aquarium.verifyOwnership(ownerId);
+            aquarium.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
             log.debug("Aquarium ownership verification failed: {}", e.getMessage());

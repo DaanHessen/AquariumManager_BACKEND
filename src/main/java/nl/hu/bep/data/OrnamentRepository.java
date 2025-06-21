@@ -5,6 +5,10 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Ultra-simple OrnamentRepository - PURE JDBC operations only.
+ * No business logic is handled here.
+ */
 public class OrnamentRepository extends Repository<Ornament, Long> {
     
     @Override

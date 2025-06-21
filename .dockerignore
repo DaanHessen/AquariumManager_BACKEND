@@ -1,5 +1,6 @@
 target/
 !target/*.jar
+!target/*.war
 .git/
 .gitignore
 .github/

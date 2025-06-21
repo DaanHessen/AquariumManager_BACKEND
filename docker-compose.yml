@@ -1,34 +1,16 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "8085:8080"
     environment:
+      - DATABASE_URL=jdbc:postgresql://ep-super-moon-a8o3ieda-pooler.eastus2.azure.neon.tech:5432/aquariummanager?user=aquariummanager_owner&password=npg_01eDLfcEAKwW&sslmode=require
       - JAVA_OPTS=-Xmx512m -Dfile.encoding=UTF-8
-      - DB_MODE=postgres
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_NAME=aquariumdb
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-    depends_on:
-      - db
     volumes:
       - ./logs:/usr/local/tomcat/logs
-
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: aquariumdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST_AUTH_METHOD: trust
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-
-volumes:
-  postgres-data: 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s 

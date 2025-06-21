@@ -3,274 +3,187 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.utils.Validator;
-import jakarta.persistence.*;
 import lombok.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Min;
 import nl.hu.bep.domain.species.Fish;
 import nl.hu.bep.domain.species.Snail;
 import nl.hu.bep.domain.species.Shrimp;
 import nl.hu.bep.domain.species.Crayfish;
 import nl.hu.bep.domain.species.Plant;
 import nl.hu.bep.domain.species.Coral;
+import java.util.Optional;
 
-@Entity
-@Table(name = "inhabitants")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "inhabitant_type")
+/**
+ * Pure JDBC inhabitant entity - ID-based relationships only.
+ * Clean DDD implementation with domain security.
+ */
 @Getter
-@Setter(AccessLevel.PROTECTED)
-@EqualsAndHashCode(exclude = { "aquarium", "aquariumManager" }, callSuper = false)
-@ToString(exclude = { "aquarium", "aquariumManager" })
+@EqualsAndHashCode(of = "id", callSuper = false)
+@ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Inhabitant extends AssignableEntity {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    private Long id;
+    private String species;
+    private String color;
+    private int count;
+    private boolean isSchooling;
+    private WaterType waterType;
+    private Long ownerId;
+    private String name;
+    private String description;
+    private java.time.LocalDateTime dateCreated;
 
-  @NotNull
-  @Size(min = 1, max = 100)
-  @Column(name = "species")
-  private String species;
-
-  @Column(name = "color", nullable = true)
-  private String color;
-
-  @NotNull
-  @Positive
-  @Min(1)
-  @Column(name = "count")
-  private int count;
-
-  @NotNull
-  @Column(name = "is_schooling")
-  private boolean isSchooling;
-
-  @NotNull
-  @Column(name = "water_type")
-  @Enumerated(EnumType.STRING)
-  private WaterType waterType;
-
-  @NotNull
-  @Column(name = "owner_id")
-  private Long ownerId;
-
-  @Column(name = "name", nullable = true)
-  @Size(max = 100)
-  private String name;
-
-  @Column(name = "description", length = 255)
-  private String description;
-
-  @Column(name = "date_created", updatable = false)
-  private java.time.LocalDateTime dateCreated;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "aquarium_id")
-  private Aquarium aquarium;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "aquarium_manager_id")
-  private AquariumManager aquariumManager;
-
-  // Constructor for species subclasses - POJO pattern for JDBC
-  protected Inhabitant(String species, String color, int count, boolean isSchooling,
-                      WaterType waterType, Long ownerId, String name, String description) {
-    this.species = Validator.notEmpty(species, "Species");
-    this.color = color;
-    this.count = Validator.positive(count, "Count");
-    this.waterType = Validator.notNull(waterType, "Water type");
-    this.ownerId = Validator.notNull(ownerId, "Owner ID");
-    this.isSchooling = isSchooling;
-    this.name = name;
-    this.description = description;
-    this.dateCreated = java.time.LocalDateTime.now();
-  }
-
-  protected void initializeInhabitant(String species, String color, int count, boolean isSchooling,
-      WaterType waterType) {
-    this.species = Validator.notEmpty(species, "Species");
-    this.color = color;
-    this.count = Validator.positive(count, "Count");
-    this.waterType = Validator.notNull(waterType, "Water type");
-    this.isSchooling = isSchooling;
-  }
-
-  public String getType() {
-    return this.getClass().getSimpleName();
-  }
-
-  public void updateSpecies(String species) {
-    this.species = Validator.notEmpty(species, "Species");
-  }
-
-  public void updateColor(String color) {
-    this.color = color;
-  }
-
-  public void updateCount(int count) {
-    this.count = Validator.positive(count, "Count");
-  }
-
-  public void updateSchooling(boolean isSchooling) {
-    this.isSchooling = isSchooling;
-  }
-
-  public void updateWaterType(WaterType waterType) {
-    this.waterType = Validator.notNull(waterType, "Water type");
-  }
-
-  public void updateName(String name) {
-    this.name = name;
-  }
-
-  public void updateDescription(String description) {
-    this.description = description;
-  }
-
-  public Inhabitant update(String species, String color, Integer count, Boolean isSchooling, WaterType waterType, String name, String description) {
-    if (species != null) {
-      updateSpecies(species);
-    }
-
-    if (color != null) {
-      updateColor(color);
-    }
-
-    if (count != null) {
-      updateCount(count);
-    }
-
-    if (isSchooling != null) {
-      updateSchooling(isSchooling);
-    }
-
-    if (waterType != null) {
-      updateWaterType(waterType);
-    }
-
-    if (name != null) {
-      updateName(name);
-    }
-
-    if (description != null) {
-      updateDescription(description);
-    }
-
-    return this;
-  }
-
-  // Package-private method for aquarium bidirectional relationship management
-  void setAquarium(Aquarium aquarium) {
-    if (this.aquarium == aquarium) {
-      return;
-    }
-
-    if (this.aquarium != null && this.aquarium.getInhabitants().contains(this)) {
-      this.aquarium.getInhabitants().remove(this);
-    }
-
-    this.aquarium = aquarium;
-
-    if (aquarium != null && !aquarium.getInhabitants().contains(this)) {
-      aquarium.getInhabitants().add(this);
-    }
-  }
-
-  void setAquariumManager(AquariumManager aquariumManager) {
-    this.aquariumManager = aquariumManager;
-  }
-
-  // Override getAquariumId() to use the aquarium relationship
-  @Override
-  public Long getAquariumId() {
-    if (aquarium != null) {
-      return aquarium.getId();
-    }
-    return super.getAquariumId(); // Fallback to parent implementation
-  }
-
-  // Secure aquarium assignment methods with domain validation
-  public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
-    // Domain security: Only owner can assign inhabitant to aquarium
-    if (!this.ownerId.equals(requestingOwnerId)) {
-      throw new IllegalArgumentException("Only the inhabitant owner can assign it to an aquarium");
-    }
-    super.assignToAquarium(aquariumId);
-  }
-
-  public void removeFromAquarium(Long requestingOwnerId) {
-    // Domain security: Only owner can remove inhabitant from aquarium
-    if (!this.ownerId.equals(requestingOwnerId)) {
-      throw new IllegalArgumentException("Only the inhabitant owner can remove it from an aquarium");
-    }
-    super.removeFromAquarium();
-  }
-
-  public static Inhabitant createFromType(String type, String species, String color, int count,
-      boolean isSchooling, WaterType waterType,
-      boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater,
-      Long ownerId, String name, String description) {
-
-    if (type == null || type.isEmpty()) {
-      throw new IllegalArgumentException("Inhabitant type is required");
+    // Base constructor for new entities
+    protected Inhabitant(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
+        this.name = Validator.notEmpty(name, "Inhabitant name");
+        this.species = Validator.notEmpty(species, "Species");
+        this.ownerId = Validator.notNull(ownerId, "Owner ID");
+        this.color = color.orElse(null);
+        this.count = count.orElse(1);
+        this.isSchooling = isSchooling.orElse(false);
+        this.waterType = waterType.orElse(WaterType.FRESHWATER);
+        this.description = description.orElse(null);
+        this.dateCreated = java.time.LocalDateTime.now();
     }
     
-    Inhabitant inhabitant;
+    // Protected constructor for repository reconstruction
+    protected Inhabitant(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, java.time.LocalDateTime dateCreated, Long aquariumId) {
+        this.id = id;
+        this.name = name;
+        this.species = species;
+        this.ownerId = ownerId;
+        this.color = color;
+        this.count = count;
+        this.isSchooling = isSchooling;
+        this.waterType = waterType;
+        this.description = description;
+        this.dateCreated = dateCreated;
+        super.aquariumId = aquariumId;
+    }
 
-    switch (type.toLowerCase()) {
-      case "fish":
-        inhabitant = Fish.create(species, color, count, isSchooling, isAggressiveEater,
-            requiresSpecialFood, waterType, isSnailEater, ownerId, name, description);
-        break;
-      case "snail":
-        inhabitant = Snail.create(species, color, count, isSchooling, isSnailEater, waterType, ownerId, name, description);
-        break;
-      case "shrimp":
-        inhabitant = Shrimp.create(species, color, count, isSchooling, waterType, ownerId, name, description);
-        break;
-      case "crayfish":
-        inhabitant = Crayfish.create(species, color, count, isSchooling, waterType, ownerId, name, description);
-        break;
-      case "plant":
-        inhabitant = Plant.create(species, color, count, isSchooling, waterType, ownerId, name, description);
-        break;
-      case "coral":
-        inhabitant = Coral.create(species, color, count, isSchooling, waterType, ownerId, name, description);
-        break;
-      default:
-        throw new IllegalArgumentException("Unsupported inhabitant type: " + type);
+    public String getType() {
+        return this.getClass().getSimpleName();
+    }
+
+    // Business logic methods
+    private void updateSpecies(String species) {
+        this.species = Validator.notEmpty(species, "Species");
+    }
+
+    private void updateColor(String color) {
+        this.color = color;
+    }
+
+    private void updateCount(int count) {
+        this.count = Validator.positive(count, "Count");
+    }
+
+    private void updateSchooling(boolean isSchooling) {
+        this.isSchooling = isSchooling;
+    }
+
+    private void updateWaterType(WaterType waterType) {
+        this.waterType = Validator.notNull(waterType, "Water type");
+    }
+
+    private void updateName(String name) {
+        this.name = name;
+    }
+
+    private void updateDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Single method to update an Inhabitant's properties.
+     * Uses Optional to allow partial updates.
+     */
+    public Inhabitant update(Optional<String> name, Optional<String> species, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
+        name.ifPresent(this::updateName);
+        species.ifPresent(this::updateSpecies);
+        color.ifPresent(this::updateColor);
+        count.ifPresent(this::updateCount);
+        isSchooling.ifPresent(this::updateSchooling);
+        waterType.ifPresent(this::updateWaterType);
+        description.ifPresent(this::updateDescription);
+        return this;
+    }
+
+    // Secure aquarium assignment - consistent with other entities
+    public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
+        validateOwnership(requestingOwnerId);
+        super.assignToAquarium(aquariumId);
+    }
+
+    public void removeFromAquarium(Long requestingOwnerId) {
+        validateOwnership(requestingOwnerId);
+        super.removeFromAquarium();
+    }
+
+    /**
+     * Single factory method for creating inhabitants by type.
+     * Consolidates logic and delegates specific property setting to subclasses.
+     */
+    public static Inhabitant createFromType(String type, String name, String species, Long ownerId,
+                                          Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling,
+                                          Optional<WaterType> waterType, Optional<String> description,
+                                          InhabitantProperties properties) {
+        if (type == null || type.isEmpty()) {
+            throw new IllegalArgumentException("Inhabitant type is required");
+        }
+        
+        return switch (type.toLowerCase()) {
+            case "fish" -> Fish.create(name, species, ownerId, color, count, isSchooling, waterType, description, properties);
+            case "snail" -> Snail.create(name, species, ownerId, color, count, isSchooling, waterType, description, properties);
+            case "shrimp" -> Shrimp.create(name, species, ownerId, color, count, isSchooling, waterType, description);
+            case "crayfish" -> Crayfish.create(name, species, ownerId, color, count, isSchooling, waterType, description);
+            case "plant" -> Plant.create(name, species, ownerId, color, count, isSchooling, waterType, description);
+            case "coral" -> Coral.create(name, species, ownerId, color, count, isSchooling, waterType, description);
+            default -> throw new IllegalArgumentException("Unsupported inhabitant type: " + type);
+        };
     }
     
-    inhabitant.setOwnerIdInternal(ownerId);
-    if (name != null) {
-        inhabitant.setNameInternal(name);
+    // Repository reconstruction method for JDBC mapping - NO REFLECTION
+    public static Inhabitant reconstruct(String type, Long id, String species, String color, int count,
+                                       boolean isSchooling, WaterType waterType, Long ownerId, String name,
+                                       String description, java.time.LocalDateTime dateCreated, Long aquariumId,
+                                       boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
+        return switch (type.toLowerCase()) {
+            case "fish" -> Fish.reconstruct(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId, isAggressiveEater, requiresSpecialFood, isSnailEater);
+            case "snail" -> Snail.reconstruct(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId, isSnailEater);
+            case "shrimp" -> Shrimp.reconstruct(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
+            case "crayfish" -> Crayfish.reconstruct(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
+            case "plant" -> Plant.reconstruct(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
+            case "coral" -> Coral.reconstruct(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
+            default -> throw new IllegalArgumentException("Unknown inhabitant type: " + type);
+        };
     }
-    inhabitant.color = color;
-    inhabitant.description = description;
-    inhabitant.dateCreated = java.time.LocalDateTime.now();
-    return inhabitant;
-  }
-  
-  protected void setOwnerIdInternal(Long ownerId) {
-      this.ownerId = Validator.notNull(ownerId, "Owner ID");
-  }
-  
-  protected void setNameInternal(String name) {
-      updateName(name);
-  }
 
-  // Native domain ownership validation - DDD compliant
-  public void validateOwnership(Long requestingOwnerId) {
-    if (requestingOwnerId == null) {
-      throw new IllegalArgumentException("Owner ID is required for validation");
+    // Abstract method for type-specific property extraction - REPLACES REFLECTION
+    public abstract InhabitantProperties getTypeSpecificProperties();
+
+    // Value object for type-specific properties - REPLACES REFLECTION
+    @Getter
+    @AllArgsConstructor
+    public static class InhabitantProperties {
+        public final boolean isAggressiveEater;
+        public final boolean requiresSpecialFood;
+        public final boolean isSnailEater;
+        
+        // Default properties for types that don't have all properties
+        public static InhabitantProperties defaults() {
+            return new InhabitantProperties(false, false, false);
+        }
     }
-    
-    if (!this.ownerId.equals(requestingOwnerId)) {
-      throw new IllegalArgumentException("Access denied: You do not own this inhabitant");
+
+    // Unified domain ownership validation - consistent across all entities
+    public void validateOwnership(Long requestingOwnerId) {
+        if (requestingOwnerId == null) {
+            throw new IllegalArgumentException("Owner ID is required for validation");
+        }
+        
+        if (!this.ownerId.equals(requestingOwnerId)) {
+            throw new IllegalArgumentException("Access denied: You do not own this inhabitant");
+        }
     }
-  }
 }

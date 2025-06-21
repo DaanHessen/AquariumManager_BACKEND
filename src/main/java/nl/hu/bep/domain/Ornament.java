@@ -4,6 +4,7 @@ import lombok.*;
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Represents an ornament in an aquarium.
@@ -23,86 +24,70 @@ public class Ornament extends AssignableEntity {
     private String material;
     private boolean isAirPumpCompatible;
     private Long ownerId;
-    private Long aquariumId; // ID-based relationship for JDBC
     private LocalDateTime dateCreated;
 
-    // Factory method for creating new ornaments
-    public static Ornament create(String name, String description, String color, boolean isAirPumpCompatible, Long ownerId) {
+    /**
+     * Single factory method to create a new Ornament.
+     * Uses Optional for nullable fields to avoid multiple method overloads.
+     */
+    public static Ornament create(String name, Long ownerId, Optional<String> description, Optional<String> color, Optional<String> material, Optional<Boolean> isAirPumpCompatible) {
         Validator.notEmpty(name, "Ornament name");
         Validator.notNull(ownerId, "Owner ID");
 
         return Ornament.builder()
                 .name(name)
-                .description(description)
-                .color(color)
-                .isAirPumpCompatible(isAirPumpCompatible)
                 .ownerId(ownerId)
+                .description(description.orElse(null))
+                .color(color.orElse(null))
+                .material(material.orElse(null))
+                .isAirPumpCompatible(isAirPumpCompatible.orElse(false))
                 .dateCreated(LocalDateTime.now())
                 .build();
     }
 
-    // Overloaded factory method for additional material parameter
-    public static Ornament create(String name, String description, String color, Boolean isAirPumpCompatible, Long ownerId, String material) {
-        Validator.notEmpty(name, "Ornament name");
-        Validator.notNull(ownerId, "Owner ID");
-
-        return Ornament.builder()
-                .name(name)
-                .description(description)
-                .color(color)
-                .material(material)
-                .isAirPumpCompatible(isAirPumpCompatible != null ? isAirPumpCompatible : false)
-                .ownerId(ownerId)
-                .dateCreated(LocalDateTime.now())
-                .build();
-    }
-
-    // Business logic methods
-    public void updateName(String name) {
+    // Business logic methods for internal updates
+    private void updateName(String name) {
         this.name = Validator.notEmpty(name, "Ornament name");
     }
 
-    public void updateDescription(String description) {
+    private void updateDescription(String description) {
         this.description = description;
     }
 
-    public void updateColor(String color) {
+    private void updateColor(String color) {
         this.color = color;
     }
 
-    public void updateMaterial(String material) {
+    private void updateMaterial(String material) {
         this.material = material;
     }
 
-    public void updateAirPumpCompatibility(boolean isAirPumpCompatible) {
+    private void updateAirPumpCompatibility(boolean isAirPumpCompatible) {
         this.isAirPumpCompatible = isAirPumpCompatible;
     }
 
-    // Comprehensive update method
-    public Ornament update(String name, String description, String color, String material, Boolean isAirPumpCompatible) {
-        if (name != null) updateName(name);
-        if (description != null) updateDescription(description);
-        if (color != null) updateColor(color);
-        if (material != null) updateMaterial(material);
-        if (isAirPumpCompatible != null) updateAirPumpCompatibility(isAirPumpCompatible);
+    /**
+     * Single method to update an Ornament's properties.
+     * Uses Optional to allow partial updates.
+     */
+    public Ornament update(Optional<String> name, Optional<String> description, Optional<String> color, Optional<String> material, Optional<Boolean> isAirPumpCompatible) {
+        name.ifPresent(this::updateName);
+        description.ifPresent(this::updateDescription);
+        color.ifPresent(this::updateColor);
+        material.ifPresent(this::updateMaterial);
+        isAirPumpCompatible.ifPresent(this::updateAirPumpCompatibility);
         return this;
     }
 
     // Secure aquarium assignment methods with domain validation
     public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
-        // Domain security: Only owner can assign ornament to aquarium
-        if (!this.ownerId.equals(requestingOwnerId)) {
-            throw new IllegalArgumentException("Only the ornament owner can assign it to an aquarium");
-        }
-        this.aquariumId = aquariumId;
+        validateOwnership(requestingOwnerId);
+        super.assignToAquarium(aquariumId);
     }
 
     public void removeFromAquarium(Long requestingOwnerId) {
-        // Domain security: Only owner can remove ornament from aquarium
-        if (!this.ownerId.equals(requestingOwnerId)) {
-            throw new IllegalArgumentException("Only the ornament owner can remove it from an aquarium");
-        }
-        this.aquariumId = null;
+        validateOwnership(requestingOwnerId);
+        super.removeFromAquarium();
     }
 
     // For JPA compatibility (if needed)
@@ -111,20 +96,21 @@ public class Ornament extends AssignableEntity {
     }
 
     // Repository reconstruction method for JDBC mapping
-    public static Ornament reconstruct(Long id, String name, String description, String color, 
-                                     String material, boolean isAirPumpCompatible, Long ownerId, 
+    public static Ornament reconstruct(Long id, String name, String description, String color,
+                                     String material, boolean isAirPumpCompatible, Long ownerId,
                                      Long aquariumId, LocalDateTime dateCreated) {
-        return Ornament.builder()
+        Ornament ornament = Ornament.builder()
                 .id(id)
                 .name(name)
                 .description(description)
                 .color(color)
                 .material(material)
-                .isAirPumpCompatible(isAirPumpCompatible)
                 .ownerId(ownerId)
-                .aquariumId(aquariumId)
+                .isAirPumpCompatible(isAirPumpCompatible)
                 .dateCreated(dateCreated)
                 .build();
+        ornament.aquariumId = aquariumId;
+        return ornament;
     }
 
     // Native domain ownership validation - DDD compliant

@@ -1,6 +1,5 @@
 package nl.hu.bep.presentation.resource;
 
-import jakarta.inject.Singleton;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -13,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Path("/")
-@Singleton
 public class RootResource {
 
     @GET

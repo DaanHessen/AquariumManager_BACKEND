@@ -2,7 +2,6 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.domain.enums.Role;
-import jakarta.enterprise.context.ApplicationScoped;
 
 import java.sql.*;
 import java.util.HashSet;
@@ -11,8 +10,8 @@ import java.util.Optional;
 
 /**
  * Ultra-simple OwnerRepository - PURE JDBC operations only.
+ * No business logic is handled here.
  */
-@ApplicationScoped
 public class OwnerRepository extends Repository<Owner, Long> {
     
     @Override
