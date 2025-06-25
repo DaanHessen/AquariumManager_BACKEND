@@ -81,8 +81,28 @@ public abstract class Accessory extends AssignableEntity {
       this.aquariumId = null;
   }
 
+  // Ownership validation method - duplicated from OwnedEntity pattern
+  public void validateOwnership(Long requestingOwnerId) {
+      if (requestingOwnerId == null) {
+          throw new IllegalArgumentException("Requesting Owner ID cannot be null");
+      }
+      if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {
+          throw new IllegalArgumentException("Entity does not belong to the current user");
+      }
+  }
+
   // Abstract method for accessory type
   public abstract String getAccessoryType();
+
+  // Repository access methods - subclasses provide appropriate values
+  public abstract boolean isExternal();
+  public abstract int getCapacityLiters();
+  public abstract boolean isLed();
+  public abstract LocalTime getTurnOnTime();
+  public abstract LocalTime getTurnOffTime();
+  public abstract double getMinTemperature();
+  public abstract double getMaxTemperature();
+  public abstract double getCurrentTemperature();
 
   // Public method for repository reconstruction only
   public static Accessory reconstruct(String type, Long id, String model, String serialNumber, 
@@ -124,9 +144,27 @@ public abstract class Accessory extends AssignableEntity {
     }
 
     Accessory accessory = switch (type.toLowerCase()) {
-      case "filter" -> new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
+      case "filter" -> {
+        // Only validate capacity for filters when actually provided
+        if (capacityLiters <= 0) {
+          throw new IllegalArgumentException("Filter capacity must be provided and positive");
+        }
+        yield new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
+      }
       case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
-      case "heater", "thermostat" -> new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
+      case "heater", "thermostat" -> {
+        // Validate temperature ranges for thermostats
+        if (minTemperature <= 0) {
+          throw new IllegalArgumentException("Minimum temperature must be positive");
+        }
+        if (maxTemperature <= 0) {
+          throw new IllegalArgumentException("Maximum temperature must be positive");
+        }
+        if (minTemperature >= maxTemperature) {
+          throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+        }
+        yield new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
+      }
       default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
     };
 

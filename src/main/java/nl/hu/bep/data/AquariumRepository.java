@@ -5,6 +5,7 @@ import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.value.Dimensions;
+import nl.hu.bep.data.interfaces.IAquariumRepository;
 import java.sql.*;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * Ultra-simple AquariumRepository - PURE JDBC operations only.
  * No business logic is handled here.
  */
-public class AquariumRepository extends Repository<Aquarium, Long> {
+public class AquariumRepository extends Repository<Aquarium, Long> implements IAquariumRepository {
     
     @Override
     protected String getTableName() { return "aquariums"; }

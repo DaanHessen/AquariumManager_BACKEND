@@ -4,6 +4,7 @@ import lombok.*;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.exception.domain.DomainException;
 import nl.hu.bep.domain.enums.Role;
+import nl.hu.bep.config.AquariumConstants;
 
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -31,15 +32,20 @@ public class Owner {
     private Set<Long> aquariumIds = new HashSet<>();
     private Long aquariumManagerId;
 
-    // Factory method for new owners
+    // Factory method for new owners with plain password
     public static Owner create(String firstName, String lastName, String email, String password) {
         Validator.notEmpty(firstName, "First name");
         Validator.notEmpty(lastName, "Last name");
         Validator.email(email);
-        Validator.notEmpty(password, "Password");
+        Validator.validatePassword(password);
         
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(AquariumConstants.BCRYPT_ROUNDS));
         
+        return createWithHashedPassword(firstName, lastName, email, hashedPassword);
+    }
+    
+    // Factory method for internal use with pre-hashed password
+    public static Owner createWithHashedPassword(String firstName, String lastName, String email, String hashedPassword) {
         return Owner.builder()
                 .firstName(firstName)
                 .lastName(lastName)
@@ -48,7 +54,7 @@ public class Owner {
                 .role(Role.OWNER)
                 .dateCreated(LocalDateTime.now())
                 .aquariumIds(new HashSet<>())
-                .aquariumManagerId(1L) // Default manager (business rule)
+                .aquariumManagerId(AquariumConstants.DEFAULT_AQUARIUM_MANAGER_ID)
                 .build();
     }
 
@@ -61,7 +67,7 @@ public class Owner {
     }
 
     public void updatePassword(String newPassword) {
-        this.password = BCrypt.hashpw(Validator.notEmpty(newPassword, "Password"), BCrypt.gensalt());
+        this.password = BCrypt.hashpw(Validator.notEmpty(newPassword, "Password"), BCrypt.gensalt(AquariumConstants.BCRYPT_ROUNDS));
     }
 
     public void changeEmail(String newEmail) {

@@ -3,6 +3,7 @@ package nl.hu.bep.domain;
 import lombok.*;
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
+import nl.hu.bep.exception.domain.OwnershipException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -13,7 +14,7 @@ import java.util.Optional;
 @Getter
 @Builder(access = AccessLevel.PACKAGE)
 @EqualsAndHashCode(of = "id", callSuper = false)
-@ToString(exclude = {"aquariumId"})
+@ToString
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Ornament extends AssignableEntity {
@@ -115,12 +116,9 @@ public class Ornament extends AssignableEntity {
 
     // Native domain ownership validation - DDD compliant
     public void validateOwnership(Long requestingOwnerId) {
-        if (requestingOwnerId == null) {
-            throw new IllegalArgumentException("Owner ID is required for validation");
-        }
-        
-        if (!this.ownerId.equals(requestingOwnerId)) {
-            throw new IllegalArgumentException("Access denied: You do not own this ornament");
+        Validator.notNull(requestingOwnerId, "Requesting Owner ID");
+        if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {
+            throw new OwnershipException("Ornament does not belong to the current user.");
         }
     }
 }

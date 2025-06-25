@@ -1,9 +1,12 @@
 package nl.hu.bep.domain.species;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.utils.Validator;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -17,24 +20,15 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public class Coral extends Inhabitant {
 
-    // Private constructor for creating new entities
-    private Coral(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
-        super(name, species, ownerId, color, count, isSchooling, waterType, description);
-    }
-    
-    // Private constructor for repository reconstruction
-    private Coral(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
-        super(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
-    }
-
-    // Static factory method for creating a new Coral instance
-    public static Coral create(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
-        return new Coral(name, species, ownerId, color, count, isSchooling, waterType, description);
-    }
-
-    // Static factory method for repository reconstruction
-    public static Coral reconstruct(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
-        return new Coral(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
+    @Builder
+    public Coral(Long id, String name, String species, Long ownerId, String color,
+                 Integer count, Boolean isSchooling, WaterType waterType,
+                 String description, LocalDateTime dateCreated, Long aquariumId) {
+        super(id, name, species, ownerId, color, count, isSchooling, WaterType.SALTWATER, description, dateCreated, aquariumId);
+        // Ensure coral-specific validation if any
+        if (this.getWaterType() != WaterType.SALTWATER) {
+            throw new IllegalArgumentException("Coral must be in saltwater.");
+        }
     }
 
     @Override
@@ -44,6 +38,73 @@ public class Coral extends Inhabitant {
 
     @Override
     public InhabitantProperties getTypeSpecificProperties() {
-        return InhabitantProperties.defaults(); // Coral has no special properties
+        return InhabitantProperties.defaults();
+    }
+
+    public boolean isCompatibleWith(Inhabitant other) {
+        if (this.getWaterType() != WaterType.SALTWATER) {
+            return false; // Coral is only for saltwater aquariums
+        }
+        if (other.getWaterType() != WaterType.SALTWATER) {
+            return false; // Coral is only compatible with other saltwater inhabitants
+        }
+        // More specific coral compatibility rules can be added here
+        return true;
+    }
+
+    // Polymorphic methods to eliminate instanceof checks
+    @Override
+    public String getInhabitantType() {
+        return "Coral";
+    }
+
+    @Override
+    public Boolean getAggressiveEater() {
+        return false; // Coral don't eat in the traditional sense
+    }
+
+    @Override
+    public Boolean getRequiresSpecialFood() {
+        return true; // Coral often require special feeding/lighting
+    }
+
+    @Override
+    public Boolean getSnailEater() {
+        return false; // Coral don't eat
+    }
+
+    // Factory methods
+    public static Coral create(String species, String name, Long ownerId, Optional<String> color, Optional<Integer> count,
+                             Optional<Boolean> isSchooling, Optional<WaterType> waterType,
+                             Optional<String> description, InhabitantProperties properties) {
+        return Coral.builder()
+                .name(name)
+                .species(species)
+                .ownerId(ownerId)
+                .color(color.orElse(null))
+                .count(count.orElse(null))
+                .isSchooling(isSchooling.orElse(null))
+                .waterType(WaterType.SALTWATER) // Coral is always saltwater
+                .description(description.orElse(null))
+                .build();
+    }
+
+    public static Coral reconstruct(long id, String name, String species, int count,
+                                  boolean isSchooling, WaterType waterType, Long ownerId, String color,
+                                  String description, LocalDateTime dateCreated, Long aquariumId,
+                                  boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
+        return Coral.builder()
+                .id(id)
+                .name(name)
+                .species(species)
+                .count(count)
+                .isSchooling(isSchooling)
+                .waterType(WaterType.SALTWATER) // Coral is always saltwater
+                .ownerId(ownerId)
+                .color(color)
+                .description(description)
+                .dateCreated(dateCreated)
+                .aquariumId(aquariumId)
+                .build();
     }
 }

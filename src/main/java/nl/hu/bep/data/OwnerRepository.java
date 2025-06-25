@@ -60,7 +60,13 @@ public class OwnerRepository extends Repository<Owner, Long> {
     
     @Override
     protected void setUpdateParameters(PreparedStatement ps, Owner owner) throws SQLException {
-        setInsertParameters(ps, owner);
+        ps.setString(1, owner.getFirstName());
+        ps.setString(2, owner.getLastName());
+        ps.setString(3, owner.getEmail());
+        ps.setString(4, owner.getPassword());
+        ps.setString(5, owner.getRole().name());
+        setDateTime(ps, 6, owner.getLastLogin());
+        setLong(ps, 7, owner.getAquariumManagerId());
         ps.setLong(8, owner.getId());
     }
     

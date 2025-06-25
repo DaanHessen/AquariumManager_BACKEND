@@ -2,6 +2,7 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.exception.infrastructure.RepositoryException;
+import nl.hu.bep.data.interfaces.IRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.sql.*;
@@ -12,7 +13,8 @@ import java.util.*;
  * Ultra-simple base repository - PURE JDBC operations only.
  * No business logic, no complex conversions, just SQL.
  */
-public abstract class Repository<T, ID> {
+@ApplicationScoped
+public abstract class Repository<T, ID> implements IRepository<T, ID> {
     
     // Abstract methods - minimal and focused
     protected abstract T mapRow(ResultSet rs) throws SQLException;
@@ -93,7 +95,7 @@ public abstract class Repository<T, ID> {
     }
 
     // Simple field search - no complex logic
-    protected List<T> findByField(String fieldName, Object value) {
+    public List<T> findByField(String fieldName, Object value) {
         String sql = "SELECT * FROM " + getTableName() + " WHERE " + fieldName + " = ?";
         List<T> result = new ArrayList<>();
         try (Connection conn = DatabaseConfig.getConnection();

@@ -1,7 +1,9 @@
 package nl.hu.bep.exception;
 
+import nl.hu.bep.config.AquariumConstants;
+
 /**
- * Simple runtime exception for the Aquarium Management System.
+ * Unified exception hierarchy for the Aquarium Management System.
  * Modern approach: runtime exceptions only, handled by exception mappers.
  * Follows current Jakarta EE best practices.
  */
@@ -34,6 +36,18 @@ public class ApplicationException extends RuntimeException {
 
         public ValidationException(String message, Throwable cause) {
             super(message, cause);
+        }
+        
+        public static ValidationException invalidLength(String field, int actual, int min, int max) {
+            return new ValidationException(
+                String.format("%s length must be between %d and %d characters, but was %d", 
+                    field, min, max, actual));
+        }
+        
+        public static ValidationException invalidRange(String field, double actual, double min, double max) {
+            return new ValidationException(
+                String.format("%s must be between %.2f and %.2f, but was %.2f", 
+                    field, min, max, actual));
         }
     }
 
@@ -81,6 +95,30 @@ public class ApplicationException extends RuntimeException {
     public static class EntityAlreadyAssignedException extends ConflictException {
         public EntityAlreadyAssignedException(String entityType, Long entityId, Long aquariumId) {
             super(String.format("%s %d is already assigned to aquarium %d", entityType, entityId, aquariumId));
+        }
+    }
+    
+    // ========== SECURITY EXCEPTIONS ==========
+    
+    public static class SecurityException extends ApplicationException {
+        public SecurityException(String message) {
+            super(message);
+        }
+        
+        public SecurityException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+    
+    public static class AuthenticationException extends SecurityException {
+        public AuthenticationException(String message) {
+            super(message);
+        }
+    }
+    
+    public static class AuthorizationException extends SecurityException {
+        public AuthorizationException(String message) {
+            super(message);
         }
     }
 }

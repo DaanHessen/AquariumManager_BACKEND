@@ -1,5 +1,6 @@
 package nl.hu.bep.presentation.resource;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -30,8 +31,9 @@ public class InhabitantResource {
 
     private final AquariumManagerService aquariumManagerService;
 
-    public InhabitantResource() {
-        this.aquariumManagerService = new AquariumManagerService();
+    @Inject
+    public InhabitantResource(AquariumManagerService aquariumManagerService) {
+        this.aquariumManagerService = aquariumManagerService;
     }
 
     @GET

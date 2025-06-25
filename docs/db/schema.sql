@@ -94,6 +94,7 @@ CREATE TABLE ornaments (
     size VARCHAR(50),
     color VARCHAR(100),
     description TEXT,
+    is_air_pump_compatible BOOLEAN DEFAULT FALSE,
     date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     owner_id BIGINT NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
     aquarium_id BIGINT REFERENCES aquariums(id) ON DELETE SET NULL

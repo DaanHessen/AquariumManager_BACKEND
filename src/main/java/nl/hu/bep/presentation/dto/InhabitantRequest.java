@@ -1,5 +1,7 @@
 package nl.hu.bep.presentation.dto;
 
+import nl.hu.bep.config.AquariumConstants;
+
 import nl.hu.bep.domain.enums.WaterType;
 
 public record InhabitantRequest(
@@ -41,35 +43,35 @@ public record InhabitantRequest(
     
     // Additional getter methods for service compatibility
     public Integer age() {
-        return age != null ? age : 0;
+        return age != null ? age : AquariumConstants.DEFAULT_AGE;
     }
     
     public String gender() {
-        return gender != null ? gender : "Unknown";
+        return gender != null ? gender : AquariumConstants.DEFAULT_GENDER;
     }
     
     public double getPHLevelValue() {
-        return phLevel != null ? phLevel : 7.0;
+        return phLevel != null ? phLevel : AquariumConstants.DEFAULT_PH_LEVEL;
     }
     
     public double getTemperatureValue() {
-        return temperature != null ? temperature : 25.0;
+        return temperature != null ? temperature : AquariumConstants.DEFAULT_WATER_TEMPERATURE;
     }
     
     public double getTankSizeValue() {
-        return tankSize != null ? tankSize : 100.0;
+        return tankSize != null ? tankSize : AquariumConstants.DEFAULT_TANK_SIZE;
     }
     
     public int getAggressionLevelValue() {
-        return aggressionLevel != null ? aggressionLevel : 1;
+        return aggressionLevel != null ? aggressionLevel : AquariumConstants.DEFAULT_AGGRESSION_LEVEL;
     }
     
     public double getSaltToleranceValue() {
-        return saltTolerance != null ? saltTolerance : 0.0;
+        return saltTolerance != null ? saltTolerance : AquariumConstants.DEFAULT_SALT_TOLERANCE;
     }
     
     public String getColorValue() {
-        return color != null ? color : "Unknown";
+        return color != null ? color : AquariumConstants.DEFAULT_COLOR;
     }
     
     public String getDescriptionValue() {

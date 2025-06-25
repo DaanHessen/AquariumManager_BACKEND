@@ -3,6 +3,7 @@ package nl.hu.bep.security.application.filter;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -13,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
+import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.presentation.dto.ApiResponse;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.AquariumSecurityContext;
@@ -23,23 +25,24 @@ import java.util.Map;
 
 /**
  * Security filter for JWT authentication.
- * Uses manual instantiation instead of DI to avoid HK2 complexity.
+ * Refactored to use CDI for service injection following enterprise patterns.
  */
 @Slf4j
 @Provider
 @Secured
 @Priority(Priorities.AUTHENTICATION)
 public class AquariumSecurityFilter implements ContainerRequestFilter {
-    private static final String AUTHENTICATION_SCHEME = "Bearer";
-    private static final String[] PUBLIC_ENDPOINTS = { "/api/auth/register", "/api/auth/login" };
+    private static final String AUTHENTICATION_SCHEME = AquariumConstants.BEARER_SCHEME;
+    private static final String[] PUBLIC_ENDPOINTS = AquariumConstants.PUBLIC_ENDPOINTS;
 
     private final JwtService jwtService;
 
     @Context
     private ResourceInfo resourceInfo;
 
-    public AquariumSecurityFilter() {
-        this.jwtService = new JwtService();
+    @Inject
+    public AquariumSecurityFilter(JwtService jwtService) {
+        this.jwtService = jwtService;
     }
 
     @Override

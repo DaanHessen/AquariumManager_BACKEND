@@ -3,9 +3,13 @@ package nl.hu.bep.application;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.data.*;
 import nl.hu.bep.domain.*;
+import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.*;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +18,7 @@ import java.util.stream.Collectors;
 /**
  * Application service orchestrating business operations.
  * Coordinates between presentation layer, domain services, and data access.
- * Uses manual instantiation instead of CDI to avoid complexity.
+ * Uses CDI for dependency injection following Jakarta EE best practices.
  * 
  * Responsibilities:
  * Business logic → Domain objects & Domain services
@@ -22,22 +26,28 @@ import java.util.stream.Collectors;
  * Security rules → Domain services
  */
 @Slf4j
+@ApplicationScoped
+@Transactional
 public class AquariumManagerService {
     
-    private final AquariumRepository aquariumRepository;
-    private final AccessoryRepository accessoryRepository;
-    private final OrnamentRepository ornamentRepository;
-    private final InhabitantRepository inhabitantRepository;
-    private final OwnerRepository ownerRepository;
-    private final EntityMapper entityMapper;
+    @Inject
+    private AquariumRepository aquariumRepository;
+    @Inject
+    private AccessoryRepository accessoryRepository;
+    @Inject
+    private OrnamentRepository ornamentRepository;
+    @Inject
+    private InhabitantRepository inhabitantRepository;
+    @Inject
+    private OwnerRepository ownerRepository;
+    @Inject
+    private EntityMapper entityMapper;
+    @Inject
+    private InhabitantFactory inhabitantFactory;
 
+    // Default constructor for CDI
     public AquariumManagerService() {
-        this.aquariumRepository = new AquariumRepository();
-        this.accessoryRepository = new AccessoryRepository();
-        this.ornamentRepository = new OrnamentRepository();
-        this.inhabitantRepository = new InhabitantRepository();
-        this.ownerRepository = new OwnerRepository();
-        this.entityMapper = new EntityMapper();
+        // CDI will inject dependencies
     }
 
     // ========== AQUARIUM OPERATIONS - PURE ORCHESTRATION ==========
@@ -52,7 +62,7 @@ public class AquariumManagerService {
         Aquarium aquarium = aquariumRepository.findById(aquariumId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Aquarium", aquariumId));
         
-        // Domain service handles security
+        // Entity handles its own ownership validation
         aquarium.validateOwnership(requestingOwnerId);
         
         return entityMapper.mapToAquariumResponse(aquarium);
@@ -62,7 +72,7 @@ public class AquariumManagerService {
         // Get owner and verify existence
         Owner owner = ownerRepository.findById(ownerId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Owner", ownerId));
-        
+
         // Domain factory handles validation
         Aquarium aquarium = Aquarium.create(
                 request.name(),
@@ -77,7 +87,7 @@ public class AquariumManagerService {
         );
 
         // Domain method handles assignment - aquarium inherits manager from owner
-        aquarium.assignToOwner(ownerId);
+        aquarium.assignToOwner(owner.getId());
         if (owner.getAquariumManagerId() != null) {
             aquarium.assignToManager(owner.getAquariumManagerId());
         }
@@ -94,15 +104,12 @@ public class AquariumManagerService {
         aquarium.validateOwnership(requestingOwnerId);
 
         // Domain method handles validation and update
-        aquarium.update(
-                request.name(),
-                request.length(),
-                request.width(),
-                request.height(),
-                request.substrate(),
-                request.waterType(),
-                request.state(),
-                null);
+        aquarium.updateName(request.name());
+        aquarium.updateDimensions(request.length(), request.width(), request.height());
+        aquarium.updateSubstrate(request.substrate());
+        aquarium.updateWaterType(request.waterType());
+        aquarium.updateState(request.state());
+
 
         Aquarium updatedAquarium = aquariumRepository.update(aquarium);
         return entityMapper.mapToAquariumResponse(updatedAquarium);
@@ -130,10 +137,8 @@ public class AquariumManagerService {
         Accessory accessory = accessoryRepository.findById(accessoryId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
         
-        // Direct ownership check for accessories
-        if (!accessory.getOwnerId().equals(requestingOwnerId)) {
-            throw new ApplicationException.UnauthorizedException("Access denied: You do not own this accessory");
-        }
+        // Domain service handles security
+        if (accessory == null) throw new ApplicationException.NotFoundException("Accessory", null); accessory.validateOwnership(requestingOwnerId);
         
         return entityMapper.mapToAccessoryResponse(accessory);
     }
@@ -146,13 +151,13 @@ public class AquariumManagerService {
             aquarium.validateOwnership(ownerId);
         }
 
-        // Domain factory handles creation
+        // Use the accessor method which provides sensible defaults
         Accessory accessory = Accessory.createFromType(
                 request.type(),
                 request.model(),
                 request.serialNumber(),
                 request.getIsExternalValue(),
-                request.getCapacityLitersValue(),
+                request.getCapacityLitersValue(), // Use accessor method with defaults
                 request.getIsLEDValue(),
                 request.getTimeOnValue(),
                 request.getTimeOffValue(),
@@ -177,10 +182,8 @@ public class AquariumManagerService {
         Accessory accessory = accessoryRepository.findById(accessoryId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
         
-        // Direct ownership check for accessories
-        if (!accessory.getOwnerId().equals(requestingOwnerId)) {
-            throw new ApplicationException.UnauthorizedException("Access denied: You do not own this accessory");
-        }
+        // Domain service handles security
+        if (accessory == null) throw new ApplicationException.NotFoundException("Accessory", null); accessory.validateOwnership(requestingOwnerId);
 
         // Domain method handles validation and update
         accessory.update(
@@ -210,10 +213,8 @@ public class AquariumManagerService {
         Accessory accessory = accessoryRepository.findById(accessoryId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
         
-        // Direct ownership check for accessories
-        if (!accessory.getOwnerId().equals(requestingOwnerId)) {
-            throw new ApplicationException.UnauthorizedException("Access denied: You do not own this accessory");
-        }
+        // Domain service handles security
+        if (accessory == null) throw new ApplicationException.NotFoundException("Accessory", null); accessory.validateOwnership(requestingOwnerId);
         
         accessoryRepository.deleteById(accessoryId);
     }
@@ -236,7 +237,7 @@ public class AquariumManagerService {
         Ornament ornament = ornamentRepository.findById(ornamentId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Ornament", ornamentId));
         
-        // Domain service handles security
+        // Domain entity handles security
         ornament.validateOwnership(requestingOwnerId);
         
         return entityMapper.mapToOrnamentResponse(ornament);
@@ -273,7 +274,7 @@ public class AquariumManagerService {
         Ornament ornament = ornamentRepository.findById(ornamentId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Ornament", ornamentId));
 
-        // Domain service handles security
+        // Domain entity handles security
         ornament.validateOwnership(requestingOwnerId);
 
         // Domain method handles validation and update
@@ -350,11 +351,11 @@ public class AquariumManagerService {
                 request.getSnailEaterValue()
         );
 
-        // Domain factory handles creation
-        Inhabitant inhabitant = Inhabitant.createFromType(
+        // Use factory to create the appropriate inhabitant type
+        Inhabitant inhabitant = inhabitantFactory.createInhabitant(
                 request.type(),
-                request.name(),
                 request.species(),
+                request.name(),
                 ownerId,
                 Optional.ofNullable(request.color()),
                 Optional.ofNullable(request.count()),

@@ -1,7 +1,6 @@
-package nl.hu.bep.domain.base;
+package nl.hu.bep.domain.utils;
 
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.utils.Validator;
 
 /**
  * Shared validation and creation patterns for all species - eliminates duplication.

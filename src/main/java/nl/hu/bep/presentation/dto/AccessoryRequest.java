@@ -3,6 +3,7 @@ package nl.hu.bep.presentation.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import nl.hu.bep.config.AquariumConstants;
 import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -42,7 +43,7 @@ public record AccessoryRequest(
     }
 
     public int getCapacityLitersValue() {
-        return capacityLiters != null ? capacityLiters : 0;
+        return capacityLiters != null ? capacityLiters : AquariumConstants.DEFAULT_FILTER_CAPACITY; // Default to 100L capacity instead of 0
     }
 
     public boolean getIsLEDValue() {
@@ -50,7 +51,7 @@ public record AccessoryRequest(
     }
 
     public String getColorValue() {
-        return color != null ? color : "white";
+        return color != null ? color : AquariumConstants.DEFAULT_ACCESSORY_COLOR;
     }
 
     public String getDescriptionValue() {
@@ -66,14 +67,14 @@ public record AccessoryRequest(
     }
 
     public double getMinTemperatureValue() {
-        return minTemperature != null ? minTemperature : 20.0;
+        return minTemperature != null ? minTemperature : AquariumConstants.DEFAULT_MIN_TEMPERATURE;
     }
 
     public double getMaxTemperatureValue() {
-        return maxTemperature != null ? maxTemperature : 30.0;
+        return maxTemperature != null ? maxTemperature : AquariumConstants.DEFAULT_MAX_TEMPERATURE;
     }
 
     public double getCurrentTemperatureValue() {
-        return currentTemperature != null ? currentTemperature : 25.0;
+        return currentTemperature != null ? currentTemperature : AquariumConstants.DEFAULT_CURRENT_TEMPERATURE;
     }
 }

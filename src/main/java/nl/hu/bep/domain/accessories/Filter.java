@@ -1,7 +1,6 @@
 package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
-import nl.hu.bep.domain.utils.Validator;
 import lombok.*;
 
 /**
@@ -20,7 +19,7 @@ public class Filter extends Accessory {
     public Filter(String model, String serialNumber, boolean isExternal, int capacityLiters, Long ownerId) {
         super(model, serialNumber, ownerId);
         this.isExternal = isExternal;
-        this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
+        this.capacityLiters = capacityLiters; // Remove duplicate validation - factory already validates
     }
 
     @Override
@@ -29,8 +28,11 @@ public class Filter extends Accessory {
     }
 
     public void updateProperties(boolean isExternal, int capacityLiters) {
+        if (capacityLiters <= 0) {
+            throw new IllegalArgumentException("Filter capacity must be positive");
+        }
         this.isExternal = isExternal;
-        this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
+        this.capacityLiters = capacityLiters;
     }
 
     public boolean isSuitableForAquarium(double aquariumVolumeLiters) {
@@ -39,10 +41,38 @@ public class Filter extends Accessory {
     }
 
     public void updateCapacity(int capacityLiters) {
-        this.capacityLiters = Validator.positive(capacityLiters, "Filter capacity");
+        if (capacityLiters <= 0) {
+            throw new IllegalArgumentException("Filter capacity must be positive");
+        }
+        this.capacityLiters = capacityLiters;
     }
 
     public void updateExternal(boolean isExternal) {
         this.isExternal = isExternal;
     }
+
+    // Repository access methods
+    @Override
+    public boolean isExternal() { return isExternal; }
+    
+    @Override
+    public int getCapacityLiters() { return capacityLiters; }
+    
+    @Override
+    public boolean isLed() { return false; } // Filters don't have LED
+    
+    @Override
+    public java.time.LocalTime getTurnOnTime() { return null; } // Filters don't have time settings
+    
+    @Override
+    public java.time.LocalTime getTurnOffTime() { return null; } // Filters don't have time settings
+    
+    @Override
+    public double getMinTemperature() { return 0.0; } // Filters don't have temperature
+    
+    @Override
+    public double getMaxTemperature() { return 0.0; } // Filters don't have temperature
+    
+    @Override
+    public double getCurrentTemperature() { return 0.0; } // Filters don't have temperature
 }

@@ -1,6 +1,9 @@
 package nl.hu.bep.security.application.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.data.OwnerRepository;
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.exception.security.SecurityException;
@@ -13,13 +16,15 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.util.Optional;
 
 @Slf4j
+@ApplicationScoped
 public class AuthenticationService {
     private final JwtService jwtService;
     private final OwnerRepository ownerRepository;
 
-    public AuthenticationService() {
-        this.jwtService = new JwtService();
-        this.ownerRepository = new OwnerRepository();
+    @Inject
+    public AuthenticationService(JwtService jwtService, OwnerRepository ownerRepository) {
+        this.jwtService = jwtService;
+        this.ownerRepository = ownerRepository;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -73,7 +78,7 @@ public class AuthenticationService {
     }
 
     public Long validateTokenAndGetOwnerId(String token) {
-        if (token == null || !token.startsWith("Bearer ")) {
+        if (token == null || !token.startsWith(AquariumConstants.BEARER_SCHEME + " ")) {
             log.warn("Invalid token format or missing token");
             throw new SecurityException.TokenException("Authentication required");
         }

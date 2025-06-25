@@ -1,8 +1,10 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Inhabitant;
+import nl.hu.bep.domain.species.*;
 import nl.hu.bep.domain.enums.WaterType;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**

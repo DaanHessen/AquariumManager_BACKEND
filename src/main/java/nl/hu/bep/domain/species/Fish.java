@@ -1,17 +1,15 @@
 package nl.hu.bep.domain.species;
 
-import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import nl.hu.bep.domain.Inhabitant;
-import nl.hu.bep.domain.base.SpeciesValidation;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.exception.domain.DomainException;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Optional;
 
 /**
@@ -19,39 +17,23 @@ import java.util.Optional;
  * Rich domain model with business logic following DDD principles.
  */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@Setter(AccessLevel.PRIVATE)
 public class Fish extends Inhabitant {
     private boolean isAggressiveEater;
     private boolean requiresSpecialFood;
     private boolean isSnailEater;
 
-    // Private constructor for creating new entities
-    private Fish(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description, InhabitantProperties properties) {
-        super(name, species, ownerId, color, count, isSchooling, waterType, description);
-        this.isAggressiveEater = properties.isAggressiveEater();
-        this.requiresSpecialFood = properties.isRequiresSpecialFood();
-        this.isSnailEater = properties.isSnailEater();
-    }
-    
-    // Private constructor for repository reconstruction
-    private Fish(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId, boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
+    @Builder
+    public Fish(Long id, String name, String species, Long ownerId, String color,
+                Integer count, Boolean isSchooling, WaterType waterType,
+                String description, LocalDateTime dateCreated, Long aquariumId,
+                Boolean isAggressiveEater, Boolean requiresSpecialFood, Boolean isSnailEater) {
         super(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
-        this.isAggressiveEater = isAggressiveEater;
-        this.requiresSpecialFood = requiresSpecialFood;
-        this.isSnailEater = isSnailEater;
-    }
-
-    // Static factory method for creating a new Fish instance
-    public static Fish create(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description, InhabitantProperties properties) {
-        // Here you could add fish-specific validation if needed
-        return new Fish(name, species, ownerId, color, count, isSchooling, waterType, description, properties);
-    }
-
-    // Static factory method for repository reconstruction
-    public static Fish reconstruct(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId, boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
-        return new Fish(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId, isAggressiveEater, requiresSpecialFood, isSnailEater);
+        this.isAggressiveEater = isAggressiveEater != null ? isAggressiveEater : false;
+        this.requiresSpecialFood = requiresSpecialFood != null ? requiresSpecialFood : false;
+        this.isSnailEater = isSnailEater != null ? isSnailEater : false;
+        validateFishSpecificRules();
     }
 
     @Override
@@ -59,81 +41,103 @@ public class Fish extends Inhabitant {
         return "Fish";
     }
 
-    @Override  
+    @Override
     public InhabitantProperties getTypeSpecificProperties() {
         return new InhabitantProperties(isAggressiveEater, requiresSpecialFood, isSnailEater);
     }
 
     // Business logic methods
     public void updateProperties(boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
-        validateFishSpecificRules(isAggressiveEater, requiresSpecialFood, isSnailEater, this.getCount());
         this.isAggressiveEater = isAggressiveEater;
         this.requiresSpecialFood = requiresSpecialFood;
         this.isSnailEater = isSnailEater;
+        validateFishSpecificRules();
     }
-    
+
     // Rich domain behavior - business logic methods
-    public boolean isCompatibleWith(Fish otherFish) {
-        // Aggressive eaters are not compatible with non-aggressive fish
-        if (this.isAggressiveEater && !otherFish.isAggressiveEater) {
+    @Override
+    public boolean isCompatibleWith(Inhabitant other) {
+        // Snail eaters are incompatible with snails
+        if (this.isSnailEater && "Snail".equals(other.getInhabitantType())) {
             return false;
         }
-        
-        // Snail eaters might eat other small fish
-        if (this.isSnailEater && otherFish.getCount() < 5) {
+
+        if (!(other instanceof Fish otherFish)) return true; // Fish are compatible with non-fish (except snails when snail eater)
+
+        // Aggressive eaters are incompatible with non-aggressive fish of the same or smaller size
+        if (this.isAggressiveEater && !otherFish.isAggressiveEater && this.getCount() >= otherFish.getCount()) {
             return false;
         }
-        
-        // Water type must match
-        return this.getWaterType() == otherFish.getWaterType();
+
+        return true;
     }
-    
-    public boolean requiresSpecialCare() {
-        return requiresSpecialFood || isAggressiveEater;
+
+    // Factory methods
+    public static Fish create(String species, String name, Long ownerId, Optional<String> color, Optional<Integer> count, 
+                            Optional<Boolean> isSchooling, Optional<WaterType> waterType, 
+                            Optional<String> description, InhabitantProperties properties) {
+        return Fish.builder()
+                .name(name)
+                .species(species)
+                .ownerId(ownerId)
+                .color(color.orElse(null))
+                .count(count.orElse(null))
+                .isSchooling(isSchooling.orElse(null))
+                .waterType(waterType.orElse(null))
+                .description(description.orElse(null))
+                .isAggressiveEater(properties != null ? properties.isAggressiveEater : false)
+                .requiresSpecialFood(properties != null ? properties.requiresSpecialFood : false)
+                .isSnailEater(properties != null ? properties.isSnailEater : false)
+                .build();
     }
-    
-    public int getRecommendedSchoolSize() {
-        if (!isSchooling()) {
-            return 1;
-        }
-        
-        // Aggressive fish need smaller schools
-        if (isAggressiveEater) {
-            return Math.max(3, getCount());
-        }
-        
-        // Regular schooling fish
-        return Math.max(5, getCount());
+
+    public static Fish reconstruct(long id, String name, String species, int count, 
+                                 boolean isSchooling, WaterType waterType, Long ownerId, String color, 
+                                 String description, LocalDateTime dateCreated, Long aquariumId, 
+                                 boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
+        return Fish.builder()
+                .id(id)
+                .name(name)
+                .species(species)
+                .count(count)
+                .isSchooling(isSchooling)
+                .waterType(waterType)
+                .ownerId(ownerId)
+                .color(color)
+                .description(description)
+                .dateCreated(dateCreated)
+                .aquariumId(aquariumId)
+                .isAggressiveEater(isAggressiveEater)
+                .requiresSpecialFood(requiresSpecialFood)
+                .isSnailEater(isSnailEater)
+                .build();
     }
-    
-    public String getFeedingInstructions() {
-        if (requiresSpecialFood && isAggressiveEater) {
-            return "Requires special diet and separate feeding to prevent aggression";
-        } else if (requiresSpecialFood) {
-            return "Requires specialized food - follow species-specific guidelines";
-        } else if (isAggressiveEater) {
-            return "Feed separately or monitor during feeding to prevent aggressive behavior";
-        } else {
-            return "Standard community feeding schedule appropriate";
+
+    private void validateFishSpecificRules() {
+        // Example validation: Snail eaters cannot be schooling fish
+        if (this.isSnailEater && this.isSchooling()) {
+            throw new DomainException("Snail-eating fish cannot be schooling fish.");
         }
     }
-    
-    // Private business rule validation
-    private static void validateFishSpecificRules(boolean isAggressiveEater, boolean requiresSpecialFood, 
-                                                 boolean isSnailEater, int count) {
-        // Business rule: Aggressive eaters in large groups can be problematic
-        if (isAggressiveEater && count > 10) {
-            throw new DomainException("Aggressive fish should not be kept in groups larger than 10");
-        }
-        
-        // Business rule: Snail eaters need adequate space
-        if (isSnailEater && count > 15) {
-            throw new DomainException("Snail-eating fish should not be kept in groups larger than 15");
-        }
-        
-        // Business rule: Special food requirements for large groups
-        if (requiresSpecialFood && count > 20) {
-            throw new DomainException("Fish requiring special food should not exceed 20 individuals for proper care");
-        }
+
+    // Polymorphic methods to eliminate instanceof checks
+    @Override
+    public String getInhabitantType() {
+        return "Fish";
+    }
+
+    @Override
+    public Boolean getAggressiveEater() {
+        return this.isAggressiveEater;
+    }
+
+    @Override
+    public Boolean getRequiresSpecialFood() {
+        return this.requiresSpecialFood;
+    }
+
+    @Override
+    public Boolean getSnailEater() {
+        return this.isSnailEater;
     }
 }

@@ -1,9 +1,11 @@
 package nl.hu.bep.domain.species;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.utils.Validator;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -13,28 +15,13 @@ import java.util.Optional;
  * Clean POJO implementation following DDD principles.
  */
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Crayfish extends Inhabitant {
 
-    // Private constructor for creating new entities
-    private Crayfish(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
-        super(name, species, ownerId, color, count, isSchooling, waterType, description);
-    }
-
-    // Private constructor for repository reconstruction
-    private Crayfish(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
+    @Builder
+    public Crayfish(Long id, String name, String species, Long ownerId, String color, Integer count, Boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
         super(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
-    }
-
-    // Static factory method for creating a new Crayfish instance
-    public static Crayfish create(String name, String species, Long ownerId, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
-        return new Crayfish(name, species, ownerId, color, count, isSchooling, waterType, description);
-    }
-
-    // Static factory method for repository reconstruction
-    public static Crayfish reconstruct(Long id, String name, String species, Long ownerId, String color, int count, boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
-        return new Crayfish(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
     }
 
     @Override
@@ -45,5 +32,71 @@ public class Crayfish extends Inhabitant {
     @Override
     public InhabitantProperties getTypeSpecificProperties() {
         return InhabitantProperties.defaults(); // Crayfish has no special properties
+    }
+
+    public boolean isCompatibleWith(Inhabitant other) {
+        if (other instanceof Fish) {
+            return false; // Crayfish can be aggressive towards fish
+        }
+        if (other instanceof Shrimp) {
+            return false; // Crayfish may prey on shrimp
+        }
+        return true;
+    }
+
+    // Polymorphic methods to eliminate instanceof checks
+    @Override
+    public String getInhabitantType() {
+        return "Crayfish";
+    }
+
+    @Override
+    public Boolean getAggressiveEater() {
+        return true; // Crayfish are generally aggressive eaters
+    }
+
+    @Override
+    public Boolean getRequiresSpecialFood() {
+        return false; // Crayfish are not picky eaters
+    }
+
+    @Override
+    public Boolean getSnailEater() {
+        return false; // Crayfish don't specifically eat snails
+    }
+
+    // Factory methods
+    public static Crayfish create(String species, String name, Long ownerId, Optional<String> color, Optional<Integer> count,
+                                  Optional<Boolean> isSchooling, Optional<WaterType> waterType,
+                                  Optional<String> description, InhabitantProperties properties) {
+        return Crayfish.builder()
+                .name(name)
+                .species(species)
+                .ownerId(ownerId)
+                .color(color.orElse(null))
+                .count(count.orElse(null))
+                .isSchooling(isSchooling.orElse(null))
+                .waterType(waterType.orElse(null))
+                .description(description.orElse(null))
+                .build();
+    }
+
+    public static Crayfish reconstruct(long id, String name, String species, int count,
+                                       boolean isSchooling, WaterType waterType, Long ownerId, String color,
+                                       String description, LocalDateTime dateCreated, Long aquariumId,
+                                       boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
+        return Crayfish.builder()
+                .id(id)
+                .name(name)
+                .species(species)
+                .count(count)
+                .isSchooling(isSchooling)
+                .waterType(waterType)
+                .ownerId(ownerId)
+                .color(color)
+                .description(description)
+                .dateCreated(dateCreated)
+                .aquariumId(aquariumId)
+                .build();
     }
 }

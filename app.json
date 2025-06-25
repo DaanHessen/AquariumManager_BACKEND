@@ -1,6 +1,6 @@
 {
   "name": "Aquarium Manager Backend API",
-  "description": "Backend API for the Aquarium Management System (Jakarta EE, EclipseLink)",
+  "description": "Backend API for the Aquarium Management System",
   "repository": "https://github.com/your-username/aquarium-manager-backend",
   "keywords": ["java", "jakarta-ee", "postgresql", "api", "aquarium"],
   "env": {

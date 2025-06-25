@@ -1,6 +1,7 @@
 package nl.hu.bep.security.application.filter;
 
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -21,7 +22,7 @@ import java.util.Map;
 /**
  * Security filter for ownership validation using native domain methods.
  * Follows DDD principles by delegating ownership checks to domain entities.
- * Uses manual instantiation instead of DI to avoid HK2 complexity.
+ * Refactored to use CDI for repository injection following enterprise patterns.
  */
 @Slf4j
 @Provider
@@ -37,11 +38,15 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private final InhabitantRepository inhabitantRepository;
     private final OrnamentRepository ornamentRepository;
 
-    public OwnershipFilter() {
-        this.aquariumRepository = new AquariumRepository();
-        this.accessoryRepository = new AccessoryRepository();
-        this.inhabitantRepository = new InhabitantRepository();
-        this.ornamentRepository = new OrnamentRepository();
+    @Inject
+    public OwnershipFilter(AquariumRepository aquariumRepository,
+                          AccessoryRepository accessoryRepository,
+                          InhabitantRepository inhabitantRepository,
+                          OrnamentRepository ornamentRepository) {
+        this.aquariumRepository = aquariumRepository;
+        this.accessoryRepository = accessoryRepository;
+        this.inhabitantRepository = inhabitantRepository;
+        this.ornamentRepository = ornamentRepository;
     }
 
     @Override

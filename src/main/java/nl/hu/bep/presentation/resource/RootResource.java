@@ -5,6 +5,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.presentation.dto.ApiResponse;
 
@@ -18,10 +19,12 @@ public class RootResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiInfo() {
         Map<String, String> endpoints = new HashMap<>();
-        endpoints.put("aquariums", "/api/aquariums");
-        endpoints.put("inhabitants", "/api/inhabitants");
-        endpoints.put("authentication", "/api/auth");
-        endpoints.put("status-detailed", "/api/status");
+        endpoints.put("aquariums", AquariumConstants.API_BASE_PATH + AquariumConstants.AQUARIUMS_PATH);
+        endpoints.put("inhabitants", AquariumConstants.API_BASE_PATH + AquariumConstants.INHABITANTS_PATH);
+        endpoints.put("accessories", AquariumConstants.API_BASE_PATH + AquariumConstants.ACCESSORIES_PATH);
+        endpoints.put("ornaments", AquariumConstants.API_BASE_PATH + AquariumConstants.ORNAMENTS_PATH);
+        endpoints.put("authentication", AquariumConstants.API_BASE_PATH + AquariumConstants.AUTH_BASE_PATH);
+        endpoints.put("status-detailed", AquariumConstants.API_BASE_PATH + AquariumConstants.STATUS_PATH);
         endpoints.put("health-basic", "/health");
 
         Map<String, Object> apiInfo = new HashMap<>();
@@ -34,6 +37,18 @@ public class RootResource {
         ));
 
         return Response.ok(ApiResponse.success(apiInfo)).build();
+    }
+
+    @GET
+    @Path("/health")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response apiHealthCheck() {
+        Map<String, Object> health = new HashMap<>();
+        health.put("status", "UP");
+        health.put("timestamp", System.currentTimeMillis());
+        health.put("service", "AquariumAPI");
+        
+        return Response.ok(ApiResponse.success(health, "API is healthy")).build();
     }
 
     @GET

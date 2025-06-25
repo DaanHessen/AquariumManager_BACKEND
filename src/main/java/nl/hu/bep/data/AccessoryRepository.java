@@ -1,6 +1,9 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Accessory;
+import nl.hu.bep.domain.accessories.Filter;
+import nl.hu.bep.domain.accessories.Lighting;
+import nl.hu.bep.domain.accessories.Thermostat;
 import java.sql.*;
 import java.time.LocalTime;
 import java.util.List;
@@ -62,15 +65,15 @@ public class AccessoryRepository extends Repository<Accessory, Long> {
         ps.setTimestamp(7, Timestamp.valueOf(accessory.getDateCreated()));
         ps.setString(8, accessory.getAccessoryType());
         
-        // Simple null handling - let database handle defaults
-        ps.setNull(9, Types.BOOLEAN);
-        ps.setNull(10, Types.INTEGER);
-        ps.setNull(11, Types.BOOLEAN);
-        ps.setNull(12, Types.TIME);
-        ps.setNull(13, Types.TIME);
-        ps.setNull(14, Types.DOUBLE);
-        ps.setNull(15, Types.DOUBLE);
-        ps.setNull(16, Types.DOUBLE);
+        // Domain provides the right values - no logic here
+        ps.setBoolean(9, accessory.isExternal());
+        ps.setInt(10, accessory.getCapacityLiters());
+        ps.setBoolean(11, accessory.isLed());
+        ps.setTime(12, accessory.getTurnOnTime() != null ? Time.valueOf(accessory.getTurnOnTime()) : null);
+        ps.setTime(13, accessory.getTurnOffTime() != null ? Time.valueOf(accessory.getTurnOffTime()) : null);
+        ps.setDouble(14, accessory.getMinTemperature());
+        ps.setDouble(15, accessory.getMaxTemperature());
+        ps.setDouble(16, accessory.getCurrentTemperature());
     }
     
     @Override

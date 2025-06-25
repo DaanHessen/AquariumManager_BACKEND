@@ -1,5 +1,6 @@
 package nl.hu.bep.security.presentation.resource;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -18,8 +19,9 @@ import java.util.Map;
 public class AuthResource {
     private final AuthenticationService authenticationService;
 
-    public AuthResource() {
-        this.authenticationService = new AuthenticationService();
+    @Inject
+    public AuthResource(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     @POST

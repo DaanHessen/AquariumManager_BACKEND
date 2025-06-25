@@ -4,6 +4,7 @@ import nl.hu.bep.domain.*;
 import nl.hu.bep.domain.accessories.*;
 import nl.hu.bep.domain.species.*;
 import nl.hu.bep.presentation.dto.*;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
  * Clean DTO mapper service - separates mapping concerns from business logic.
  * Service layer should NOT contain DTO mapping logic.
  */
+@ApplicationScoped
 public class EntityMapper {
 
     // ========== AQUARIUM MAPPING ==========
@@ -194,10 +196,9 @@ public class EntityMapper {
                 inhabitant.getWaterType(),
                 inhabitant.getAquariumId(),
                 inhabitant.getType(),
-                inhabitant instanceof Fish ? ((Fish) inhabitant).isAggressiveEater() : null,
-                inhabitant instanceof Fish ? ((Fish) inhabitant).isRequiresSpecialFood() : null,
-                inhabitant instanceof Fish ? ((Fish) inhabitant).isSnailEater() : 
-                        (inhabitant instanceof Snail ? ((Snail) inhabitant).isSnailEater() : null)
+                inhabitant.getAggressiveEater(),
+                inhabitant.getRequiresSpecialFood(),
+                inhabitant.getSnailEater()
         );
     }
 } 

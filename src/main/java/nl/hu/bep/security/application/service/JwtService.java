@@ -4,12 +4,14 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.enterprise.context.ApplicationScoped;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.exception.security.SecurityException;
 
 import java.util.Date;
 
 @Slf4j
+@ApplicationScoped
 public class JwtService {
     private static final String SECRET_KEY = "your_aquarium_jwt_secret_key";
 
