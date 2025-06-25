@@ -27,10 +27,19 @@ public class OwnershipFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    private final AquariumRepository aquariumRepository;
-    private final AccessoryRepository accessoryRepository;
-    private final InhabitantRepository inhabitantRepository;
-    private final OrnamentRepository ornamentRepository;
+    private AquariumRepository aquariumRepository;
+    private AccessoryRepository accessoryRepository;
+    private InhabitantRepository inhabitantRepository;
+    private OrnamentRepository ornamentRepository;
+
+    // Default constructor for Jersey/JAX-RS
+    public OwnershipFilter() {
+        // Initialize repositories manually since no CDI injection
+        this.aquariumRepository = new nl.hu.bep.data.AquariumRepositoryImpl();
+        this.accessoryRepository = new nl.hu.bep.data.AccessoryRepositoryImpl();
+        this.inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl();
+        this.ornamentRepository = new nl.hu.bep.data.OrnamentRepositoryImpl();
+    }
 
     public OwnershipFilter(AquariumRepository aquariumRepository,
                            AccessoryRepository accessoryRepository,
@@ -47,10 +56,6 @@ public class OwnershipFilter implements ContainerRequestFilter {
         var method = resourceInfo.getResourceMethod();
 
         RequiresOwnership ownershipAnnotation = method.getAnnotation(RequiresOwnership.class);
-        if (ownershipAnnotation == null) {
-            ownershipAnnotation = method.getDeclaringClass().getAnnotation(RequiresOwnership.class);
-        }
-
         if (ownershipAnnotation == null) {
             return;
         }

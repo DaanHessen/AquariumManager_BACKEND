@@ -28,6 +28,24 @@ public class OrnamentResource {
 
     // Default constructor for Jersey/JAX-RS
     public OrnamentResource() {
+        // Initialize dependencies manually since no CDI injection
+        var aquariumRepository = new nl.hu.bep.data.AquariumRepositoryImpl();
+        var accessoryRepository = new nl.hu.bep.data.AccessoryRepositoryImpl();
+        var ornamentRepository = new nl.hu.bep.data.OrnamentRepositoryImpl();
+        var inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl();
+        var ownerRepository = new nl.hu.bep.data.OwnerRepositoryImpl();
+        var entityMapper = new nl.hu.bep.presentation.dto.mapper.EntityMapper();
+        var inhabitantFactory = new nl.hu.bep.application.factory.InhabitantFactory();
+        
+        this.aquariumManagerService = new AquariumManagerService(
+            aquariumRepository,
+            accessoryRepository, 
+            ornamentRepository,
+            inhabitantRepository,
+            ownerRepository,
+            entityMapper,
+            inhabitantFactory
+        );
     }
 
     public OrnamentResource(AquariumManagerService aquariumManagerService) {

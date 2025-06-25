@@ -2,7 +2,6 @@ package nl.hu.bep.security.application.filter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import jakarta.inject.Inject;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -31,7 +30,6 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     private static final String AUTHENTICATION_SCHEME = AquariumConstants.BEARER_SCHEME;
     private static final String[] PUBLIC_ENDPOINTS = AquariumConstants.PUBLIC_ENDPOINTS;
 
-    @Inject
     private JwtService jwtService;
 
     @Context
