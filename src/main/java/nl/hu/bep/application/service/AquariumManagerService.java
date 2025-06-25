@@ -1,8 +1,7 @@
 package nl.hu.bep.application.service;
 
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.data.*;
-import nl.hu.bep.domain.*;
+import nl.hu.bep.domain.*; // lui
 import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
