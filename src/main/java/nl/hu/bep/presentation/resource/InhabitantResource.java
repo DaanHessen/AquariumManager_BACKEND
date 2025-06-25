@@ -24,7 +24,11 @@ import java.util.Map;
 @Secured
 public class InhabitantResource {
 
-    private final AquariumManagerService aquariumManagerService;
+    private AquariumManagerService aquariumManagerService;
+
+    // Default constructor for Jersey/JAX-RS
+    public InhabitantResource() {
+    }
 
     public InhabitantResource(AquariumManagerService aquariumManagerService) {
         this.aquariumManagerService = aquariumManagerService;

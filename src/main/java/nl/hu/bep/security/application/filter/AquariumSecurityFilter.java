@@ -2,6 +2,7 @@ package nl.hu.bep.security.application.filter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.inject.Inject;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -30,21 +31,37 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     private static final String AUTHENTICATION_SCHEME = AquariumConstants.BEARER_SCHEME;
     private static final String[] PUBLIC_ENDPOINTS = AquariumConstants.PUBLIC_ENDPOINTS;
 
-    private final JwtService jwtService;
+    @Inject
+    private JwtService jwtService;
 
     @Context
     private ResourceInfo resourceInfo;
+
+    // Default constructor for Jersey/JAX-RS
+    public AquariumSecurityFilter() {
+        // HK2 will inject dependencies, but ensure we have a fallback
+    }
 
     public AquariumSecurityFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
+    // Ensure JwtService is available - either injected by HK2 or create manually
+    private JwtService getJwtService() {
+        if (jwtService == null) {
+            jwtService = new JwtService();
+        }
+        return jwtService;
+    }
+
     @Override
     public void filter(ContainerRequestContext requestContext) {
         String path = requestContext.getUriInfo().getPath();
+        log.info("Security filter triggered for path: {}", path);
 
         for (String publicEndpoint : PUBLIC_ENDPOINTS) {
             if (path.endsWith(publicEndpoint)) {
+                log.info("Path {} is public, skipping authentication", path);
                 return;
             }
         }
@@ -63,7 +80,7 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
         String token = authorizationHeader.substring(AUTHENTICATION_SCHEME.length()).trim();
 
         try {
-            DecodedJWT jwt = jwtService.verifyToken(token);
+            DecodedJWT jwt = getJwtService().verifyToken(token);
             Long userId = Long.parseLong(jwt.getSubject());
             String username = jwt.getClaim("username").asString();
 

@@ -24,7 +24,11 @@ import java.util.Map;
 @Secured
 public class AccessoryResource {
 
-    private final AquariumManagerService aquariumManagerService;
+    private AquariumManagerService aquariumManagerService;
+
+    // Default constructor for Jersey/JAX-RS
+    public AccessoryResource() {
+    }
 
     public AccessoryResource(AquariumManagerService aquariumManagerService) {
         this.aquariumManagerService = aquariumManagerService;

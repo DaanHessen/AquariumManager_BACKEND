@@ -18,7 +18,8 @@ public class AquariumApplication extends ResourceConfig {
             DatabaseConfig.initialize();
 
             packages("nl.hu.bep.presentation.resource",
-                     "nl.hu.bep.security.presentation.resource");
+                     "nl.hu.bep.security.presentation.resource",
+                     "nl.hu.bep.security.application.filter");
 
             register(GlobalExceptionMapper.class);
             register(JacksonConfig.class);

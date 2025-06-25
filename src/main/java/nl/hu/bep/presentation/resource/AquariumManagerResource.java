@@ -24,11 +24,10 @@ import java.util.Map;
 @Slf4j
 public class AquariumManagerResource {
 
-    private final AquariumManagerService aquariumManagerService;
+    private AquariumManagerService aquariumManagerService;
 
     // Default constructor for Jersey/JAX-RS
     public AquariumManagerResource() {
-        this.aquariumManagerService = null; // Will be injected by HK2
     }
 
     public AquariumManagerResource(AquariumManagerService aquariumManagerService) {
