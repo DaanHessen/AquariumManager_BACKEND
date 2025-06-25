@@ -155,7 +155,7 @@ class AquariumManagerServiceTest {
 
             // Act & Assert
             assertThrows(
-                    nl.hu.bep.exception.domain.DomainException.class,
+                    ApplicationException.BusinessRuleException.class,
                     () -> service.getAquarium(AQUARIUM_ID, OWNER_ID)
             );
 

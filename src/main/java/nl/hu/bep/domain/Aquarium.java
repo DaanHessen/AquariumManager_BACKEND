@@ -3,7 +3,7 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.exception.domain.DomainException;
+import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.value.Dimensions;
 import nl.hu.bep.config.AquariumConstants;
@@ -90,12 +90,12 @@ public class Aquarium {
     public void addInhabitant(Inhabitant inhabitant, Long requestingOwnerId) {
         validateOwnership(requestingOwnerId);
         if (inhabitant.getAquariumId() != null && !inhabitant.getAquariumId().equals(this.id)) {
-            throw new DomainException("Inhabitant is already in another aquarium.");
+            throw new ApplicationException.BusinessRuleException("Inhabitant is already in another aquarium.");
         }
 
         for (Inhabitant existing : inhabitants) {
             if (!inhabitant.isCompatibleWith(existing)) {
-                throw new DomainException("Inhabitant " + inhabitant.getName() + " is not compatible with " + existing.getName());
+                throw new ApplicationException.BusinessRuleException("Inhabitant " + inhabitant.getName() + " is not compatible with " + existing.getName());
             }
         }
 
@@ -133,11 +133,11 @@ public class Aquarium {
 
     public void validateOwnership(Long requestingOwnerId) {
         if (requestingOwnerId == null) {
-            throw new DomainException("Owner ID is required for ownership verification");
+            throw new ApplicationException.BusinessRuleException("Owner ID is required for ownership verification");
         }
 
         if (!isOwnedBy(requestingOwnerId)) {
-            throw new DomainException("Access denied: You do not own this aquarium");
+            throw new ApplicationException.BusinessRuleException("Access denied: You do not own this aquarium");
         }
     }
 
@@ -178,14 +178,14 @@ public class Aquarium {
 
     public void activateAquarium() {
         if (this.state != AquariumState.SETUP && this.state != AquariumState.MAINTENANCE) {
-            throw new DomainException("Cannot activate aquarium from " + this.state + " state");
+            throw new ApplicationException.BusinessRuleException("Cannot activate aquarium from " + this.state + " state");
         }
         transitionToState(AquariumState.RUNNING);
     }
 
     public void startMaintenance() {
         if (this.state != AquariumState.RUNNING) {
-            throw new DomainException("Cannot start maintenance when aquarium is not running");
+            throw new ApplicationException.BusinessRuleException("Cannot start maintenance when aquarium is not running");
         }
         transitionToState(AquariumState.MAINTENANCE);
     }
@@ -261,19 +261,19 @@ public class Aquarium {
 
     public void validateReadinessForInhabitants() {
         if (state != AquariumState.RUNNING) {
-            throw new DomainException("Aquarium must be running before adding inhabitants");
+            throw new ApplicationException.BusinessRuleException("Aquarium must be running before adding inhabitants");
         }
 
         if (temperature == null) {
-            throw new DomainException("Temperature must be set before adding inhabitants");
+            throw new ApplicationException.BusinessRuleException("Temperature must be set before adding inhabitants");
         }
 
         if (temperature < 10.0 || temperature > 35.0) {
-            throw new DomainException("Temperature must be between 10°C and 35°C for inhabitants");
+            throw new ApplicationException.BusinessRuleException("Temperature must be between 10°C and 35°C for inhabitants");
         }
 
         if (getVolume() < 20.0) {
-            throw new DomainException("Aquarium volume must be at least 20 liters for inhabitants");
+            throw new ApplicationException.BusinessRuleException("Aquarium volume must be at least 20 liters for inhabitants");
         }
     }
 

@@ -9,6 +9,7 @@ import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,87 +19,49 @@ public class RootResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiInfo() {
+        Map<String, Object> apiInfo = new HashMap<>();
+        
+        // API versioning
+        apiInfo.put("version", "v2.0.0");
+        apiInfo.put("name", "Aquarium Management API");
+        
+        // Description
+        apiInfo.put("description", "RESTful API for managing aquariums, inhabitants, accessories, and ornaments");
+        
+        // Available endpoints
         Map<String, String> endpoints = new HashMap<>();
         endpoints.put("aquariums", AquariumConstants.API_BASE_PATH + AquariumConstants.AQUARIUMS_PATH);
         endpoints.put("inhabitants", AquariumConstants.API_BASE_PATH + AquariumConstants.INHABITANTS_PATH);
         endpoints.put("accessories", AquariumConstants.API_BASE_PATH + AquariumConstants.ACCESSORIES_PATH);
         endpoints.put("ornaments", AquariumConstants.API_BASE_PATH + AquariumConstants.ORNAMENTS_PATH);
         endpoints.put("authentication", AquariumConstants.API_BASE_PATH + AquariumConstants.AUTH_BASE_PATH);
-        endpoints.put("status-detailed", AquariumConstants.API_BASE_PATH + AquariumConstants.STATUS_PATH);
-        endpoints.put("health-basic", "/health");
-
-        Map<String, Object> apiInfo = new HashMap<>();
-        apiInfo.put("name", "Aquarium API");
-        apiInfo.put("version", "2.0.0");
         apiInfo.put("endpoints", endpoints);
-        apiInfo.put("notes", Map.of(
-            "health-basic", "Simple health check for Railway deployment",
-            "status-detailed", "Detailed health check including database connectivity"
-        ));
-
-        return Response.ok(ApiResponse.success(apiInfo)).build();
-    }
-
-    @GET
-    @Path("/health")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response apiHealthCheck() {
-        Map<String, Object> health = new HashMap<>();
-        health.put("status", "UP");
-        health.put("timestamp", System.currentTimeMillis());
-        health.put("service", "AquariumAPI");
         
-        return Response.ok(ApiResponse.success(health, "API is healthy")).build();
-    }
-
-    @GET
-    @Path("/status")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response detailedHealthCheck() {
-        Map<String, Object> health = new HashMap<>();
-        health.put("status", "UP");
-        health.put("timestamp", System.currentTimeMillis());
-        health.put("service", "Aquarium API - Detailed Health Check");
+        // Database health status
+        Map<String, Object> databaseHealth = getDatabaseHealth();
+        apiInfo.put("database", databaseHealth);
         
-        health.put("environment", getEnvironmentInfo());
+        // Additional metadata
+        apiInfo.put("timestamp", LocalDateTime.now());
+        apiInfo.put("server_status", "operational");
         
-        boolean dbHealthy = false;
-        String dbError = null;
-        
-        try {
-            dbHealthy = DatabaseConfig.isHealthy();
-        } catch (Exception e) {
-            dbError = e.getMessage();
-        }
-        
-        health.put("database", dbHealthy ? "UP" : "DOWN");
-        if (dbError != null) {
-            health.put("database_error", dbError);
-        }
-        
-        if (dbHealthy) {
-            return Response.ok(ApiResponse.success(health, "Service is healthy")).build();
-        } else {
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE)
-                    .entity(ApiResponse.error(health, "Service is unhealthy - database connection failed"))
-                    .build();
-        }
+        return Response.ok(ApiResponse.success(apiInfo, "API information retrieved successfully")).build();
     }
     
-    private Map<String, Object> getEnvironmentInfo() {
-        Map<String, Object> env = new HashMap<>();
+    private Map<String, Object> getDatabaseHealth() {
+        Map<String, Object> dbHealth = new HashMap<>();
         
-        String databaseUrl = System.getenv("DATABASE_URL");
-        env.put("DATABASE_URL_present", databaseUrl != null && !databaseUrl.isEmpty());
+        try {
+            boolean isHealthy = DatabaseConfig.isHealthy();
+            dbHealth.put("status", isHealthy ? "UP" : "DOWN");
+            dbHealth.put("message", isHealthy ? "Database connection successful" : "Database connection failed");
+            dbHealth.put("checked_at", LocalDateTime.now());
+        } catch (Exception e) {
+            dbHealth.put("status", "DOWN");
+            dbHealth.put("message", "Database health check failed: " + e.getMessage());
+            dbHealth.put("checked_at", LocalDateTime.now());
+        }
         
-        env.put("DB_HOST", System.getenv("DB_HOST") != null ? "present" : "missing");
-        env.put("DB_PORT", System.getenv("DB_PORT") != null ? "present" : "missing");
-        env.put("DB_NAME", System.getenv("DB_NAME") != null ? "present" : "missing");
-        env.put("DB_USER", System.getenv("DB_USER") != null ? "present" : "missing");
-        env.put("DB_PASSWORD", System.getenv("DB_PASSWORD") != null ? "present" : "missing");
-        
-        env.put("PORT", System.getenv("PORT"));
-        
-        return env;
+        return dbHealth;
     }
 }

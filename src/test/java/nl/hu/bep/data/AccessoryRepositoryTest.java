@@ -1,7 +1,5 @@
 package nl.hu.bep.data;
 
-import nl.hu.bep.domain.Accessory;
-import nl.hu.bep.domain.accessories.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

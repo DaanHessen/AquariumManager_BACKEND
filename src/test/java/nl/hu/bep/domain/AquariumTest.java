@@ -3,7 +3,7 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.exception.domain.DomainException;
+import nl.hu.bep.exception.ApplicationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -54,7 +54,7 @@ class AquariumTest {
         @DisplayName("Should throw exception when name is null")
         void shouldThrowExceptionWhenNameIsNull() {
             // Arrange & Act & Assert
-            assertThrows(DomainException.ValidationException.class, () -> 
+            assertThrows(ApplicationException.ValidationException.class, () -> 
                 Aquarium.create(null, 100.0, 50.0, 50.0, SubstrateType.SAND, 
                     WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING)
             );
@@ -64,7 +64,7 @@ class AquariumTest {
         @DisplayName("Should throw exception when name is empty")
         void shouldThrowExceptionWhenNameIsEmpty() {
             // Arrange & Act & Assert
-            assertThrows(DomainException.ValidationException.class, () -> 
+            assertThrows(ApplicationException.ValidationException.class, () -> 
                 Aquarium.create("", 100.0, 50.0, 50.0, SubstrateType.SAND, 
                     WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING)
             );
@@ -74,7 +74,7 @@ class AquariumTest {
         @DisplayName("Should throw exception when substrate is null")
         void shouldThrowExceptionWhenSubstrateIsNull() {
             // Arrange & Act & Assert
-            assertThrows(DomainException.ValidationException.class, () -> 
+            assertThrows(ApplicationException.ValidationException.class, () -> 
                 Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, null, 
                     WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING)
             );
@@ -84,7 +84,7 @@ class AquariumTest {
         @DisplayName("Should throw exception when water type is null")
         void shouldThrowExceptionWhenWaterTypeIsNull() {
             // Arrange & Act & Assert
-            assertThrows(DomainException.ValidationException.class, () -> 
+            assertThrows(ApplicationException.ValidationException.class, () -> 
                 Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, SubstrateType.SAND, 
                     null, "blue", "description", AquariumState.RUNNING)
             );
@@ -131,7 +131,7 @@ class AquariumTest {
             aquarium.assignToOwner(OWNER_ID);
 
             // Act & Assert
-            assertThrows(DomainException.class, () -> 
+            assertThrows(ApplicationException.class, () -> 
                 aquarium.validateOwnership(DIFFERENT_OWNER_ID)
             );
         }
@@ -140,7 +140,7 @@ class AquariumTest {
         @DisplayName("Should throw exception when validating ownership for unassigned aquarium")
         void shouldThrowExceptionWhenValidatingOwnershipForUnassignedAquarium() {
             // Act & Assert
-            assertThrows(DomainException.class, () -> 
+            assertThrows(ApplicationException.class, () -> 
                 aquarium.validateOwnership(OWNER_ID)
             );
         }
@@ -287,7 +287,7 @@ class AquariumTest {
         @DisplayName("Should throw exception when adding inhabitant with wrong owner")
         void shouldThrowExceptionWhenAddingInhabitantWithWrongOwner() {
             // Act & Assert
-            assertThrows(DomainException.class, () -> 
+            assertThrows(ApplicationException.class, () -> 
                 aquarium.addInhabitant(mockInhabitant, DIFFERENT_OWNER_ID)
             );
         }
@@ -299,7 +299,7 @@ class AquariumTest {
             aquarium.addInhabitant(mockInhabitant, OWNER_ID);
 
             // Act & Assert
-            assertThrows(DomainException.class, () -> 
+            assertThrows(ApplicationException.class, () -> 
                 aquarium.removeInhabitant(mockInhabitant, DIFFERENT_OWNER_ID)
             );
         }

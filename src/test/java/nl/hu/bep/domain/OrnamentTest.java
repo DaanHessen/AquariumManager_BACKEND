@@ -1,6 +1,6 @@
 package nl.hu.bep.domain;
 
-import nl.hu.bep.exception.domain.OwnershipException;
+import nl.hu.bep.exception.ApplicationException;
 import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +31,7 @@ class OrnamentTest {
         ornament.update(Optional.of("Large Castle"), Optional.of("A large, imposing castle."), Optional.empty(), Optional.empty(), Optional.of(true));
         assertEquals("Large Castle", ornament.getName());
         assertEquals("A large, imposing castle.", ornament.getDescription());
-        assertEquals("grey", ornament.getColor()); // Color should not change
+        assertEquals("grey", ornament.getColor());
         assertTrue(ornament.isAirPumpCompatible());
     }
 
@@ -45,7 +45,7 @@ class OrnamentTest {
     @Test
     void assignToAquariumNotOwner() {
         Ornament ornament = Ornament.create("Cave", 1L, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
-        assertThrows(OwnershipException.class, () -> {
+        assertThrows(ApplicationException.BusinessRuleException.class, () -> {
             ornament.assignToAquarium(10L, 2L);
         });
     }

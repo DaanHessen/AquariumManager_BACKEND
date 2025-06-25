@@ -1,7 +1,7 @@
 package nl.hu.bep.domain.base;
 
 import nl.hu.bep.domain.utils.Validator;
-import nl.hu.bep.exception.domain.OwnershipException;
+import nl.hu.bep.exception.ApplicationException;
 
 public abstract class OwnedEntity {
     protected Long ownerId;
@@ -13,7 +13,7 @@ public abstract class OwnedEntity {
     public void validateOwnership(Long requestingOwnerId) {
         Validator.notNull(requestingOwnerId, "Requesting Owner ID");
         if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {
-            throw new OwnershipException("Entity does not belong to the current user.");
+            throw new ApplicationException.BusinessRuleException("Entity does not belong to the current user.");
         }
     }
 }

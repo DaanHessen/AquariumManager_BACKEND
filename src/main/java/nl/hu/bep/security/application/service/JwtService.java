@@ -5,7 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.exception.security.SecurityException;
+import nl.hu.bep.exception.ApplicationException;
 
 import java.util.Date;
 
@@ -41,7 +41,7 @@ public class JwtService {
 
             return Long.parseLong(jwt.getSubject());
         } catch (Exception e) {
-            throw new SecurityException.TokenException("Invalid JWT token: " + e.getMessage());
+            throw new ApplicationException.SecurityException.TokenException("Invalid JWT token: " + e.getMessage());
         }
     }
 
@@ -54,7 +54,7 @@ public class JwtService {
             DecodedJWT jwt = verifier.verify(token);
             return jwt.getClaim("username").asString();
         } catch (Exception e) {
-            throw new SecurityException.TokenException("Invalid JWT token: " + e.getMessage());
+            throw new ApplicationException.SecurityException.TokenException("Invalid JWT token: " + e.getMessage());
         }
     }
 
@@ -69,7 +69,7 @@ public class JwtService {
             return jwt;
         } catch (Exception e) {
             log.error("Failed to verify JWT token: {}", e.getMessage());
-            throw new SecurityException.TokenException("Invalid JWT token: " + e.getMessage());
+            throw new ApplicationException.SecurityException.TokenException("Invalid JWT token: " + e.getMessage());
         }
     }
 }

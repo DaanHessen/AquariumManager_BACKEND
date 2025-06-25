@@ -1,7 +1,7 @@
 package nl.hu.bep.domain;
 
 import nl.hu.bep.domain.utils.Validator;
-import nl.hu.bep.exception.domain.DomainException;
+import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.domain.enums.Role;
 import nl.hu.bep.config.AquariumConstants;
 
@@ -57,7 +57,7 @@ public class Owner {
 
     public void changePassword(String currentPassword, String newPassword) {
         if (!verifyPassword(currentPassword)) {
-            throw new DomainException("Current password is incorrect");
+            throw new ApplicationException.BusinessRuleException("Current password is incorrect");
         }
         updatePassword(newPassword);
     }
@@ -69,7 +69,7 @@ public class Owner {
     public void changeEmail(String newEmail) {
         String validatedEmail = Validator.email(newEmail);
         if (validatedEmail.equals(this.email)) {
-            throw new DomainException("New email is the same as current email");
+            throw new ApplicationException.BusinessRuleException("New email is the same as current email");
         }
         this.email = validatedEmail;
     }
@@ -85,14 +85,14 @@ public class Owner {
 
     public void promoteToAdmin() {
         if (this.role == Role.ADMIN) {
-            throw new DomainException("Owner is already an admin");
+            throw new ApplicationException.BusinessRuleException("Owner is already an admin");
         }
         this.role = Role.ADMIN;
     }
 
     public void demoteToOwner() {
         if (this.role == Role.OWNER) {
-            throw new DomainException("Owner is already a regular owner");
+            throw new ApplicationException.BusinessRuleException("Owner is already a regular owner");
         }
         this.role = Role.OWNER;
     }
@@ -108,14 +108,14 @@ public class Owner {
     public void registerAquarium(Long aquariumId) {
         Validator.notNull(aquariumId, "Aquarium ID");
         if (this.aquariumIds.contains(aquariumId)) {
-            throw new DomainException("Aquarium is already registered to this owner");
+            throw new ApplicationException.BusinessRuleException("Aquarium is already registered to this owner");
         }
         this.aquariumIds.add(aquariumId);
     }
 
     public void unregisterAquarium(Long aquariumId) {
         if (!this.aquariumIds.remove(aquariumId)) {
-            throw new DomainException("Aquarium is not registered to this owner");
+            throw new ApplicationException.BusinessRuleException("Aquarium is not registered to this owner");
         }
     }
 
@@ -158,8 +158,6 @@ public class Owner {
     }
 
     public void addToAquariums(Aquarium aquarium) {
-        // This method is called by Aquarium.assignToOwner() for bidirectional relationship
-        // Since Owner uses aquariumIds, we add the ID if the aquarium has one
         if (aquarium != null && aquarium.getId() != null) {
             this.aquariumIds.add(aquarium.getId());
         }
@@ -167,7 +165,7 @@ public class Owner {
 
     public void validateOwnsAquarium(Long aquariumId) {
         if (aquariumId == null) {
-            throw new DomainException("Aquarium ID is required for ownership validation");
+            throw new ApplicationException.BusinessRuleException("Aquarium ID is required for ownership validation");
         }
         
         if (isAdmin()) {
@@ -175,13 +173,13 @@ public class Owner {
         }
         
         if (!aquariumIds.contains(aquariumId)) {
-            throw new DomainException("Access denied: You do not own this aquarium");
+            throw new ApplicationException.BusinessRuleException("Access denied: You do not own this aquarium");
         }
     }
 
     public void validateCanModifyEntity(Long entityOwnerId) {
         if (entityOwnerId == null) {
-            throw new DomainException("Entity owner ID is required for validation");
+            throw new ApplicationException.BusinessRuleException("Entity owner ID is required for validation");
         }
         
         if (isAdmin()) {
@@ -189,7 +187,7 @@ public class Owner {
         }
         
         if (!this.id.equals(entityOwnerId)) {
-            throw new DomainException("Access denied: You can only modify your own entities");
+            throw new ApplicationException.BusinessRuleException("Access denied: You can only modify your own entities");
         }
     }
 

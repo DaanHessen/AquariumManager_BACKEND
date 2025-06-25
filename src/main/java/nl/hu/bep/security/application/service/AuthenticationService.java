@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.data.OwnerRepositoryImpl;
 import nl.hu.bep.domain.Owner;
-import nl.hu.bep.exception.security.SecurityException;
+import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.request.AuthRequest;
 import nl.hu.bep.security.model.request.RegisterRequest;
 import nl.hu.bep.security.model.response.AuthResponse;
@@ -51,7 +51,7 @@ public class AuthenticationService {
         Owner owner = ownerRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
                     log.warn("Login failed: No user found with email: {}", request.email());
-                    return new SecurityException.AuthenticationException("Invalid email or password");
+                    return new ApplicationException.SecurityException.AuthenticationException("Invalid email or password");
                 });
 
         log.debug("Found owner with ID: {}", owner.getId());
@@ -59,7 +59,7 @@ public class AuthenticationService {
         boolean passwordMatches = BCrypt.checkpw(request.password(), owner.getPassword());
         if (!passwordMatches) {
             log.warn("Login failed: Invalid password for email: {}", request.email());
-            throw new SecurityException.AuthenticationException("Invalid email or password");
+            throw new ApplicationException.SecurityException.AuthenticationException("Invalid email or password");
         }
 
         log.info("User authenticated successfully: {}", owner.getEmail());
@@ -75,7 +75,7 @@ public class AuthenticationService {
     public Long validateTokenAndGetOwnerId(String token) {
         if (token == null || !token.startsWith(AquariumConstants.BEARER_SCHEME + " ")) {
             log.warn("Invalid token format or missing token");
-            throw new SecurityException.TokenException("Authentication required");
+            throw new ApplicationException.SecurityException.TokenException("Authentication required");
         }
 
         try {
@@ -85,7 +85,7 @@ public class AuthenticationService {
             return ownerId;
         } catch (Exception e) {
             log.error("Error validating token: {}", e.getMessage());
-            throw new SecurityException.TokenException("Invalid authentication token");
+            throw new ApplicationException.SecurityException.TokenException("Invalid authentication token");
         }
     }
 }

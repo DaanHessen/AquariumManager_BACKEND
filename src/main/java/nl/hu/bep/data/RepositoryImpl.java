@@ -1,7 +1,7 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.config.DatabaseConfig;
-import nl.hu.bep.exception.infrastructure.RepositoryException;
+import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.data.interfaces.Repository;
 
 import java.sql.*;
@@ -27,7 +27,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
                 return rs.next() ? Optional.of(mapRow(rs)) : Optional.empty();
             }
         } catch (SQLException e) {
-            throw new RepositoryException("Find by ID failed: " + id, e);
+            throw new ApplicationException.ConflictException("Find by ID failed: " + id, e);
         }
     }
 
@@ -41,7 +41,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
                 result.add(mapRow(rs));
             }
         } catch (SQLException e) {
-            throw new RepositoryException("Find all failed", e);
+            throw new ApplicationException.ConflictException("Find all failed", e);
         }
         return result;
     }
@@ -61,7 +61,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
             }
             return entity;
         } catch (SQLException e) {
-            throw new RepositoryException("Insert failed", e);
+            throw new ApplicationException.ConflictException("Insert failed", e);
         }
     }
 
@@ -72,7 +72,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
             ps.executeUpdate();
             return entity;
         } catch (SQLException e) {
-            throw new RepositoryException("Update failed", e);
+            throw new ApplicationException.ConflictException("Update failed", e);
         }
     }
 
@@ -83,7 +83,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
             ps.setObject(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new RepositoryException("Delete failed: " + id, e);
+            throw new ApplicationException.ConflictException("Delete failed: " + id, e);
         }
     }
 
@@ -99,7 +99,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
                 }
             }
         } catch (SQLException e) {
-            throw new RepositoryException("Find by field failed: " + fieldName, e);
+            throw new ApplicationException.ConflictException("Find by field failed: " + fieldName, e);
         }
         return result;
     }

@@ -2,7 +2,7 @@ package nl.hu.bep.domain;
 
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
-import nl.hu.bep.exception.domain.OwnershipException;
+import nl.hu.bep.exception.ApplicationException;
 
 import lombok.*;
 import java.time.LocalDateTime;
@@ -102,7 +102,7 @@ public class Ornament extends AssignableEntity {
     public void validateOwnership(Long requestingOwnerId) {
         Validator.notNull(requestingOwnerId, "Requesting Owner ID");
         if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {
-            throw new OwnershipException("Ornament does not belong to the current user.");
+            throw new ApplicationException.BusinessRuleException("Ornament does not belong to the current user.");
         }
     }
 }

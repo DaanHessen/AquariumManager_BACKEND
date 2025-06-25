@@ -1,6 +1,6 @@
 package nl.hu.bep.application.service;
 
-import nl.hu.bep.domain.*; // I'm lazy 
+import nl.hu.bep.domain.*; 
 import nl.hu.bep.presentation.dto.request.*;
 import nl.hu.bep.presentation.dto.response.*;
 import nl.hu.bep.data.interfaces.*;
