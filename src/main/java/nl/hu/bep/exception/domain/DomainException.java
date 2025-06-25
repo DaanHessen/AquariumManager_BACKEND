@@ -4,13 +4,6 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
 
-/**
- * Domain layer exceptions for business logic violations and entity validation errors.
- * Extends BusinessRuleException to provide specific domain error handling.
- * 
- * This class serves as the primary exception type for domain layer operations,
- * ensuring consistent error handling across all domain entities and services.
- */
 public class DomainException extends BusinessRuleException {
 
     public DomainException(String message) {
@@ -25,11 +18,6 @@ public class DomainException extends BusinessRuleException {
         super(message, details);
     }
 
-    // ========== SPECIALIZED DOMAIN EXCEPTIONS ==========
-
-    /**
-     * Validation errors specific to domain entities and value objects.
-     */
     public static class ValidationException extends DomainException {
         public ValidationException(String message) {
             super(message);
@@ -45,9 +33,6 @@ public class DomainException extends BusinessRuleException {
         }
     }
 
-    /**
-     * Incompatible water type between aquarium and inhabitants/equipment.
-     */
     public static class IncompatibleWaterTypeException extends DomainException {
         public IncompatibleWaterTypeException(String aquariumWaterType, String entityWaterType) {
             super(String.format("Water type incompatibility: Aquarium requires %s but entity requires %s", 
@@ -61,9 +46,6 @@ public class DomainException extends BusinessRuleException {
         }
     }
 
-    /**
-     * Invalid state transitions for aquarium lifecycle management.
-     */
     public static class InvalidStateTransitionException extends DomainException {
         public InvalidStateTransitionException(String fromState, String toState) {
             super(String.format("Invalid state transition from %s to %s", fromState, toState),
@@ -76,9 +58,6 @@ public class DomainException extends BusinessRuleException {
         }
     }
 
-    /**
-     * Entity capacity or limit violations.
-     */
     public static class CapacityExceededException extends DomainException {
         public CapacityExceededException(String entityType, int currentCount, int maxCapacity) {
             super(String.format("Capacity exceeded for %s: current %d, maximum %d", 

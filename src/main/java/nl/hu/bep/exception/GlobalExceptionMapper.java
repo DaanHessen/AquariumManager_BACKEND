@@ -8,18 +8,12 @@ import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.presentation.dto.ApiResponse;
-import nl.hu.bep.presentation.dto.ErrorResponse;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.presentation.dto.response.ErrorResponse;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Global exception mapper following modern Jakarta REST best practices.
- * Maps all application exceptions to proper HTTP responses with meaningful error messages.
- * 
- * Updated to handle the modern AquariumException hierarchy with enhanced error tracking.
- */
 @Provider
 @Slf4j
 public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
@@ -31,24 +25,20 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
     public Response toResponse(Throwable exception) {
         String path = uriInfo != null ? uriInfo.getPath() : "";
         
-        // Handle modern AquariumException hierarchy first
         if (exception instanceof nl.hu.bep.exception.core.AquariumException) {
             return handleAquariumException((nl.hu.bep.exception.core.AquariumException) exception);
         }
         
-        // Log the exception appropriately
         if (isClientError(exception)) {
             log.warn("Client error at {}: {}", path, exception.getMessage());
         } else {
             log.error("Server error at {}: {}", path, exception.getMessage(), exception);
         }
 
-        // Handle Jakarta validation exceptions
         if (exception instanceof ConstraintViolationException) {
             return handleValidationException((ConstraintViolationException) exception, path);
         }
 
-        // Legacy ApplicationException support (to be deprecated)
         if (exception instanceof ApplicationException.NotFoundException) {
             return createErrorResponse(Response.Status.NOT_FOUND, exception, path);
         }
@@ -69,20 +59,14 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
             return createErrorResponse(Response.Status.BAD_REQUEST, exception, path);
         }
 
-        // Handle generic application exceptions
         if (exception instanceof ApplicationException) {
             return createErrorResponse(Response.Status.BAD_REQUEST, exception, path);
         }
 
-        // Handle unexpected exceptions
         return createErrorResponse(Response.Status.INTERNAL_SERVER_ERROR, exception, path);
     }
 
-    /**
-     * Handle modern AquariumException hierarchy with enhanced error tracking.
-     */
     private Response handleAquariumException(nl.hu.bep.exception.core.AquariumException exception) {
-        // Log appropriately based on error severity
         if (exception.isServerError()) {
             log.error("Server error [{}]: {} (ID: {})", 
                      exception.getErrorCode(), exception.getMessage(), exception.getErrorId(), exception);
@@ -91,7 +75,6 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
                      exception.getErrorCode(), exception.getMessage(), exception.getErrorId());
         }
 
-        // Use the exception's built-in response generation
         return exception.toResponse(uriInfo);
     }
 
@@ -118,7 +101,6 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
         
         exception.getConstraintViolations().forEach(violation -> {
             String fieldName = violation.getPropertyPath().toString();
-            // Extract just the field name (remove method prefix if present)
             if (fieldName.contains(".")) {
                 fieldName = fieldName.substring(fieldName.lastIndexOf('.') + 1);
             }

@@ -1,4 +1,4 @@
-package nl.hu.bep.presentation.dto;
+package nl.hu.bep.presentation.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

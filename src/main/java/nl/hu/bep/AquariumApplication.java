@@ -5,6 +5,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.config.JacksonConfig;
+import nl.hu.bep.config.HK2Binder;
 import nl.hu.bep.exception.GlobalExceptionMapper;
 import nl.hu.bep.security.application.filter.AquariumSecurityFilter;
 import nl.hu.bep.security.application.filter.OwnershipFilter;
@@ -24,6 +25,10 @@ public class AquariumApplication extends ResourceConfig {
             register(GlobalExceptionMapper.class);
             register(JacksonConfig.class);
 
+            // Register HK2 dependency injection binder
+            register(new HK2Binder());
+            
+            // Register security filters
             register(AquariumSecurityFilter.class);
             register(OwnershipFilter.class);
 

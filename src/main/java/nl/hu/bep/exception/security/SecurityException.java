@@ -5,10 +5,6 @@ import nl.hu.bep.exception.core.AquariumException;
 
 import java.util.Map;
 
-/**
- * Security layer exceptions for authentication, authorization, and access control.
- * Handles JWT token validation, user authentication, and permission violations.
- */
 public class SecurityException extends AquariumException {
 
     public SecurityException(String message) {
@@ -27,11 +23,6 @@ public class SecurityException extends AquariumException {
         super(message, status, errorCode, null, details);
     }
 
-    // ========== SPECIFIC SECURITY EXCEPTIONS ==========
-
-    /**
-     * Authentication failures (invalid credentials, expired tokens, etc.).
-     */
     public static class AuthenticationException extends SecurityException {
         public AuthenticationException(String message) {
             super(message, Response.Status.UNAUTHORIZED, "AUTHENTICATION_FAILED");
@@ -42,9 +33,6 @@ public class SecurityException extends AquariumException {
         }
     }
 
-    /**
-     * Authorization failures (insufficient permissions, access denied).
-     */
     public static class AuthorizationException extends SecurityException {
         public AuthorizationException(String message) {
             super(message, Response.Status.FORBIDDEN, "AUTHORIZATION_FAILED");
@@ -57,9 +45,6 @@ public class SecurityException extends AquariumException {
         }
     }
 
-    /**
-     * JWT token validation and processing errors.
-     */
     public static class TokenException extends SecurityException {
         public TokenException(String message) {
             super(message, Response.Status.UNAUTHORIZED, "TOKEN_ERROR");
@@ -70,9 +55,6 @@ public class SecurityException extends AquariumException {
         }
     }
 
-    /**
-     * Resource ownership violations.
-     */
     public static class OwnershipException extends SecurityException {
         public OwnershipException(String entityType, Long entityId, Long ownerId) {
             super(String.format("Ownership violation: %s %d does not belong to owner %d", 

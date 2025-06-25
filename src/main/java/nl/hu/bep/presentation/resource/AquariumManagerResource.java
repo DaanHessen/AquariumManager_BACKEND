@@ -7,8 +7,10 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
-import nl.hu.bep.application.AquariumManagerService;
-import nl.hu.bep.presentation.dto.*;
+import nl.hu.bep.application.service.AquariumManagerService;
+import nl.hu.bep.presentation.dto.request.AquariumRequest;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.presentation.dto.response.AquariumResponse;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -17,11 +19,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Resource class for Aquarium operations ONLY - NO LOGIC, pure delegation to service.
- * Follows DDD principles with thin orchestration.
- * Other entities have their own dedicated resource classes.
- */
 @Path("/aquariums")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

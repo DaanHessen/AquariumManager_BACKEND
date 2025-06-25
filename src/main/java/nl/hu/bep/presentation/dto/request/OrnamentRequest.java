@@ -1,4 +1,4 @@
-package nl.hu.bep.presentation.dto;
+package nl.hu.bep.presentation.dto.request;
 
 public record OrnamentRequest(
     String name,

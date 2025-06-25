@@ -6,7 +6,6 @@ import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.exception.domain.DomainException;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.value.Dimensions;
-import nl.hu.bep.domain.species.Fish;
 import nl.hu.bep.config.AquariumConstants;
 import lombok.*;
 
@@ -280,7 +279,6 @@ public class Aquarium {
 
     public boolean isSubstrateCompatibleWith(String fishSpecies) {
         return true; // might do something gwith this
-        };
     }
 
     // public int getRecommendedMaintenanceIntervalDays() {

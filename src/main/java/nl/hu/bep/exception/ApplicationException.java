@@ -1,12 +1,5 @@
 package nl.hu.bep.exception;
 
-import nl.hu.bep.config.AquariumConstants;
-
-/**
- * Unified exception hierarchy for the Aquarium Management System.
- * Modern approach: runtime exceptions only, handled by exception mappers.
- * Follows current Jakarta EE best practices.
- */
 public class ApplicationException extends RuntimeException {
 
     public ApplicationException(String message) {
@@ -16,8 +9,6 @@ public class ApplicationException extends RuntimeException {
     public ApplicationException(String message, Throwable cause) {
         super(message, cause);
     }
-
-    // ========== SPECIFIC APPLICATION EXCEPTIONS ==========
 
     public static class NotFoundException extends ApplicationException {
         public NotFoundException(String message) {
@@ -77,8 +68,6 @@ public class ApplicationException extends RuntimeException {
         }
     }
 
-    // ========== DOMAIN-SPECIFIC EXCEPTIONS ==========
-
     public static class IncompatibleWaterTypeException extends ValidationException {
         public IncompatibleWaterTypeException(String aquariumWaterType, String entityWaterType) {
             super(String.format("Water type incompatibility: Aquarium requires %s but entity requires %s", 
@@ -97,9 +86,7 @@ public class ApplicationException extends RuntimeException {
             super(String.format("%s %d is already assigned to aquarium %d", entityType, entityId, aquariumId));
         }
     }
-    
-    // ========== SECURITY EXCEPTIONS ==========
-    
+        
     public static class SecurityException extends ApplicationException {
         public SecurityException(String message) {
             super(message);

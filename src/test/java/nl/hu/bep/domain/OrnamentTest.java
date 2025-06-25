@@ -1,5 +1,6 @@
 package nl.hu.bep.domain;
 
+import nl.hu.bep.exception.domain.OwnershipException;
 import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +45,7 @@ class OrnamentTest {
     @Test
     void assignToAquariumNotOwner() {
         Ornament ornament = Ornament.create("Cave", 1L, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(OwnershipException.class, () -> {
             ornament.assignToAquarium(10L, 2L);
         });
     }

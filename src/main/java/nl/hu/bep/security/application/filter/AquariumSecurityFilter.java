@@ -15,7 +15,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.config.AquariumConstants;
-import nl.hu.bep.presentation.dto.ApiResponse;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.AquariumSecurityContext;
 import nl.hu.bep.security.application.service.JwtService;

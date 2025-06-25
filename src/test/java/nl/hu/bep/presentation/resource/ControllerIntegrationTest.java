@@ -1,8 +1,12 @@
 package nl.hu.bep.presentation.resource;
 
-import nl.hu.bep.application.AquariumManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import nl.hu.bep.application.service.AquariumManagerService;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -14,13 +18,17 @@ class ControllerIntegrationTest {
     private AccessoryResource accessoryResource;
     private OrnamentResource ornamentResource;
     private InhabitantResource inhabitantResource;
+    
+    @Mock
+    private AquariumManagerService mockService;
 
     @BeforeEach
     void setUp() {
-        aquariumResource = new AquariumManagerResource();
-        accessoryResource = new AccessoryResource();
-        ornamentResource = new OrnamentResource();
-        inhabitantResource = new InhabitantResource();
+        MockitoAnnotations.openMocks(this);
+        aquariumResource = new AquariumManagerResource(mockService);
+        accessoryResource = new AccessoryResource(mockService);
+        ornamentResource = new OrnamentResource(mockService);
+        inhabitantResource = new InhabitantResource(mockService);
     }
 
     @Test

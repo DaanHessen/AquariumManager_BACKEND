@@ -5,10 +5,6 @@ import nl.hu.bep.exception.core.AquariumException;
 
 import java.util.Map;
 
-/**
- * Presentation layer exceptions for API request/response processing,
- * validation, and HTTP-specific error handling.
- */
 public class PresentationException extends AquariumException {
 
     public PresentationException(String message) {
@@ -23,11 +19,6 @@ public class PresentationException extends AquariumException {
         super(message, status, errorCode, null, details);
     }
 
-    // ========== SPECIFIC PRESENTATION EXCEPTIONS ==========
-
-    /**
-     * Request validation failures.
-     */
     public static class ValidationException extends PresentationException {
         public ValidationException(String message) {
             super(message, Response.Status.BAD_REQUEST, "VALIDATION_ERROR");
@@ -40,9 +31,6 @@ public class PresentationException extends AquariumException {
         }
     }
 
-    /**
-     * JSON/XML mapping and serialization errors.
-     */
     public static class MappingException extends PresentationException {
         public MappingException(String message, Throwable cause) {
             super("Request/response mapping failed: " + message, Response.Status.BAD_REQUEST, "MAPPING_ERROR",
@@ -50,9 +38,6 @@ public class PresentationException extends AquariumException {
         }
     }
 
-    /**
-     * Malformed or invalid request format.
-     */
     public static class BadRequestException extends PresentationException {
         public BadRequestException(String message) {
             super(message, Response.Status.BAD_REQUEST, "BAD_REQUEST");
@@ -65,9 +50,6 @@ public class PresentationException extends AquariumException {
         }
     }
 
-    /**
-     * Resource not found in API endpoints.
-     */
     public static class ResourceNotFoundException extends PresentationException {
         public ResourceNotFoundException(String resourceType, String identifier) {
             super(String.format("%s not found: %s", resourceType, identifier),

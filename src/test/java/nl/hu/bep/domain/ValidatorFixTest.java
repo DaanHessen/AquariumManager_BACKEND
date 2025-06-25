@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import nl.hu.bep.presentation.dto.AccessoryRequest;
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Thermostat;
+import nl.hu.bep.presentation.dto.request.AccessoryRequest;
 
 /**
  * Test cases to verify the validation fixes for Filter and Thermostat accessories

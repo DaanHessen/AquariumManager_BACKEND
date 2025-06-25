@@ -1,11 +1,12 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Ornament;
+import nl.hu.bep.data.interfaces.OrnamentRepository;
 import java.sql.*;
 import java.util.List;
 
 
-public class OrnamentRepositoryImpl extends RepositoryImpl<Ornament, Long> {
+public class OrnamentRepositoryImpl extends RepositoryImpl<Ornament, Long> implements OrnamentRepository {
     
     @Override
     protected String getTableName() {

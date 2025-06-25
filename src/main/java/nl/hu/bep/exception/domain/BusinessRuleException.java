@@ -5,10 +5,6 @@ import nl.hu.bep.exception.core.AquariumException;
 
 import java.util.Map;
 
-/**
- * Domain layer exceptions for business rule violations.
- * These represent violations of domain invariants and business logic.
- */
 public class BusinessRuleException extends AquariumException {
 
     public BusinessRuleException(String message) {
@@ -22,8 +18,6 @@ public class BusinessRuleException extends AquariumException {
     public BusinessRuleException(String message, Map<String, Object> details) {
         super(message, Response.Status.BAD_REQUEST, "BUSINESS_RULE_VIOLATION", null, details);
     }
-
-    // ========== SPECIFIC BUSINESS RULE VIOLATIONS ==========
 
     public static class IncompatibleWaterTypeException extends BusinessRuleException {
         public IncompatibleWaterTypeException(String aquariumWaterType, String entityWaterType) {

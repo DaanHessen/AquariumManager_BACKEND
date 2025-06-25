@@ -4,10 +4,10 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import nl.hu.bep.presentation.dto.ApiResponse;
-import nl.hu.bep.presentation.dto.security.AuthRequest;
-import nl.hu.bep.security.model.AuthResponse;
-import nl.hu.bep.security.model.RegisterRequest;
+import nl.hu.bep.presentation.dto.request.AuthRequest;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.security.model.request.RegisterRequest;
+import nl.hu.bep.security.model.response.AuthResponse;
 import nl.hu.bep.security.application.service.AuthenticationService;
 
 import java.util.HashMap;

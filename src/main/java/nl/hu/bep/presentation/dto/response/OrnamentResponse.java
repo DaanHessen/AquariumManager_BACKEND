@@ -1,4 +1,4 @@
-package nl.hu.bep.presentation.dto;
+package nl.hu.bep.presentation.dto.response;
 
 import java.time.LocalDateTime;
 

@@ -1,6 +1,7 @@
 package nl.hu.bep.application;
 
 import nl.hu.bep.domain.Aquarium;
+import nl.hu.bep.application.service.AquariumManagerService;
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.domain.Ornament;
 import nl.hu.bep.domain.Owner;
@@ -8,10 +9,11 @@ import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.exception.ApplicationException;
-import nl.hu.bep.presentation.dto.AquariumRequest;
-import nl.hu.bep.presentation.dto.AquariumResponse;
-import nl.hu.bep.presentation.dto.AccessoryRequest;
-import nl.hu.bep.presentation.dto.AccessoryResponse;
+import nl.hu.bep.presentation.dto.request.AccessoryRequest;
+import nl.hu.bep.presentation.dto.request.AquariumRequest;
+import nl.hu.bep.presentation.dto.response.AccessoryResponse;
+import nl.hu.bep.presentation.dto.response.AquariumResponse;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;

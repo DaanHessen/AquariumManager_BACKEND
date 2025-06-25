@@ -7,7 +7,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.config.DatabaseConfig;
-import nl.hu.bep.presentation.dto.ApiResponse;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
 
 import java.util.HashMap;
 import java.util.Map;

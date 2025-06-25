@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.exception.domain.DomainException;
 
 import java.time.LocalDateTime;
 

@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class AccessoryRepositoryTest {
 
-    private AccessoryRepository repository;
+    private AccessoryRepositoryImpl repository;
 
     @BeforeEach
     void setUp() {
-        repository = new AccessoryRepository();
+        repository = new AccessoryRepositoryImpl();
     }
 
     @Test

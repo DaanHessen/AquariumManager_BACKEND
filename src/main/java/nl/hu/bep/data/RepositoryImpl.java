@@ -56,6 +56,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
             
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) {
+                    @SuppressWarnings("unchecked")
                     ID generatedId = (ID) rs.getObject(1);
                     return findById(generatedId).orElse(entity);
                 }

@@ -1,4 +1,4 @@
-package nl.hu.bep.presentation.dto.security;
+package nl.hu.bep.presentation.dto.request;
 
 /**
  * Authentication request DTO.

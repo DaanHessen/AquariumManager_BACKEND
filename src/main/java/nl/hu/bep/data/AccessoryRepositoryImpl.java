@@ -1,11 +1,12 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Accessory;
+import nl.hu.bep.data.interfaces.AccessoryRepository;
 import java.sql.*;
 import java.time.LocalTime;
 import java.util.List;
 
-public class AccessoryRepositoryImpl extends RepositoryImpl<Accessory, Long> {
+public class AccessoryRepositoryImpl extends RepositoryImpl<Accessory, Long> implements AccessoryRepository {
     
     @Override
     protected String getTableName() { return "accessories"; }

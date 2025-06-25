@@ -2,18 +2,13 @@ package nl.hu.bep.exception.core;
 
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import nl.hu.bep.presentation.dto.ApiResponse;
-import nl.hu.bep.presentation.dto.ErrorResponse;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.presentation.dto.response.ErrorResponse;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Core base exception for the Aquarium Management System.
- * Provides enterprise-grade error handling with consistent response formatting,
- * error tracking, and proper HTTP status mapping.
- */
 public abstract class AquariumException extends RuntimeException {
     
     private final Response.Status status;
@@ -39,8 +34,6 @@ public abstract class AquariumException extends RuntimeException {
         this.timestamp = LocalDateTime.now();
         this.details = details;
     }
-
-    // ========== GETTERS ==========
     
     public Response.Status getStatus() {
         return status;
@@ -61,12 +54,7 @@ public abstract class AquariumException extends RuntimeException {
     public Map<String, Object> getDetails() {
         return details;
     }
-
-    // ========== RESPONSE GENERATION ==========
     
-    /**
-     * Converts this exception to a JAX-RS Response with proper formatting.
-     */
     public Response toResponse(UriInfo uriInfo) {
         String path = uriInfo != null ? uriInfo.getPath() : "";
         
@@ -91,20 +79,12 @@ public abstract class AquariumException extends RuntimeException {
                 .entity(ApiResponse.error(errorResponse, getMessage()))
                 .build();
     }
-
-    // ========== LOGGING SUPPORT ==========
     
-    /**
-     * Returns a formatted string for logging purposes.
-     */
     public String getLoggingInfo() {
         return String.format("[%s] %s - %s (ID: %s)", 
                 errorCode, status, getMessage(), errorId);
     }
 
-    /**
-     * Determines if this exception should be logged as an error (vs warning).
-     */
     public boolean isServerError() {
         return status.getFamily() == Response.Status.Family.SERVER_ERROR;
     }

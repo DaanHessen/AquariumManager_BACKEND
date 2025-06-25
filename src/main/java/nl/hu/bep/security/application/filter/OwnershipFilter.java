@@ -12,8 +12,8 @@ import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.data.AquariumRepository;
-import nl.hu.bep.data.AccessoryRepository;
+import nl.hu.bep.data.AquariumRepositoryImpl;
+import nl.hu.bep.data.AccessoryRepositoryImpl;
 import nl.hu.bep.data.InhabitantRepositoryImpl;
 import nl.hu.bep.data.OrnamentRepositoryImpl;
 
@@ -28,14 +28,14 @@ public class OwnershipFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    private final AquariumRepository aquariumRepository;
-    private final AccessoryRepository accessoryRepository;
+    private final AquariumRepositoryImpl aquariumRepository;
+    private final AccessoryRepositoryImpl accessoryRepository;
     private final InhabitantRepositoryImpl inhabitantRepository;
     private final OrnamentRepositoryImpl ornamentRepository;
 
     @Inject
-    public OwnershipFilter(AquariumRepository aquariumRepository,
-                          AccessoryRepository accessoryRepository,
+    public OwnershipFilter(AquariumRepositoryImpl aquariumRepository,
+                          AccessoryRepositoryImpl accessoryRepository,
                           InhabitantRepositoryImpl inhabitantRepository,
                           OrnamentRepositoryImpl ornamentRepository) {
         this.aquariumRepository = aquariumRepository;

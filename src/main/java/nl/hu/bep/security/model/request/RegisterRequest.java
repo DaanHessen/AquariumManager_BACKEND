@@ -1,4 +1,4 @@
-package nl.hu.bep.security.model;
+package nl.hu.bep.security.model.request;
 
 public record RegisterRequest(
     String firstName,

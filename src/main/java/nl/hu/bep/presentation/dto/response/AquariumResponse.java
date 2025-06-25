@@ -1,4 +1,4 @@
-package nl.hu.bep.presentation.dto;
+package nl.hu.bep.presentation.dto.response;
 
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;

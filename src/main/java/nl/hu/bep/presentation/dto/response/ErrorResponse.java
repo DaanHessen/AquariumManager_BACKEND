@@ -1,4 +1,4 @@
-package nl.hu.bep.presentation.dto;
+package nl.hu.bep.presentation.dto.response;
 
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;

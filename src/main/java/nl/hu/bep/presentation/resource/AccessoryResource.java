@@ -7,10 +7,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.application.AquariumManagerService;
-import nl.hu.bep.presentation.dto.AccessoryRequest;
-import nl.hu.bep.presentation.dto.AccessoryResponse;
-import nl.hu.bep.presentation.dto.ApiResponse;
+import nl.hu.bep.application.service.AquariumManagerService;
+import nl.hu.bep.presentation.dto.request.AccessoryRequest;
+import nl.hu.bep.presentation.dto.response.AccessoryResponse;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
 import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
@@ -18,10 +18,6 @@ import nl.hu.bep.security.application.context.SecurityContextHelper;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Resource class for Accessory operations - NO LOGIC, pure delegation to service.
- * Follows DDD principles with thin orchestration.
- */
 @Slf4j
 @Path("/accessories")
 @Consumes(MediaType.APPLICATION_JSON)

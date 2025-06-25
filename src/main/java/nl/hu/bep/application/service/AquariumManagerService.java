@@ -1,12 +1,19 @@
-package nl.hu.bep.application;
+package nl.hu.bep.application.service;
 
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.data.*;
 import nl.hu.bep.domain.*;
 import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.exception.ApplicationException;
-import nl.hu.bep.presentation.dto.*;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
+import nl.hu.bep.presentation.dto.request.AccessoryRequest;
+import nl.hu.bep.presentation.dto.request.AquariumRequest;
+import nl.hu.bep.presentation.dto.request.InhabitantRequest;
+import nl.hu.bep.presentation.dto.request.OrnamentRequest;
+import nl.hu.bep.presentation.dto.response.AccessoryResponse;
+import nl.hu.bep.presentation.dto.response.AquariumResponse;
+import nl.hu.bep.presentation.dto.response.InhabitantResponse;
+import nl.hu.bep.presentation.dto.response.OrnamentResponse;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -39,9 +46,8 @@ public class AquariumManagerService {
     }
 
     public List<AquariumResponse> getAllAquariums(Long ownerId) {
-        return aquariumRepository.findByOwnerId(ownerId).stream()
-                .map(entityMapper::mapToAquariumResponse)
-                .collect(Collectors.toList());
+        List<Aquarium> aquariums = aquariumRepository.findByOwnerId(ownerId);
+        return entityMapper.mapToAquariumResponses(aquariums);
     }
 
     public AquariumResponse getAquarium(Long aquariumId, Long requestingOwnerId) {
@@ -114,7 +120,7 @@ public class AquariumManagerService {
         Accessory accessory = accessoryRepository.findById(accessoryId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
         
-        if (accessory == null) throw new ApplicationException.NotFoundException("Accessory", null); accessory.validateOwnership(requestingOwnerId);
+        accessory.validateOwnership(requestingOwnerId);
         
         return entityMapper.mapToAccessoryResponse(accessory);
     }
@@ -155,7 +161,7 @@ public class AquariumManagerService {
         Accessory accessory = accessoryRepository.findById(accessoryId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
         
-        if (accessory == null) throw new ApplicationException.NotFoundException("Accessory", null); accessory.validateOwnership(requestingOwnerId);
+        accessory.validateOwnership(requestingOwnerId);
 
         accessory.update(
                 request.model(),
@@ -182,7 +188,7 @@ public class AquariumManagerService {
         Accessory accessory = accessoryRepository.findById(accessoryId)
                 .orElseThrow(() -> new ApplicationException.NotFoundException("Accessory", accessoryId));
         
-        if (accessory == null) throw new ApplicationException.NotFoundException("Accessory", null); accessory.validateOwnership(requestingOwnerId);
+        accessory.validateOwnership(requestingOwnerId);
         
         accessoryRepository.deleteById(accessoryId);
     }
