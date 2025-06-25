@@ -7,8 +7,6 @@ import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.config.JacksonConfig;
 import nl.hu.bep.config.HK2Binder;
 import nl.hu.bep.exception.GlobalExceptionMapper;
-import nl.hu.bep.security.application.filter.AquariumSecurityFilter;
-import nl.hu.bep.security.application.filter.OwnershipFilter;
 
 @Slf4j
 @ApplicationPath("/api")
@@ -28,9 +26,8 @@ public class AquariumApplication extends ResourceConfig {
             // Register HK2 dependency injection binder
             register(new HK2Binder());
             
-            // Register security filters
-            register(AquariumSecurityFilter.class);
-            register(OwnershipFilter.class);
+            // Filters are now managed by HK2, no need to register them here
+            // as they are bound in HK2Binder and will be auto-discovered
 
             log.info("Aquarium API application initialized successfully");
         } catch (Exception e) {

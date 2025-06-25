@@ -1,6 +1,5 @@
 package nl.hu.bep.security.presentation.resource;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -9,6 +8,8 @@ import nl.hu.bep.presentation.dto.response.ApiResponse;
 import nl.hu.bep.security.model.request.RegisterRequest;
 import nl.hu.bep.security.model.response.AuthResponse;
 import nl.hu.bep.security.application.service.AuthenticationService;
+import nl.hu.bep.security.application.service.JwtService;
+import nl.hu.bep.data.OwnerRepositoryImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,14 @@ import java.util.Map;
 public class AuthResource {
     private final AuthenticationService authenticationService;
 
-    @Inject
+    // No-argument constructor for Jersey
+    public AuthResource() {
+        // Manually instantiate dependencies without CDI
+        JwtService jwtService = new JwtService();
+        OwnerRepositoryImpl ownerRepository = new OwnerRepositoryImpl();
+        this.authenticationService = new AuthenticationService(jwtService, ownerRepository);
+    }
+
     public AuthResource(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
     }

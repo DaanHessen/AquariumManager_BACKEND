@@ -37,6 +37,12 @@
             <version>2.0.1</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Weld CDI for Tomcat -->
+        <dependency>
+            <groupId>org.jboss.weld.servlet</groupId>
+            <artifactId>weld-servlet-shaded</artifactId>
+            <version>5.1.2.Final</version>
+        </dependency>
         <!-- Jersey (JAX-RS) - Simplified -->
         <dependency>
             <groupId>org.glassfish.jersey.containers</groupId>

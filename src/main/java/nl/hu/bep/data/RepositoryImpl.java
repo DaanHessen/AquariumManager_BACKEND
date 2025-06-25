@@ -3,13 +3,11 @@ package nl.hu.bep.data;
 import nl.hu.bep.config.DatabaseConfig;
 import nl.hu.bep.exception.infrastructure.RepositoryException;
 import nl.hu.bep.data.interfaces.Repository;
-import jakarta.enterprise.context.ApplicationScoped;
 
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@ApplicationScoped
 public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
     
     protected abstract T mapRow(ResultSet rs) throws SQLException;

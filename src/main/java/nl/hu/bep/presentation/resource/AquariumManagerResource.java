@@ -1,6 +1,5 @@
 package nl.hu.bep.presentation.resource;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -27,7 +26,11 @@ public class AquariumManagerResource {
 
     private final AquariumManagerService aquariumManagerService;
 
-    @Inject
+    // Default constructor for Jersey/JAX-RS
+    public AquariumManagerResource() {
+        this.aquariumManagerService = null; // Will be injected by HK2
+    }
+
     public AquariumManagerResource(AquariumManagerService aquariumManagerService) {
         this.aquariumManagerService = aquariumManagerService;
     }
@@ -87,4 +90,4 @@ public class AquariumManagerResource {
                 Map.of("aquariumId", id),
                 "Aquarium deleted successfully")).build();
     }
-} 
+}

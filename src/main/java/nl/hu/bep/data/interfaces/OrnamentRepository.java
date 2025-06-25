@@ -6,4 +6,6 @@ import java.util.List;
 public interface OrnamentRepository extends Repository<Ornament, Long> {
     
     List<Ornament> findByOwnerId(Long ownerId);
+
+    List<Ornament> findByAquariumId(Long aquariumId);
 }

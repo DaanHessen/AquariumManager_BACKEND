@@ -2,13 +2,14 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.domain.enums.Role;
+import nl.hu.bep.data.interfaces.OwnerRepository;
 
 import java.sql.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-public class OwnerRepositoryImpl extends RepositoryImpl<Owner, Long> {
+public class OwnerRepositoryImpl extends RepositoryImpl<Owner, Long> implements OwnerRepository {
     
     @Override
     protected String getTableName() { return "owners"; }
@@ -68,6 +69,16 @@ public class OwnerRepositoryImpl extends RepositoryImpl<Owner, Long> {
     
     public Optional<Owner> findByEmail(String email) {
         return findByField("email", email).stream().findFirst();
+    }
+    
+    @Override
+    public Owner findByUsername(String username) {
+        return findByField("username", username).stream().findFirst().orElse(null);
+    }
+    
+    @Override
+    public List<Owner> findAllOwners() {
+        return findAll();
     }
     
     public List<Owner> findByAquariumManagerId(Long managerId) {

@@ -3,7 +3,6 @@ package nl.hu.bep.presentation.dto.mapper;
 import nl.hu.bep.domain.*;
 import nl.hu.bep.domain.accessories.*;
 import nl.hu.bep.presentation.dto.response.*;
-import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
 import java.util.Collections;
@@ -13,7 +12,6 @@ import java.util.Collections;
  * Focused on clean, maintainable mapping with consistent null handling.
  * Service layer orchestrates business logic; this mapper handles pure data transformation.
  */
-@ApplicationScoped
 public class EntityMapper {
 
     // ========== AQUARIUM MAPPING ==========

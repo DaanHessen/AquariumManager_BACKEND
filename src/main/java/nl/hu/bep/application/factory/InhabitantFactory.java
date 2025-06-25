@@ -5,10 +5,8 @@ import nl.hu.bep.domain.species.*;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.exception.ApplicationException;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 
-@ApplicationScoped
 public class InhabitantFactory {
     
     public Inhabitant createInhabitant(String type, String species, String name, Long ownerId, 

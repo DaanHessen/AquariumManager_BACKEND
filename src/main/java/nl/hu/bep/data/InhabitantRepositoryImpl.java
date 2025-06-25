@@ -2,10 +2,11 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
 import java.sql.*;
 import java.util.List;
 
-public class InhabitantRepositoryImpl extends RepositoryImpl<Inhabitant, Long> {
+public class InhabitantRepositoryImpl extends RepositoryImpl<Inhabitant, Long> implements InhabitantRepository {
     
     @Override
     protected String getTableName() { return "inhabitants"; }

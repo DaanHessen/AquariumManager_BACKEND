@@ -14,35 +14,45 @@ import nl.hu.bep.presentation.dto.response.AccessoryResponse;
 import nl.hu.bep.presentation.dto.response.AquariumResponse;
 import nl.hu.bep.presentation.dto.response.InhabitantResponse;
 import nl.hu.bep.presentation.dto.response.OrnamentResponse;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import nl.hu.bep.data.interfaces.AquariumRepository;
+import nl.hu.bep.data.interfaces.AccessoryRepository;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
+import nl.hu.bep.data.interfaces.OrnamentRepository;
+import nl.hu.bep.data.interfaces.OwnerRepository;
+
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-@ApplicationScoped
 @Transactional
 public class AquariumManagerService {
     
-    @Inject
-    private AquariumRepositoryImpl aquariumRepository;
-    @Inject
-    private AccessoryRepositoryImpl accessoryRepository;
-    @Inject
-    private OrnamentRepositoryImpl ornamentRepository;
-    @Inject
-    private InhabitantRepositoryImpl inhabitantRepository;
-    @Inject
-    private OwnerRepositoryImpl ownerRepository;
-    @Inject
-    private EntityMapper entityMapper;
-    @Inject
-    private InhabitantFactory inhabitantFactory;
+    private final AquariumRepository aquariumRepository;
+    private final AccessoryRepository accessoryRepository;
+    private final OrnamentRepository ornamentRepository;
+    private final InhabitantRepository inhabitantRepository;
+    private final OwnerRepository ownerRepository;
+    private final EntityMapper entityMapper;
+    private final InhabitantFactory inhabitantFactory;
 
-    public AquariumManagerService() {
+    public AquariumManagerService(
+            AquariumRepository aquariumRepository,
+            AccessoryRepository accessoryRepository,
+            OrnamentRepository ornamentRepository,
+            InhabitantRepository inhabitantRepository,
+            OwnerRepository ownerRepository,
+            EntityMapper entityMapper,
+            InhabitantFactory inhabitantFactory) {
+        this.aquariumRepository = aquariumRepository;
+        this.accessoryRepository = accessoryRepository;
+        this.ornamentRepository = ornamentRepository;
+        this.inhabitantRepository = inhabitantRepository;
+        this.ownerRepository = ownerRepository;
+        this.entityMapper = entityMapper;
+        this.inhabitantFactory = inhabitantFactory;
     }
 
     public List<AquariumResponse> getAllAquariums(Long ownerId) {

@@ -3,7 +3,6 @@ package nl.hu.bep.security.application.filter;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -36,7 +35,6 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    @Inject
     public AquariumSecurityFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }

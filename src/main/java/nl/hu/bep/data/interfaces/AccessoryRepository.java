@@ -6,4 +6,6 @@ import java.util.List;
 public interface AccessoryRepository extends Repository<Accessory, Long> {
     
     List<Accessory> findByOwnerId(Long ownerId);
+
+    List<Accessory> findByAquariumId(Long aquariumId);
 }

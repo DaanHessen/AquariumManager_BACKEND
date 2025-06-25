@@ -1,7 +1,6 @@
 package nl.hu.bep.security.application.filter;
 
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -12,10 +11,10 @@ import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.data.AquariumRepositoryImpl;
-import nl.hu.bep.data.AccessoryRepositoryImpl;
-import nl.hu.bep.data.InhabitantRepositoryImpl;
-import nl.hu.bep.data.OrnamentRepositoryImpl;
+import nl.hu.bep.data.interfaces.AquariumRepository;
+import nl.hu.bep.data.interfaces.AccessoryRepository;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
+import nl.hu.bep.data.interfaces.OrnamentRepository;
 
 import java.util.Map;
 
@@ -28,16 +27,15 @@ public class OwnershipFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    private final AquariumRepositoryImpl aquariumRepository;
-    private final AccessoryRepositoryImpl accessoryRepository;
-    private final InhabitantRepositoryImpl inhabitantRepository;
-    private final OrnamentRepositoryImpl ornamentRepository;
+    private final AquariumRepository aquariumRepository;
+    private final AccessoryRepository accessoryRepository;
+    private final InhabitantRepository inhabitantRepository;
+    private final OrnamentRepository ornamentRepository;
 
-    @Inject
-    public OwnershipFilter(AquariumRepositoryImpl aquariumRepository,
-                          AccessoryRepositoryImpl accessoryRepository,
-                          InhabitantRepositoryImpl inhabitantRepository,
-                          OrnamentRepositoryImpl ornamentRepository) {
+    public OwnershipFilter(AquariumRepository aquariumRepository,
+                           AccessoryRepository accessoryRepository,
+                           InhabitantRepository inhabitantRepository,
+                           OrnamentRepository ornamentRepository) {
         this.aquariumRepository = aquariumRepository;
         this.accessoryRepository = accessoryRepository;
         this.inhabitantRepository = inhabitantRepository;
