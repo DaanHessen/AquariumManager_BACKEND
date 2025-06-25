@@ -1,7 +1,6 @@
 package nl.hu.bep.presentation.dto.request;
 
 import nl.hu.bep.config.AquariumConstants;
-
 import nl.hu.bep.domain.enums.WaterType;
 
 public record InhabitantRequest(
@@ -41,7 +40,6 @@ public record InhabitantRequest(
         return isSnailEater != null && isSnailEater;
     }
     
-    // Additional getter methods for service compatibility
     public Integer age() {
         return age != null ? age : AquariumConstants.DEFAULT_AGE;
     }

@@ -1,26 +1,15 @@
 package nl.hu.bep.application.service;
 
-import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.domain.*; // lui
+import nl.hu.bep.domain.*; // I'm lazy 
+import nl.hu.bep.presentation.dto.request.*;
+import nl.hu.bep.presentation.dto.response.*;
+import nl.hu.bep.data.interfaces.*;
 import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
-import nl.hu.bep.presentation.dto.request.AccessoryRequest;
-import nl.hu.bep.presentation.dto.request.AquariumRequest;
-import nl.hu.bep.presentation.dto.request.InhabitantRequest;
-import nl.hu.bep.presentation.dto.request.OrnamentRequest;
-import nl.hu.bep.presentation.dto.response.AccessoryResponse;
-import nl.hu.bep.presentation.dto.response.AquariumResponse;
-import nl.hu.bep.presentation.dto.response.InhabitantResponse;
-import nl.hu.bep.presentation.dto.response.OrnamentResponse;
+
+import lombok.extern.slf4j.Slf4j;
 import jakarta.transaction.Transactional;
-import nl.hu.bep.data.interfaces.AquariumRepository;
-import nl.hu.bep.data.interfaces.AccessoryRepository;
-import nl.hu.bep.data.interfaces.InhabitantRepository;
-import nl.hu.bep.data.interfaces.OrnamentRepository;
-import nl.hu.bep.data.interfaces.OwnerRepository;
-
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

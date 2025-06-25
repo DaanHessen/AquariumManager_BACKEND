@@ -1,8 +1,8 @@
 package nl.hu.bep.exception.security;
 
-import jakarta.ws.rs.core.Response;
 import nl.hu.bep.exception.core.AquariumException;
 
+import jakarta.ws.rs.core.Response;
 import java.util.Map;
 
 public class SecurityException extends AquariumException {

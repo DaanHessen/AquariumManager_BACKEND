@@ -1,13 +1,13 @@
 package nl.hu.bep.domain.species;
 
+import nl.hu.bep.domain.Inhabitant;
+import nl.hu.bep.domain.enums.WaterType;
+
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import nl.hu.bep.domain.Inhabitant;
-import nl.hu.bep.domain.enums.WaterType;
-
 import java.time.LocalDateTime;
 
 @Getter

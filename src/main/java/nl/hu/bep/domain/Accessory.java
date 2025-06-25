@@ -1,11 +1,12 @@
 package nl.hu.bep.domain;
 
-import lombok.*;
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Lighting;
 import nl.hu.bep.domain.accessories.Thermostat;
+
+import lombok.*;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 

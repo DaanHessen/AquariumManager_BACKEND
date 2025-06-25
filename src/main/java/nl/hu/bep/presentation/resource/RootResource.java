@@ -60,10 +60,8 @@ public class RootResource {
         health.put("timestamp", System.currentTimeMillis());
         health.put("service", "Aquarium API - Detailed Health Check");
         
-        // Add environment info for debugging
         health.put("environment", getEnvironmentInfo());
         
-        // Check database health
         boolean dbHealthy = false;
         String dbError = null;
         
@@ -90,18 +88,15 @@ public class RootResource {
     private Map<String, Object> getEnvironmentInfo() {
         Map<String, Object> env = new HashMap<>();
         
-        // Check for Railway's DATABASE_URL
         String databaseUrl = System.getenv("DATABASE_URL");
         env.put("DATABASE_URL_present", databaseUrl != null && !databaseUrl.isEmpty());
         
-        // Check for individual DB environment variables
         env.put("DB_HOST", System.getenv("DB_HOST") != null ? "present" : "missing");
         env.put("DB_PORT", System.getenv("DB_PORT") != null ? "present" : "missing");
         env.put("DB_NAME", System.getenv("DB_NAME") != null ? "present" : "missing");
         env.put("DB_USER", System.getenv("DB_USER") != null ? "present" : "missing");
         env.put("DB_PASSWORD", System.getenv("DB_PASSWORD") != null ? "present" : "missing");
         
-        // Add PORT info for Railway
         env.put("PORT", System.getenv("PORT"));
         
         return env;

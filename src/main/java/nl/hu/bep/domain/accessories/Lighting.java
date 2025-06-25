@@ -2,6 +2,7 @@ package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.domain.utils.Validator;
+
 import lombok.*;
 import java.time.LocalTime;
 import java.time.Duration;

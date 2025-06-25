@@ -1,10 +1,11 @@
 package nl.hu.bep.domain.utils;
 
+import nl.hu.bep.exception.domain.DomainException;
+import nl.hu.bep.config.AquariumConstants;
+
 import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import nl.hu.bep.exception.domain.DomainException;
-import nl.hu.bep.config.AquariumConstants;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Validator {

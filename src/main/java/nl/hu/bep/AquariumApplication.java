@@ -24,12 +24,8 @@ public class AquariumApplication extends ResourceConfig {
             register(GlobalExceptionMapper.class);
             register(JacksonConfig.class);
 
-            // Register HK2 dependency injection binder
             register(new HK2Binder());
             
-            // Filters are now managed by HK2, no need to register them here
-            // as they are bound in HK2Binder and will be auto-discovered
-
             log.info("Aquarium API application initialized successfully");
         } catch (Exception e) {
             log.error("Failed to initialize application: {}", e.getMessage(), e);

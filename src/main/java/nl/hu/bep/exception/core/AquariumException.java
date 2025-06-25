@@ -1,10 +1,10 @@
 package nl.hu.bep.exception.core;
 
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
 import nl.hu.bep.presentation.dto.response.ErrorResponse;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;

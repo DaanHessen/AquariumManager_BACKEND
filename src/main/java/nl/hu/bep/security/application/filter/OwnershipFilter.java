@@ -1,5 +1,13 @@
 package nl.hu.bep.security.application.filter;
 
+import nl.hu.bep.data.*;
+import nl.hu.bep.security.application.annotation.RequiresOwnership;
+import nl.hu.bep.security.application.context.SecurityContextHelper;
+import nl.hu.bep.data.interfaces.AquariumRepository;
+import nl.hu.bep.data.interfaces.AccessoryRepository;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
+import nl.hu.bep.data.interfaces.OrnamentRepository;
+
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -9,13 +17,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.security.application.annotation.RequiresOwnership;
-import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.data.interfaces.AquariumRepository;
-import nl.hu.bep.data.interfaces.AccessoryRepository;
-import nl.hu.bep.data.interfaces.InhabitantRepository;
-import nl.hu.bep.data.interfaces.OrnamentRepository;
-
 import java.util.Map;
 
 @Slf4j
@@ -32,13 +33,11 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private InhabitantRepository inhabitantRepository;
     private OrnamentRepository ornamentRepository;
 
-    // Default constructor for Jersey/JAX-RS
     public OwnershipFilter() {
-        // Initialize repositories manually since no CDI injection
-        this.aquariumRepository = new nl.hu.bep.data.AquariumRepositoryImpl();
-        this.accessoryRepository = new nl.hu.bep.data.AccessoryRepositoryImpl();
-        this.inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl();
-        this.ornamentRepository = new nl.hu.bep.data.OrnamentRepositoryImpl();
+        this.aquariumRepository = new AquariumRepositoryImpl();
+        this.accessoryRepository = new AccessoryRepositoryImpl();
+        this.inhabitantRepository = new InhabitantRepositoryImpl();
+        this.ornamentRepository = new OrnamentRepositoryImpl();
     }
 
     public OwnershipFilter(AquariumRepository aquariumRepository,

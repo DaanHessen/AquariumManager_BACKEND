@@ -7,8 +7,8 @@ import nl.hu.bep.exception.domain.DomainException;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.value.Dimensions;
 import nl.hu.bep.config.AquariumConstants;
-import lombok.*;
 
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashSet;

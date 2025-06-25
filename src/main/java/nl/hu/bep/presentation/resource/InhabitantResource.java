@@ -1,11 +1,5 @@
 package nl.hu.bep.presentation.resource;
 
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.SecurityContext;
-import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.application.service.AquariumManagerService;
 import nl.hu.bep.presentation.dto.request.InhabitantRequest;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
@@ -14,6 +8,12 @@ import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
 
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 

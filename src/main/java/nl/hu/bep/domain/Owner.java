@@ -1,13 +1,12 @@
 package nl.hu.bep.domain;
 
-import lombok.*;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.exception.domain.DomainException;
 import nl.hu.bep.domain.enums.Role;
 import nl.hu.bep.config.AquariumConstants;
 
+import lombok.*;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;

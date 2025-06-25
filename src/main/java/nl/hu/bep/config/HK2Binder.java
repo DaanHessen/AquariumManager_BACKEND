@@ -1,26 +1,16 @@
 package nl.hu.bep.config;
 
+import nl.hu.bep.data.*;
+import nl.hu.bep.data.interfaces.*;
+import nl.hu.bep.presentation.resource.*;
+import nl.hu.bep.presentation.dto.mapper.EntityMapper;
 import nl.hu.bep.application.service.AquariumManagerService;
 import nl.hu.bep.application.factory.InhabitantFactory;
-import nl.hu.bep.data.AccessoryRepositoryImpl;
-import nl.hu.bep.data.AquariumRepositoryImpl;
-import nl.hu.bep.data.InhabitantRepositoryImpl;
-import nl.hu.bep.data.OrnamentRepositoryImpl;
-import nl.hu.bep.data.OwnerRepositoryImpl;
-import nl.hu.bep.data.interfaces.AccessoryRepository;
-import nl.hu.bep.data.interfaces.AquariumRepository;
-import nl.hu.bep.data.interfaces.InhabitantRepository;
-import nl.hu.bep.data.interfaces.OrnamentRepository;
-import nl.hu.bep.data.interfaces.OwnerRepository;
-import nl.hu.bep.presentation.dto.mapper.EntityMapper;
-import nl.hu.bep.presentation.resource.AccessoryResource;
-import nl.hu.bep.presentation.resource.AquariumManagerResource;
-import nl.hu.bep.presentation.resource.InhabitantResource;
-import nl.hu.bep.presentation.resource.OrnamentResource;
 import nl.hu.bep.security.application.filter.AquariumSecurityFilter;
 import nl.hu.bep.security.application.filter.OwnershipFilter;
 import nl.hu.bep.security.application.service.AuthenticationService;
 import nl.hu.bep.security.application.service.JwtService;
+
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 import jakarta.inject.Singleton;

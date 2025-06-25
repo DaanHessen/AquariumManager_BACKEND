@@ -1,7 +1,8 @@
 package nl.hu.bep.exception.infrastructure;
 
-import jakarta.ws.rs.core.Response;
 import nl.hu.bep.exception.core.AquariumException;
+
+import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
 

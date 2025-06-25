@@ -1,5 +1,8 @@
 package nl.hu.bep.exception;
 
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.presentation.dto.response.ErrorResponse;
+
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -8,9 +11,6 @@ import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.presentation.dto.response.ApiResponse;
-import nl.hu.bep.presentation.dto.response.ErrorResponse;
-
 import java.util.HashMap;
 import java.util.Map;
 

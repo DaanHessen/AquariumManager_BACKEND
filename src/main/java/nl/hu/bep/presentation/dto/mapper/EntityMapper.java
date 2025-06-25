@@ -7,20 +7,8 @@ import nl.hu.bep.presentation.dto.response.*;
 import java.util.List;
 import java.util.Collections;
 
-/**
- * Streamlined DTO mapper service for entity-to-response conversions.
- * Focused on clean, maintainable mapping with consistent null handling.
- * Service layer orchestrates business logic; this mapper handles pure data transformation.
- */
 public class EntityMapper {
 
-    // ========== AQUARIUM MAPPING ==========
-    
-    /**
-     * Maps an Aquarium domain entity to a basic response DTO.
-     * @param aquarium the domain entity to map
-     * @return AquariumResponse with basic fields populated
-     */
     public AquariumResponse mapToAquariumResponse(Aquarium aquarium) {
         if (aquarium == null) {
             return null;
@@ -39,26 +27,16 @@ public class EntityMapper {
                 aquarium.getCurrentStateStartTime(),
                 aquarium.getCurrentStateDurationMinutes(),
                 aquarium.getOwnerId(),
-                null, // ownerEmail - populated separately when needed
-                Collections.emptyList(), // inhabitants - populated separately for detailed views
-                Collections.emptyList(), // accessories - populated separately for detailed views
-                Collections.emptyList(), // ornaments - populated separately for detailed views
+                null,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 aquarium.getColor(),
                 aquarium.getDescription(),
                 aquarium.getDateCreated()
         );
     }
 
-    /**
-     * Maps an Aquarium to response with complete relationship data.
-     * Used for detailed aquarium views that include all associated entities.
-     * @param aquarium the domain entity
-     * @param inhabitants mapped inhabitant responses
-     * @param accessories mapped accessory responses  
-     * @param ornaments mapped ornament responses
-     * @param ownerEmail optional owner email
-     * @return complete AquariumResponse with all relationships
-     */
     public AquariumResponse mapToDetailedAquariumResponse(Aquarium aquarium, 
                                                          List<InhabitantResponse> inhabitants,
                                                          List<AccessoryResponse> accessories,
@@ -91,14 +69,6 @@ public class EntityMapper {
         );
     }
 
-    // ========== ACCESSORY MAPPING ==========
-    
-    /**
-     * Maps an Accessory domain entity to response DTO.
-     * Handles different accessory types (Filter, Lighting, Thermostat) with type-specific fields.
-     * @param accessory the domain entity to map
-     * @return AccessoryResponse with type-appropriate fields populated
-     */
     public AccessoryResponse mapToAccessoryResponse(Accessory accessory) {
         if (accessory == null) {
             return null;
@@ -114,12 +84,12 @@ public class EntityMapper {
                         "Filter",
                         filter.isExternal(),
                         filter.getCapacityLiters(),
-                        null, // isLed - not applicable
-                        null, // turnOnTime - not applicable
-                        null, // turnOffTime - not applicable
-                        null, // minTemperature - not applicable
-                        null, // maxTemperature - not applicable
-                        null, // currentTemperature - not applicable
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         accessory.getColor(),
                         accessory.getDescription(),
                         accessory.getDateCreated()
@@ -132,14 +102,14 @@ public class EntityMapper {
                         accessory.getModel(),
                         accessory.getSerialNumber(),
                         "Lighting",
-                        null, // isExternal - not applicable
-                        null, // capacityLiters - not applicable
+                        null,
+                        null,
                         lighting.isLed(),
                         lighting.getTurnOnTime(),
                         lighting.getTurnOffTime(),
-                        null, // minTemperature - not applicable
-                        null, // maxTemperature - not applicable
-                        null, // currentTemperature - not applicable
+                        null,
+                        null,
+                        null,
                         accessory.getColor(),
                         accessory.getDescription(),
                         accessory.getDateCreated()
@@ -152,11 +122,11 @@ public class EntityMapper {
                         accessory.getModel(),
                         accessory.getSerialNumber(),
                         "Thermostat",
-                        null, // isExternal - not applicable
-                        null, // capacityLiters - not applicable
-                        null, // isLed - not applicable
-                        null, // turnOnTime - not applicable
-                        null, // turnOffTime - not applicable
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         thermostat.getMinTemperature(),
                         thermostat.getMaxTemperature(),
                         thermostat.getCurrentTemperature(),
@@ -169,13 +139,7 @@ public class EntityMapper {
         };
     }
 
-    // ========== ORNAMENT MAPPING ==========
-    
-    /**
-     * Maps an Ornament domain entity to response DTO.
-     * @param ornament the domain entity to map
-     * @return OrnamentResponse with all fields populated
-     */
+
     public OrnamentResponse mapToOrnamentResponse(Ornament ornament) {
         if (ornament == null) {
             return null;
@@ -192,13 +156,6 @@ public class EntityMapper {
         );
     }
 
-    // ========== INHABITANT MAPPING ==========
-    
-    /**
-     * Maps an Inhabitant domain entity to response DTO.
-     * @param inhabitant the domain entity to map
-     * @return InhabitantResponse with all fields populated
-     */
     public InhabitantResponse mapToInhabitantResponse(Inhabitant inhabitant) {
         if (inhabitant == null) {
             return null;
@@ -221,13 +178,6 @@ public class EntityMapper {
         );
     }
 
-    // ========== BULK MAPPING UTILITIES ==========
-    
-    /**
-     * Maps a list of entities to a list of responses using the appropriate mapper method.
-     * @param aquariums list of aquarium entities
-     * @return list of aquarium responses
-     */
     public List<AquariumResponse> mapToAquariumResponses(List<Aquarium> aquariums) {
         if (aquariums == null) {
             return Collections.emptyList();
@@ -237,11 +187,6 @@ public class EntityMapper {
                 .toList();
     }
 
-    /**
-     * Maps a list of accessory entities to responses.
-     * @param accessories list of accessory entities
-     * @return list of accessory responses
-     */
     public List<AccessoryResponse> mapToAccessoryResponses(List<Accessory> accessories) {
         if (accessories == null) {
             return Collections.emptyList();
@@ -251,11 +196,6 @@ public class EntityMapper {
                 .toList();
     }
 
-    /**
-     * Maps a list of ornament entities to responses.
-     * @param ornaments list of ornament entities
-     * @return list of ornament responses
-     */
     public List<OrnamentResponse> mapToOrnamentResponses(List<Ornament> ornaments) {
         if (ornaments == null) {
             return Collections.emptyList();
@@ -265,11 +205,6 @@ public class EntityMapper {
                 .toList();
     }
 
-    /**
-     * Maps a list of inhabitant entities to responses.
-     * @param inhabitants list of inhabitant entities
-     * @return list of inhabitant responses
-     */
     public List<InhabitantResponse> mapToInhabitantResponses(List<Inhabitant> inhabitants) {
         if (inhabitants == null) {
             return Collections.emptyList();

@@ -1,7 +1,7 @@
 package nl.hu.bep.application.factory;
 
-import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.species.*;
+import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.exception.ApplicationException;
 

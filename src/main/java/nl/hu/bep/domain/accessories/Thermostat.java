@@ -1,6 +1,7 @@
 package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
+
 import lombok.*;
 
 @Getter

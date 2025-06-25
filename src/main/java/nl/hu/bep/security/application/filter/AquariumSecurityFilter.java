@@ -1,5 +1,11 @@
 package nl.hu.bep.security.application.filter;
 
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.security.application.annotation.Secured;
+import nl.hu.bep.security.application.context.AquariumSecurityContext;
+import nl.hu.bep.security.application.service.JwtService;
+import nl.hu.bep.config.AquariumConstants;
+
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.Priority;
@@ -13,12 +19,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.config.AquariumConstants;
-import nl.hu.bep.presentation.dto.response.ApiResponse;
-import nl.hu.bep.security.application.annotation.Secured;
-import nl.hu.bep.security.application.context.AquariumSecurityContext;
-import nl.hu.bep.security.application.service.JwtService;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,16 +35,13 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    // Default constructor for Jersey/JAX-RS
     public AquariumSecurityFilter() {
-        // HK2 will inject dependencies, but ensure we have a fallback
     }
 
     public AquariumSecurityFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
-    // Ensure JwtService is available - either injected by HK2 or create manually
     private JwtService getJwtService() {
         if (jwtService == null) {
             jwtService = new JwtService();

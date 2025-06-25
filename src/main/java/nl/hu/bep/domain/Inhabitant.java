@@ -4,6 +4,7 @@ import nl.hu.bep.domain.base.OwnedEntity;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.config.AquariumConstants;
+
 import lombok.*;
 import java.util.Optional;
 import java.time.LocalDateTime;

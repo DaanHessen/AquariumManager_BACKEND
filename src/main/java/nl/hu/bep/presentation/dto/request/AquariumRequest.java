@@ -1,12 +1,13 @@
 package nl.hu.bep.presentation.dto.request;
 
+import nl.hu.bep.domain.enums.AquariumState;
+import nl.hu.bep.domain.enums.SubstrateType;
+import nl.hu.bep.domain.enums.WaterType;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import nl.hu.bep.domain.enums.AquariumState;
-import nl.hu.bep.domain.enums.SubstrateType;
-import nl.hu.bep.domain.enums.WaterType;
 
 public record AquariumRequest(
     @NotBlank(message = "Name cannot be empty")

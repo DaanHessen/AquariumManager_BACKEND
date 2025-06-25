@@ -1,7 +1,8 @@
 package nl.hu.bep.domain.utils;
 
-import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.domain.enums.WaterType;
+
+import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 
 @Slf4j

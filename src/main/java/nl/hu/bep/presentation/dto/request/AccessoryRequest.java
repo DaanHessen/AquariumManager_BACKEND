@@ -1,9 +1,10 @@
 package nl.hu.bep.presentation.dto.request;
 
+import nl.hu.bep.config.AquariumConstants;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import nl.hu.bep.config.AquariumConstants;
 import java.time.LocalTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

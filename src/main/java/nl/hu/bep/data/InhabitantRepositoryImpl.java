@@ -3,6 +3,7 @@ package nl.hu.bep.data;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.data.interfaces.InhabitantRepository;
+
 import java.sql.*;
 import java.util.List;
 

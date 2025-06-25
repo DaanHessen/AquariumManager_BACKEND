@@ -1,9 +1,10 @@
 package nl.hu.bep.domain;
 
-import lombok.*;
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.exception.domain.OwnershipException;
+
+import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
 

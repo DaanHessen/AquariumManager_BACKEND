@@ -1,11 +1,11 @@
 package nl.hu.bep.domain;
 
-import lombok.*;
 import nl.hu.bep.domain.utils.Validator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import lombok.*;
 
 @Getter
 @EqualsAndHashCode(of = "id")

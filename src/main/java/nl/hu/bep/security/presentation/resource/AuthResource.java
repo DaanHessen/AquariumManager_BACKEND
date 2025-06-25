@@ -20,9 +20,7 @@ import java.util.Map;
 public class AuthResource {
     private final AuthenticationService authenticationService;
 
-    // No-argument constructor for Jersey
     public AuthResource() {
-        // Manually instantiate dependencies without CDI
         JwtService jwtService = new JwtService();
         OwnerRepositoryImpl ownerRepository = new OwnerRepositoryImpl();
         this.authenticationService = new AuthenticationService(jwtService, ownerRepository);
