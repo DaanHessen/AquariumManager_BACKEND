@@ -7,10 +7,6 @@ import nl.hu.bep.exception.domain.OwnershipException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/**
- * Represents an ornament in an aquarium.
- * Clean POJO implementation following DDD principles.
- */
 @Getter
 @Builder(access = AccessLevel.PACKAGE)
 @EqualsAndHashCode(of = "id", callSuper = false)
@@ -27,10 +23,6 @@ public class Ornament extends AssignableEntity {
     private Long ownerId;
     private LocalDateTime dateCreated;
 
-    /**
-     * Single factory method to create a new Ornament.
-     * Uses Optional for nullable fields to avoid multiple method overloads.
-     */
     public static Ornament create(String name, Long ownerId, Optional<String> description, Optional<String> color, Optional<String> material, Optional<Boolean> isAirPumpCompatible) {
         Validator.notEmpty(name, "Ornament name");
         Validator.notNull(ownerId, "Owner ID");
@@ -46,7 +38,6 @@ public class Ornament extends AssignableEntity {
                 .build();
     }
 
-    // Business logic methods for internal updates
     private void updateName(String name) {
         this.name = Validator.notEmpty(name, "Ornament name");
     }
@@ -67,10 +58,6 @@ public class Ornament extends AssignableEntity {
         this.isAirPumpCompatible = isAirPumpCompatible;
     }
 
-    /**
-     * Single method to update an Ornament's properties.
-     * Uses Optional to allow partial updates.
-     */
     public Ornament update(Optional<String> name, Optional<String> description, Optional<String> color, Optional<String> material, Optional<Boolean> isAirPumpCompatible) {
         name.ifPresent(this::updateName);
         description.ifPresent(this::updateDescription);
@@ -80,7 +67,6 @@ public class Ornament extends AssignableEntity {
         return this;
     }
 
-    // Secure aquarium assignment methods with domain validation
     public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
         validateOwnership(requestingOwnerId);
         super.assignToAquarium(aquariumId);
@@ -91,12 +77,10 @@ public class Ornament extends AssignableEntity {
         super.removeFromAquarium();
     }
 
-    // For JPA compatibility (if needed)
     public void setAquarium(Aquarium aquarium) {
         this.aquariumId = aquarium != null ? aquarium.getId() : null;
     }
 
-    // Repository reconstruction method for JDBC mapping
     public static Ornament reconstruct(Long id, String name, String description, String color,
                                      String material, boolean isAirPumpCompatible, Long ownerId,
                                      Long aquariumId, LocalDateTime dateCreated) {
@@ -114,7 +98,6 @@ public class Ornament extends AssignableEntity {
         return ornament;
     }
 
-    // Native domain ownership validation - DDD compliant
     public void validateOwnership(Long requestingOwnerId) {
         Validator.notNull(requestingOwnerId, "Requesting Owner ID");
         if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {

@@ -32,7 +32,6 @@ public class Owner {
     private Set<Long> aquariumIds = new HashSet<>();
     private Long aquariumManagerId;
 
-    // Factory method for new owners with plain password
     public static Owner create(String firstName, String lastName, String email, String password) {
         Validator.notEmpty(firstName, "First name");
         Validator.notEmpty(lastName, "Last name");
@@ -44,7 +43,6 @@ public class Owner {
         return createWithHashedPassword(firstName, lastName, email, hashedPassword);
     }
     
-    // Factory method for internal use with pre-hashed password
     public static Owner createWithHashedPassword(String firstName, String lastName, String email, String hashedPassword) {
         return Owner.builder()
                 .firstName(firstName)
@@ -58,7 +56,6 @@ public class Owner {
                 .build();
     }
 
-    // Business logic methods with proper validation
     public void changePassword(String currentPassword, String newPassword) {
         if (!verifyPassword(currentPassword)) {
             throw new DomainException("Current password is incorrect");
@@ -127,7 +124,6 @@ public class Owner {
         this.aquariumManagerId = managerId;
     }
 
-    // Query methods
     public String getFullName() {
         return firstName + " " + lastName;
     }
@@ -170,14 +166,13 @@ public class Owner {
         }
     }
 
-    // Native domain ownership validation methods - DDD compliant
     public void validateOwnsAquarium(Long aquariumId) {
         if (aquariumId == null) {
             throw new DomainException("Aquarium ID is required for ownership validation");
         }
         
         if (isAdmin()) {
-            return; // Admins can access any aquarium
+            return;
         }
         
         if (!aquariumIds.contains(aquariumId)) {
@@ -191,7 +186,7 @@ public class Owner {
         }
         
         if (isAdmin()) {
-            return; // Admins can modify any entity
+            return;
         }
         
         if (!this.id.equals(entityOwnerId)) {
@@ -204,7 +199,6 @@ public class Owner {
         validateCanModifyEntity(entityOwnerId);
     }
 
-    // Public method for repository reconstruction only
     public static Owner reconstruct(Long id, String firstName, String lastName, String email, 
                            String password, Role role, LocalDateTime lastLogin, 
                            LocalDateTime dateCreated, Long aquariumManagerId, Set<Long> aquariumIds) {

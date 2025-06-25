@@ -9,10 +9,6 @@ import nl.hu.bep.domain.accessories.Thermostat;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 
-/**
- * Abstract base class for all aquarium accessories.
-
- */
 @Getter
 @EqualsAndHashCode(of = "id", callSuper = false)
 @ToString(exclude = {"aquariumId"})
@@ -23,12 +19,11 @@ public abstract class Accessory extends AssignableEntity {
   private String model;
   private String serialNumber;
   private Long ownerId;
-  private Long aquariumId; // ID-based relationship
+  private Long aquariumId;
   private String color;
   private String description;
   private LocalDateTime dateCreated;
 
-  // Protected constructor for subclasses
   protected Accessory(String model, String serialNumber, Long ownerId) {
     this.model = Validator.notEmpty(model, "Accessory model");
     this.serialNumber = Validator.notEmpty(serialNumber, "Accessory serial number");
@@ -36,7 +31,6 @@ public abstract class Accessory extends AssignableEntity {
     this.dateCreated = LocalDateTime.now();
   }
 
-  // Business methods
   public void updateModel(String model) {
     this.model = Validator.notEmpty(model, "Accessory model");
   }
@@ -53,7 +47,6 @@ public abstract class Accessory extends AssignableEntity {
     this.description = description;
   }
 
-  // Comprehensive update method
   public Accessory update(String model, String serialNumber, String color, String description) {
     if (model != null) updateModel(model);
     if (serialNumber != null) updateSerialNumber(serialNumber);
@@ -62,26 +55,20 @@ public abstract class Accessory extends AssignableEntity {
     return this;
   }
 
-  // Secure aquarium assignment methods with domain validation
   public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
-      // Domain security: Only owner can assign accessory to aquarium
       if (!this.ownerId.equals(requestingOwnerId)) {
           throw new IllegalArgumentException("Only the accessory owner can assign it to an aquarium");
       }
-      // Direct assignment with validation passed
       this.aquariumId = aquariumId;
   }
 
   public void removeFromAquarium(Long requestingOwnerId) {
-      // Domain security: Only owner can remove accessory from aquarium
       if (!this.ownerId.equals(requestingOwnerId)) {
           throw new IllegalArgumentException("Only the accessory owner can remove it from an aquarium");
       }
-      // Direct removal with validation passed
       this.aquariumId = null;
   }
 
-  // Ownership validation method - duplicated from OwnedEntity pattern
   public void validateOwnership(Long requestingOwnerId) {
       if (requestingOwnerId == null) {
           throw new IllegalArgumentException("Requesting Owner ID cannot be null");
@@ -91,10 +78,8 @@ public abstract class Accessory extends AssignableEntity {
       }
   }
 
-  // Abstract method for accessory type
   public abstract String getAccessoryType();
 
-  // Repository access methods - subclasses provide appropriate values
   public abstract boolean isExternal();
   public abstract int getCapacityLiters();
   public abstract boolean isLed();
@@ -104,7 +89,6 @@ public abstract class Accessory extends AssignableEntity {
   public abstract double getMaxTemperature();
   public abstract double getCurrentTemperature();
 
-  // Public method for repository reconstruction only
   public static Accessory reconstruct(String type, Long id, String model, String serialNumber, 
                                      Long ownerId, Long aquariumId, String color, String description,
                                      LocalDateTime dateCreated, boolean isExternal, int capacityLiters,
@@ -122,7 +106,6 @@ public abstract class Accessory extends AssignableEntity {
       default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
     };
 
-    // Set reconstructed properties
     accessory.id = id;
     accessory.aquariumId = aquariumId;
     accessory.color = color;
@@ -132,7 +115,6 @@ public abstract class Accessory extends AssignableEntity {
     return accessory;
   }
 
-  // Factory method for creating accessories from type
   public static Accessory createFromType(String type, String model, String serialNumber,
       boolean isExternal, int capacityLiters,
       boolean isLED, LocalTime timeOn, LocalTime timeOff,
@@ -145,7 +127,6 @@ public abstract class Accessory extends AssignableEntity {
 
     Accessory accessory = switch (type.toLowerCase()) {
       case "filter" -> {
-        // Only validate capacity for filters when actually provided
         if (capacityLiters <= 0) {
           throw new IllegalArgumentException("Filter capacity must be provided and positive");
         }
@@ -153,7 +134,6 @@ public abstract class Accessory extends AssignableEntity {
       }
       case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
       case "heater", "thermostat" -> {
-        // Validate temperature ranges for thermostats
         if (minTemperature <= 0) {
           throw new IllegalArgumentException("Minimum temperature must be positive");
         }

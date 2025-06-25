@@ -1,17 +1,11 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Inhabitant;
-import nl.hu.bep.domain.species.*;
 import nl.hu.bep.domain.enums.WaterType;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Ultra-simple InhabitantRepository - PURE JDBC operations only.
- * No business logic is handled here.
- */
-public class InhabitantRepository extends Repository<Inhabitant, Long> {
+public class InhabitantRepositoryImpl extends RepositoryImpl<Inhabitant, Long> {
     
     @Override
     protected String getTableName() { return "inhabitants"; }
@@ -63,7 +57,6 @@ public class InhabitantRepository extends Repository<Inhabitant, Long> {
         setDateTime(ps, 9, inhabitant.getDateCreated());
         ps.setString(10, inhabitant.getType());
         
-        // Type-specific properties - NO REFLECTION
         Inhabitant.InhabitantProperties props = inhabitant.getTypeSpecificProperties();
         ps.setBoolean(11, props.isAggressiveEater);
         ps.setBoolean(12, props.requiresSpecialFood);
@@ -81,7 +74,6 @@ public class InhabitantRepository extends Repository<Inhabitant, Long> {
         ps.setString(6, inhabitant.getName());
         ps.setString(7, inhabitant.getDescription());
         
-        // Type-specific properties - NO REFLECTION
         Inhabitant.InhabitantProperties props = inhabitant.getTypeSpecificProperties();
         ps.setBoolean(8, props.isAggressiveEater);
         ps.setBoolean(9, props.requiresSpecialFood);
@@ -90,7 +82,6 @@ public class InhabitantRepository extends Repository<Inhabitant, Long> {
         ps.setLong(12, inhabitant.getId());
     }
     
-    // Query methods
     public List<Inhabitant> findByOwnerId(Long ownerId) {
         return findByField("owner_id", ownerId);
     }

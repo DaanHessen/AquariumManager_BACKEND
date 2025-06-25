@@ -1,18 +1,11 @@
 package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Accessory;
-import nl.hu.bep.domain.accessories.Filter;
-import nl.hu.bep.domain.accessories.Lighting;
-import nl.hu.bep.domain.accessories.Thermostat;
 import java.sql.*;
 import java.time.LocalTime;
 import java.util.List;
 
-/**
- * Ultra-simple AccessoryRepository - PURE JDBC operations only.
- * No complex polymorphic logic or type switching.
- */
-public class AccessoryRepository extends Repository<Accessory, Long> {
+public class AccessoryRepositoryImpl extends RepositoryImpl<Accessory, Long> {
     
     @Override
     protected String getTableName() { return "accessories"; }
@@ -32,7 +25,6 @@ public class AccessoryRepository extends Repository<Accessory, Long> {
     
     @Override
     protected Accessory mapRow(ResultSet rs) throws SQLException {
-        // Simple approach - let domain handle the complexity
         return Accessory.reconstruct(
                 rs.getString("accessory_type"),
                 rs.getLong("id"),
@@ -65,7 +57,6 @@ public class AccessoryRepository extends Repository<Accessory, Long> {
         ps.setTimestamp(7, Timestamp.valueOf(accessory.getDateCreated()));
         ps.setString(8, accessory.getAccessoryType());
         
-        // Domain provides the right values - no logic here
         ps.setBoolean(9, accessory.isExternal());
         ps.setInt(10, accessory.getCapacityLiters());
         ps.setBoolean(11, accessory.isLed());
@@ -82,7 +73,6 @@ public class AccessoryRepository extends Repository<Accessory, Long> {
         ps.setLong(17, accessory.getId());
     }
     
-    // Simple queries - NO business logic
     public List<Accessory> findByOwnerId(Long ownerId) {
         return findByField("owner_id", ownerId);
     }

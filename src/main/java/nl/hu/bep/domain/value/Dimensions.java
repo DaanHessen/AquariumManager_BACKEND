@@ -27,7 +27,6 @@ public class Dimensions {
         return (length * width * height) / 1000;
     }
 
-    // Convenience method
     public double getVolume() {
         return getVolumeInLiters();
     }

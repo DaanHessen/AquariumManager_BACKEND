@@ -2,14 +2,10 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Ornament;
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Ultra-simple OrnamentRepository - PURE JDBC operations only.
- * No business logic is handled here.
- */
-public class OrnamentRepository extends Repository<Ornament, Long> {
+
+public class OrnamentRepositoryImpl extends RepositoryImpl<Ornament, Long> {
     
     @Override
     protected String getTableName() {
@@ -64,7 +60,6 @@ public class OrnamentRepository extends Repository<Ornament, Long> {
         ps.setLong(9, ornament.getId());
     }
 
-    // Helper methods for nullable Long values
     private Long getLongOrNull(ResultSet rs, String columnName) throws SQLException {
         long value = rs.getLong(columnName);
         return rs.wasNull() ? null : value;
@@ -78,16 +73,10 @@ public class OrnamentRepository extends Repository<Ornament, Long> {
         }
     }
     
-    /**
-     * Find ornaments by owner ID
-     */
     public List<Ornament> findByOwnerId(Long ownerId) {
         return findByField("owner_id", ownerId);
     }
     
-    /**
-     * Find ornaments by aquarium ID
-     */
     public List<Ornament> findByAquariumId(Long aquariumId) {
         return findByField("aquarium_id", aquariumId);
     }

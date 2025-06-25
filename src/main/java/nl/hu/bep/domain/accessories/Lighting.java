@@ -62,12 +62,11 @@ public class Lighting extends Accessory {
         this.isLed = isLed;
     }
 
-    // Repository access methods
     @Override
-    public boolean isExternal() { return false; } // Lighting doesn't have external
+    public boolean isExternal() { return false; }
     
     @Override
-    public int getCapacityLiters() { return 0; } // Lighting doesn't have capacity
+    public int getCapacityLiters() { return 0; }
     
     @Override
     public boolean isLed() { return isLed; }
@@ -79,11 +78,11 @@ public class Lighting extends Accessory {
     public LocalTime getTurnOffTime() { return turnOffTime; }
     
     @Override
-    public double getMinTemperature() { return 0.0; } // Lighting doesn't have temperature
+    public double getMinTemperature() { return 0.0; }
     
     @Override
-    public double getMaxTemperature() { return 0.0; } // Lighting doesn't have temperature
+    public double getMaxTemperature() { return 0.0; }
     
     @Override
-    public double getCurrentTemperature() { return 0.0; } // Lighting doesn't have temperature
+    public double getCurrentTemperature() { return 0.0; }
 }

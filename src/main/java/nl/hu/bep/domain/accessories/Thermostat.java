@@ -3,10 +3,6 @@ package nl.hu.bep.domain.accessories;
 import nl.hu.bep.domain.Accessory;
 import lombok.*;
 
-/**
- * Represents a temperature control accessory for aquariums.
-
- */
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -20,8 +16,8 @@ public class Thermostat extends Accessory {
     public Thermostat(String model, String serialNumber, double minTemperature, 
                      double maxTemperature, double currentTemperature, Long ownerId) {
         super(model, serialNumber, ownerId);
-        this.minTemperature = minTemperature; // Remove duplicate validation - factory already validates
-        this.maxTemperature = maxTemperature; // Remove duplicate validation - factory already validates  
+        this.minTemperature = minTemperature;
+        this.maxTemperature = maxTemperature;
         this.currentTemperature = currentTemperature;
     }
 
@@ -30,7 +26,6 @@ public class Thermostat extends Accessory {
         return "Thermostat";
     }
 
-    // Business logic methods
     public void updateProperties(double minTemperature, double maxTemperature, double currentTemperature) {
         if (minTemperature <= 0) {
             throw new IllegalArgumentException("Minimum temperature must be positive");
@@ -70,7 +65,6 @@ public class Thermostat extends Accessory {
         this.currentTemperature = currentTemperature;
     }
 
-    // Business calculations
     public boolean isWithinRange() {
         return currentTemperature >= minTemperature && currentTemperature <= maxTemperature;
     }
@@ -93,21 +87,20 @@ public class Thermostat extends Accessory {
         return "OPTIMAL";
     }
 
-    // Repository access methods
     @Override
-    public boolean isExternal() { return false; } // Thermostats don't have external
+    public boolean isExternal() { return false; }
     
     @Override
-    public int getCapacityLiters() { return 0; } // Thermostats don't have capacity
+    public int getCapacityLiters() { return 0; }
     
     @Override
-    public boolean isLed() { return false; } // Thermostats don't have LED
+    public boolean isLed() { return false; }
     
     @Override
-    public java.time.LocalTime getTurnOnTime() { return null; } // Thermostats don't have time settings
+    public java.time.LocalTime getTurnOnTime() { return null; }
     
     @Override
-    public java.time.LocalTime getTurnOffTime() { return null; } // Thermostats don't have time settings
+    public java.time.LocalTime getTurnOffTime() { return null; }
     
     @Override
     public double getMinTemperature() { return minTemperature; }

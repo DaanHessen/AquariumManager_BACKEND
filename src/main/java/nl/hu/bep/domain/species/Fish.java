@@ -9,13 +9,7 @@ import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.exception.domain.DomainException;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
-import java.util.Optional;
 
-/**
- * Represents a fish in an aquarium.
- * Rich domain model with business logic following DDD principles.
- */
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -46,7 +40,6 @@ public class Fish extends Inhabitant {
         return new InhabitantProperties(isAggressiveEater, requiresSpecialFood, isSnailEater);
     }
 
-    // Business logic methods
     public void updateProperties(boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
         this.isAggressiveEater = isAggressiveEater;
         this.requiresSpecialFood = requiresSpecialFood;
@@ -54,15 +47,13 @@ public class Fish extends Inhabitant {
         validateFishSpecificRules();
     }
 
-    // Rich domain behavior - business logic methods
     @Override
     public boolean isCompatibleWith(Inhabitant other) {
-        // Snail eaters are incompatible with snails
         if (this.isSnailEater && "Snail".equals(other.getInhabitantType())) {
-            return false;
+            return false; // fish that eat snails shouldn't be with snails
         }
 
-        if (!(other instanceof Fish otherFish)) return true; // Fish are compatible with non-fish (except snails when snail eater)
+        if (!(other instanceof Fish otherFish)) return true;
 
         // Aggressive eaters are incompatible with non-aggressive fish of the same or smaller size
         if (this.isAggressiveEater && !otherFish.isAggressiveEater && this.getCount() >= otherFish.getCount()) {
@@ -72,55 +63,10 @@ public class Fish extends Inhabitant {
         return true;
     }
 
-    // Factory methods
-    public static Fish create(String species, String name, Long ownerId, Optional<String> color, Optional<Integer> count, 
-                            Optional<Boolean> isSchooling, Optional<WaterType> waterType, 
-                            Optional<String> description, InhabitantProperties properties) {
-        return Fish.builder()
-                .name(name)
-                .species(species)
-                .ownerId(ownerId)
-                .color(color.orElse(null))
-                .count(count.orElse(null))
-                .isSchooling(isSchooling.orElse(null))
-                .waterType(waterType.orElse(null))
-                .description(description.orElse(null))
-                .isAggressiveEater(properties != null ? properties.isAggressiveEater : false)
-                .requiresSpecialFood(properties != null ? properties.requiresSpecialFood : false)
-                .isSnailEater(properties != null ? properties.isSnailEater : false)
-                .build();
-    }
-
-    public static Fish reconstruct(long id, String name, String species, int count, 
-                                 boolean isSchooling, WaterType waterType, Long ownerId, String color, 
-                                 String description, LocalDateTime dateCreated, Long aquariumId, 
-                                 boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
-        return Fish.builder()
-                .id(id)
-                .name(name)
-                .species(species)
-                .count(count)
-                .isSchooling(isSchooling)
-                .waterType(waterType)
-                .ownerId(ownerId)
-                .color(color)
-                .description(description)
-                .dateCreated(dateCreated)
-                .aquariumId(aquariumId)
-                .isAggressiveEater(isAggressiveEater)
-                .requiresSpecialFood(requiresSpecialFood)
-                .isSnailEater(isSnailEater)
-                .build();
-    }
-
     private void validateFishSpecificRules() {
-        // Example validation: Snail eaters cannot be schooling fish
-        if (this.isSnailEater && this.isSchooling()) {
-            throw new DomainException("Snail-eating fish cannot be schooling fish.");
-        }
+        return;
     }
 
-    // Polymorphic methods to eliminate instanceof checks
     @Override
     public String getInhabitantType() {
         return "Fish";

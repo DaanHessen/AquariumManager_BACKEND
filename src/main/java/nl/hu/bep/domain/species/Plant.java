@@ -8,12 +8,7 @@ import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-/**
- * Represents a plant in an aquarium.
- * Clean POJO implementation following DDD principles.
- */
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -31,16 +26,13 @@ public class Plant extends Inhabitant {
 
     @Override
     public InhabitantProperties getTypeSpecificProperties() {
-        return InhabitantProperties.defaults(); // Plants have no special properties
+        return InhabitantProperties.defaults();
     }
 
     public boolean isCompatibleWith(Inhabitant other) {
-        // Herbivorous fish might eat plants. For now, we assume compatibility.
-        // This could be extended with more specific rules.
-        return true;
+        return true; // dont care
     }
 
-    // Polymorphic methods to eliminate instanceof checks
     @Override
     public String getInhabitantType() {
         return "Plant";
@@ -48,51 +40,16 @@ public class Plant extends Inhabitant {
 
     @Override
     public Boolean getAggressiveEater() {
-        return false; // Plants don't eat
+        return false;
     }
 
     @Override
     public Boolean getRequiresSpecialFood() {
-        return false; // Plants photosynthesize
+        return false;
     }
 
     @Override
     public Boolean getSnailEater() {
-        return false; // Plants don't eat
-    }
-
-    // Factory methods
-    public static Plant create(String species, String name, Long ownerId, Optional<String> color, Optional<Integer> count,
-                               Optional<Boolean> isSchooling, Optional<WaterType> waterType,
-                               Optional<String> description, InhabitantProperties properties) {
-        return Plant.builder()
-                .name(name)
-                .species(species)
-                .ownerId(ownerId)
-                .color(color.orElse(null))
-                .count(count.orElse(null))
-                .isSchooling(isSchooling.orElse(null))
-                .waterType(waterType.orElse(null))
-                .description(description.orElse(null))
-                .build();
-    }
-
-    public static Plant reconstruct(long id, String name, String species, int count,
-                                    boolean isSchooling, WaterType waterType, Long ownerId, String color,
-                                    String description, LocalDateTime dateCreated, Long aquariumId,
-                                    boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
-        return Plant.builder()
-                .id(id)
-                .name(name)
-                .species(species)
-                .count(count)
-                .isSchooling(isSchooling)
-                .waterType(waterType)
-                .ownerId(ownerId)
-                .color(color)
-                .description(description)
-                .dateCreated(dateCreated)
-                .aquariumId(aquariumId)
-                .build();
+        return false;
     }
 }

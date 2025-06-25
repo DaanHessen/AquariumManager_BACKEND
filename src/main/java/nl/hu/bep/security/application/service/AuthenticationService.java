@@ -4,7 +4,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.config.AquariumConstants;
-import nl.hu.bep.data.OwnerRepository;
+import nl.hu.bep.data.OwnerRepositoryImpl;
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.exception.security.SecurityException;
 import nl.hu.bep.presentation.dto.security.AuthRequest;
@@ -19,10 +19,10 @@ import java.util.Optional;
 @ApplicationScoped
 public class AuthenticationService {
     private final JwtService jwtService;
-    private final OwnerRepository ownerRepository;
+    private final OwnerRepositoryImpl ownerRepository;
 
     @Inject
-    public AuthenticationService(JwtService jwtService, OwnerRepository ownerRepository) {
+    public AuthenticationService(JwtService jwtService, OwnerRepositoryImpl ownerRepository) {
         this.jwtService = jwtService;
         this.ownerRepository = ownerRepository;
     }
@@ -68,7 +68,6 @@ public class AuthenticationService {
 
         log.info("User authenticated successfully: {}", owner.getEmail());
 
-        // Domain method handles login recording
         owner.recordLogin();
         ownerRepository.update(owner);
 

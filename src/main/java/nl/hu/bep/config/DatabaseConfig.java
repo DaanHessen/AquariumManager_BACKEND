@@ -13,13 +13,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+// TODO: simplify
+
 @Slf4j
 public class DatabaseConfig {
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static String jdbcUrl;
 
     static {
-        // Explicitly load PostgreSQL driver
         try {
             Class.forName("org.postgresql.Driver");
             log.info("PostgreSQL JDBC driver loaded successfully");
@@ -43,7 +44,6 @@ public class DatabaseConfig {
         jdbcUrl = envUrl;
         log.info("JDBC URL: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
         
-        // Initialize schema if database is empty
         initializeSchemaIfEmpty();
         
         initialized.set(true);
@@ -78,7 +78,6 @@ public class DatabaseConfig {
     private static void executeSchemaScript(Connection connection) throws SQLException {
         try (InputStream is = DatabaseConfig.class.getResourceAsStream("/schema.sql")) {
             if (is == null) {
-                // Try alternative path
                 try (InputStream altIs = DatabaseConfig.class.getClassLoader().getResourceAsStream("schema.sql")) {
                     if (altIs == null) {
                         throw new RuntimeException("Schema file not found in classpath");
@@ -105,7 +104,6 @@ public class DatabaseConfig {
             }
         }
 
-        // Execute the script
         try (Statement statement = connection.createStatement()) {
             statement.execute(script.toString());
         }

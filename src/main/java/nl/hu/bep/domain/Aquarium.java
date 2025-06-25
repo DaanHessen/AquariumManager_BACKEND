@@ -15,10 +15,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Pure JDBC Aquarium entity - ID-based relationships only.
- * Clean DDD implementation with domain security.
- */
 @Getter
 @EqualsAndHashCode(of = "id")
 @ToString(exclude = {"ownerId", "aquariumManagerId"})
@@ -39,7 +35,6 @@ public class Aquarium {
     private String description;
     private LocalDateTime dateCreated;
 
-    // ID-based relationships for pure JDBC
     private Long ownerId;
     private Long aquariumManagerId;
 
@@ -67,7 +62,6 @@ public class Aquarium {
         return aquarium;
     }
 
-    // Repository reconstruction method for JDBC mapping - NO REFLECTION
     public static Aquarium reconstruct(Long id, String name, Dimensions dimensions,
                                      SubstrateType substrate, WaterType waterType, Double temperature,
                                      AquariumState state, LocalDateTime currentStateStartTime,
@@ -117,7 +111,6 @@ public class Aquarium {
         }
     }
 
-    // Domain assignment methods
     public void assignToOwner(Long ownerId) {
         Validator.notNull(ownerId, "Owner ID");
         this.ownerId = ownerId;
@@ -139,7 +132,6 @@ public class Aquarium {
         return this.ownerId != null && this.ownerId.equals(ownerId);
     }
 
-    // Unified domain ownership validation - DDD compliant
     public void validateOwnership(Long requestingOwnerId) {
         if (requestingOwnerId == null) {
             throw new DomainException("Owner ID is required for ownership verification");
@@ -203,35 +195,25 @@ public class Aquarium {
         transitionToState(AquariumState.INACTIVE);
     }
 
-    /**
-     * Handles state transition with proper history tracking
-     */
+    // might remove this shit
     private void transitionToState(AquariumState newState) {
         if (this.state == newState) {
-            return; // No change needed
+            return;
         }
 
-        // Update current state and timestamp
         this.state = newState;
         this.currentStateStartTime = LocalDateTime.now();
     }
 
-    /**
-     * Handles state transition with frontend-provided duration for the previous state
-     */
     public void transitionToStateWithDuration(AquariumState newState, Long previousStateDurationMinutes) {
         if (this.state == newState) {
-            return; // No change needed
+            return;
         }
 
-        // Update current state and timestamp
         this.state = newState;
         this.currentStateStartTime = LocalDateTime.now();
     }
 
-    /**
-     * Gets the current state duration in minutes
-     */
     public long getCurrentStateDurationMinutes() {
         if (currentStateStartTime == null) {
             return 0;
@@ -243,65 +225,41 @@ public class Aquarium {
         return dimensions.getVolume();
     }
 
-    // Rich domain business logic methods
-
-    /**
-     * Calculate recommended inhabitant capacity based on water type and volume
-     */
     public int getRecommendedInhabitantCapacity() {
         double volume = getVolume();
 
         return switch (waterType) {
             case FRESHWATER -> (int) (volume / 5.0); // 5 liters per small fish
-            case SALTWATER -> (int) (volume / 8.0);  // 8 liters per marine fish (more space needed)
-            case BRACKISH -> (int) (volume / 6.0);   // 6 liters per brackish fish
+            case SALTWATER -> (int) (volume / 8.0);  // 8 liters per marine fish
         };
     }
 
-    /**
-     * Check if aquarium can accommodate additional inhabitants
-     */
     public boolean canAccommodate(int additionalInhabitants) {
         if (state != AquariumState.RUNNING) {
-            return false; // Can't add inhabitants to non-running aquarium
+            return false; // if aquarium isn't running, can't add new inhabitants
         }
 
-        // This would typically check current inhabitant count + new ones against capacity
-        // For now, just check against recommended capacity
+        // maybe add proper capacity too
         return additionalInhabitants <= getRecommendedInhabitantCapacity();
     }
 
-    /**
-     * Validate water compatibility
-     */
     public boolean isWaterTypeCompatible(WaterType inhabitantWaterType) {
         return this.waterType == inhabitantWaterType;
     }
 
-    /**
-     * Temperature range validation
-     */
+    // might delete
     public boolean isTemperatureInRange(double minTemp, double maxTemp) {
         return temperature != null && temperature >= minTemp && temperature <= maxTemp;
     }
 
-    /**
-     * Check if aquarium is suitable for tropical fish
-     */
     public boolean isSuitableForTropicalFish() {
         return isTemperatureInRange(24.0, 28.0) && waterType == WaterType.FRESHWATER;
     }
 
-    /**
-     * Check if aquarium is suitable for marine fish
-     */
     public boolean isSuitableForMarineFish() {
         return isTemperatureInRange(22.0, 26.0) && waterType == WaterType.SALTWATER;
     }
 
-    /**
-     * Validate aquarium readiness for inhabitants
-     */
     public void validateReadinessForInhabitants() {
         if (state != AquariumState.RUNNING) {
             throw new DomainException("Aquarium must be running before adding inhabitants");
@@ -320,49 +278,32 @@ public class Aquarium {
         }
     }
 
-    /**
-     * Business rule for substrate compatibility
-     */
     public boolean isSubstrateCompatibleWith(String fishSpecies) {
-        // Different fish prefer different substrates
-        return switch (substrate) {
-            case SAND -> true; // Sand is generally safe for all fish
-            case GRAVEL -> !fishSpecies.toLowerCase().contains("betta"); // Bettas prefer softer substrates
-            case SOIL -> fishSpecies.toLowerCase().contains("tetra") ||
-                    fishSpecies.toLowerCase().contains("guppy"); // Community fish love plants
+        return true; // might do something gwith this
         };
     }
 
-    /**
-     * Calculate maintenance frequency based on size and bio-load
-     */
-    public int getRecommendedMaintenanceIntervalDays() {
-        double volume = getVolume();
+    // public int getRecommendedMaintenanceIntervalDays() {
+    //     double volume = getVolume();
 
-        if (volume < 50) {
-            return 3; // Small tanks need frequent maintenance
-        } else if (volume < 200) {
-            return 7; // Medium tanks weekly maintenance
-        } else {
-            return 14; // Large tanks bi-weekly maintenance
-        }
-    }
+    //     if (volume < 50) {
+    //         return 3; // Small tanks need frequent maintenance
+    //     } else if (volume < 200) {
+    //         return 7; // Medium tanks weekly maintenance
+    //     } else {
+    //         return 14; // Large tanks bi-weekly maintenance
+    //     }
+    // }
 
-    /**
-     * Check if maintenance is overdue
-     */
-    public boolean isMaintenanceOverdue() {
-        if (state != AquariumState.RUNNING) {
-            return false; // Not relevant if not running
-        }
+    // public boolean isMaintenanceOverdue() {
+    //     if (state != AquariumState.RUNNING) {
+    //         return false; // Not relevant if not running
+    //     }
 
-        long daysSinceLastMaintenance = getCurrentStateDurationMinutes() / (24 * 60);
-        return daysSinceLastMaintenance > getRecommendedMaintenanceIntervalDays();
-    }
+    //     long daysSinceLastMaintenance = getCurrentStateDurationMinutes() / (24 * 60);
+    //     return daysSinceLastMaintenance > getRecommendedMaintenanceIntervalDays();
+    // }
 
-    /**
-     * Advanced state transition with business rules
-     */
     public boolean canTransitionTo(AquariumState newState) {
         return switch (this.state) {
             case SETUP -> newState == AquariumState.RUNNING || newState == AquariumState.INACTIVE;
@@ -388,10 +329,9 @@ public class Aquarium {
 
     public boolean canAccommodate(Inhabitant inhabitant) {
         if (this.waterType != inhabitant.getWaterType()) {
-            return false; // Basic water type compatibility
+            return false;
         }
 
-        // Additional checks can be added here, e.g., for space, temperature, etc.
         return true;
     }
 }

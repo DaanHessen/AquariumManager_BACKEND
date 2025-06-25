@@ -1,18 +1,16 @@
 package nl.hu.bep.domain.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.domain.enums.WaterType;
+import java.time.LocalDateTime;
 
-/**
- * Shared validation and creation patterns for all species - eliminates duplication.
- * Template method pattern for consistent species creation.
- */
+@Slf4j
 public final class SpeciesValidation {
     
-    private SpeciesValidation() {} // Utility class
+    private SpeciesValidation() {
+        log.error("bruh");
+    }
     
-    /**
-     * Standard validation ALL species need - no more duplication!
-     */
     public static void validateSpeciesCreation(String species, WaterType waterType, 
                                               Long ownerId, int count) {
         Validator.notEmpty(species, "Species");
@@ -21,14 +19,10 @@ public final class SpeciesValidation {
         Validator.positive(count, "Count");
     }
     
-    /**
-     * Template method for species creation - ensures consistent validation
-     */
     public static void validateCommonFields(String species, String color, int count, 
                                            boolean isSchooling, WaterType waterType, 
                                            Long ownerId, String name, String description) {
         validateSpeciesCreation(species, waterType, ownerId, count);
-        // Additional validations can be added here
         if (color != null && color.trim().isEmpty()) {
             throw new IllegalArgumentException("Color cannot be empty if provided");
         }
@@ -37,10 +31,9 @@ public final class SpeciesValidation {
         }
     }
     
-    /**
-     * Common date creation logic
-     */
-    public static java.time.LocalDateTime createTimestamp() {
-        return java.time.LocalDateTime.now();
+    public static LocalDateTime createTimestamp() {
+        return LocalDateTime.now();
     }
 } 
+
+// TODO: maybe move all validation logic to this class and use it in all species classes to avoid code duplication?

@@ -14,16 +14,11 @@ import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
 import nl.hu.bep.data.AquariumRepository;
 import nl.hu.bep.data.AccessoryRepository;
-import nl.hu.bep.data.InhabitantRepository;
-import nl.hu.bep.data.OrnamentRepository;
+import nl.hu.bep.data.InhabitantRepositoryImpl;
+import nl.hu.bep.data.OrnamentRepositoryImpl;
 
 import java.util.Map;
 
-/**
- * Security filter for ownership validation using native domain methods.
- * Follows DDD principles by delegating ownership checks to domain entities.
- * Refactored to use CDI for repository injection following enterprise patterns.
- */
 @Slf4j
 @Provider
 @RequiresOwnership.Checker
@@ -35,14 +30,14 @@ public class OwnershipFilter implements ContainerRequestFilter {
 
     private final AquariumRepository aquariumRepository;
     private final AccessoryRepository accessoryRepository;
-    private final InhabitantRepository inhabitantRepository;
-    private final OrnamentRepository ornamentRepository;
+    private final InhabitantRepositoryImpl inhabitantRepository;
+    private final OrnamentRepositoryImpl ornamentRepository;
 
     @Inject
     public OwnershipFilter(AquariumRepository aquariumRepository,
                           AccessoryRepository accessoryRepository,
-                          InhabitantRepository inhabitantRepository,
-                          OrnamentRepository ornamentRepository) {
+                          InhabitantRepositoryImpl inhabitantRepository,
+                          OrnamentRepositoryImpl ornamentRepository) {
         this.aquariumRepository = aquariumRepository;
         this.accessoryRepository = accessoryRepository;
         this.inhabitantRepository = inhabitantRepository;
@@ -99,7 +94,6 @@ public class OwnershipFilter implements ContainerRequestFilter {
         }
     }
 
-    // NO REFLECTION - direct path parameter extraction
     private Long extractResourceIdFromPath(String paramName, ContainerRequestContext requestContext) {
         try {
             String pathParamValue = requestContext.getUriInfo()
@@ -124,13 +118,11 @@ public class OwnershipFilter implements ContainerRequestFilter {
                         .build());
     }
 
-    // DDD-compliant ownership verification using native domain methods
     private boolean verifyAquariumOwnership(Long aquariumId, Long ownerId) {
         try {
             var aquarium = aquariumRepository.findById(aquariumId).orElse(null);
             if (aquarium == null) return false;
             
-            // Use native domain validation - DDD compliant
             aquarium.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
@@ -144,7 +136,6 @@ public class OwnershipFilter implements ContainerRequestFilter {
             var inhabitant = inhabitantRepository.findById(inhabitantId).orElse(null);
             if (inhabitant == null) return false;
             
-            // Use native domain validation - DDD compliant
             inhabitant.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
@@ -158,7 +149,6 @@ public class OwnershipFilter implements ContainerRequestFilter {
             var accessory = accessoryRepository.findById(accessoryId).orElse(null);
             if (accessory == null) return false;
             
-            // Direct ownership check - accessories are owned directly by users
             return accessory.getOwnerId().equals(ownerId);
         } catch (Exception e) {
             log.debug("Accessory ownership verification failed: {}", e.getMessage());
@@ -171,7 +161,6 @@ public class OwnershipFilter implements ContainerRequestFilter {
             var ornament = ornamentRepository.findById(ornamentId).orElse(null);
             if (ornament == null) return false;
             
-            // Use native domain validation - DDD compliant
             ornament.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {

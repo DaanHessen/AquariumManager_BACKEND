@@ -8,10 +8,6 @@ import nl.hu.bep.exception.ApplicationException;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 
-/**
- * Application-layer factory for creating different types of inhabitants.
- * This replaces the problematic static factory method on the abstract Inhabitant class.
- */
 @ApplicationScoped
 public class InhabitantFactory {
     
@@ -21,12 +17,76 @@ public class InhabitantFactory {
                                      Optional<String> description, Inhabitant.InhabitantProperties properties) {
         
         return switch (type.toLowerCase()) {
-            case "fish" -> Fish.create(species, name, ownerId, color, count, isSchooling, waterType, description, properties);
-            case "plant" -> Plant.create(species, name, ownerId, color, count, isSchooling, waterType, description, properties);
-            case "snail" -> Snail.create(species, name, ownerId, color, count, isSchooling, waterType, description, properties);
-            case "shrimp" -> Shrimp.create(species, name, ownerId, color, count, isSchooling, waterType, description, properties);
-            case "crayfish" -> Crayfish.create(species, name, ownerId, color, count, isSchooling, waterType, description, properties);
-            case "coral" -> Coral.create(species, name, ownerId, color, count, isSchooling, waterType, description, properties);
+            case "fish" -> Fish.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .isAggressiveEater(properties != null ? properties.isAggressiveEater : false)
+                    .requiresSpecialFood(properties != null ? properties.requiresSpecialFood : false)
+                    .isSnailEater(properties != null ? properties.isSnailEater : false)
+                    .build();
+                    
+            case "plant" -> Plant.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            case "snail" -> Snail.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .isSnailEater(properties != null ? properties.isSnailEater : false)
+                    .build();
+                    
+            case "shrimp" -> Shrimp.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            case "crayfish" -> Crayfish.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            case "coral" -> Coral.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
             default -> throw new ApplicationException.ValidationException("Invalid inhabitant type: " + type);
         };
     }

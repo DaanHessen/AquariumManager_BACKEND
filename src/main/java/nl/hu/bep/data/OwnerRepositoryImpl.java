@@ -8,11 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Ultra-simple OwnerRepository - PURE JDBC operations only.
- * No business logic is handled here.
- */
-public class OwnerRepository extends Repository<Owner, Long> {
+public class OwnerRepositoryImpl extends RepositoryImpl<Owner, Long> {
     
     @Override
     protected String getTableName() { return "owners"; }
@@ -70,7 +66,6 @@ public class OwnerRepository extends Repository<Owner, Long> {
         ps.setLong(8, owner.getId());
     }
     
-    // Simple query methods - NO business logic
     public Optional<Owner> findByEmail(String email) {
         return findByField("email", email).stream().findFirst();
     }

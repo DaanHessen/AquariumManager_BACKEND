@@ -8,10 +8,6 @@ import lombok.*;
 import java.util.Optional;
 import java.time.LocalDateTime;
 
-/**
- * Pure JDBC inhabitant entity - ID-based relationships only.
- * Clean DDD implementation with domain security.
- */
 @Getter
 @EqualsAndHashCode(of = "id", callSuper = false)
 @ToString
@@ -29,8 +25,6 @@ public abstract class Inhabitant extends OwnedEntity {
     private LocalDateTime dateCreated;
     private Long aquariumId;
 
-    // Single constructor for builders and reconstruction.
-    // It handles validation and default values.
     protected Inhabitant(Long id, String name, String species, Long ownerId, String color, Integer count, Boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
         this.id = id;
         this.name = Validator.notEmpty(name, "Inhabitant name");
@@ -47,7 +41,6 @@ public abstract class Inhabitant extends OwnedEntity {
 
     public abstract String getType();
 
-    // Business logic methods
     private void updateSpecies(String species) {
         this.species = Validator.notEmpty(species, "Species");
     }
@@ -76,10 +69,6 @@ public abstract class Inhabitant extends OwnedEntity {
         this.description = description;
     }
 
-    /**
-     * Single method to update an Inhabitant's properties.
-     * Uses Optional to allow partial updates.
-     */
     public Inhabitant update(Optional<String> name, Optional<String> species, Optional<String> color, Optional<Integer> count, Optional<Boolean> isSchooling, Optional<WaterType> waterType, Optional<String> description) {
         name.ifPresent(this::updateName);
         species.ifPresent(this::updateSpecies);
@@ -91,7 +80,6 @@ public abstract class Inhabitant extends OwnedEntity {
         return this;
     }
 
-    // Secure aquarium assignment - consistent with other entities
     public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
         validateOwnership(requestingOwnerId);
         this.aquariumId = aquariumId;
@@ -102,26 +90,17 @@ public abstract class Inhabitant extends OwnedEntity {
         this.aquariumId = null;
     }
 
-    // Helper methods from AssignableEntity
     public boolean isAssignedToAquarium() {
         return aquariumId != null;
     }
 
-    // Domain ownership validation - delegates to parent class
-    // Note: This method is inherited from OwnedEntity and doesn't need to be overridden
-
-    // Factory method for creation - to be implemented by concrete subclasses
-    // This is a template method that subclasses can override
     public static Inhabitant create(String species, String name, String ownerId, Optional<String> color, 
                                   Optional<Integer> count, Optional<Boolean> isSchooling, 
                                   Optional<WaterType> waterType, Optional<String> description, 
                                   InhabitantProperties properties) {
-        // This method should be overridden by concrete subclasses
-        // For now, we'll determine the type based on species name (simplified approach)
         throw new UnsupportedOperationException("Use specific subclass create method instead");
     }
 
-    // Reconstruction method for repository use
     public static Inhabitant reconstruct(String type, long id, String name, String species, int count, 
                                        boolean isSchooling, WaterType waterType, Long ownerId, String color, 
                                        String description, LocalDateTime dateCreated, Long aquariumId, 
@@ -129,17 +108,14 @@ public abstract class Inhabitant extends OwnedEntity {
         throw new UnsupportedOperationException("Subclasses must implement reconstruct method");
     }
 
-    // Abstract methods for polymorphic behavior  
     public abstract InhabitantProperties getTypeSpecificProperties();
     public abstract boolean isCompatibleWith(Inhabitant other);
     
-    // Polymorphic methods to eliminate instanceof checks in EntityMapper
     public abstract String getInhabitantType();
     public abstract Boolean getAggressiveEater();
     public abstract Boolean getRequiresSpecialFood();
     public abstract Boolean getSnailEater();
 
-    // Value object for type-specific properties
     @Getter
     @AllArgsConstructor
     @EqualsAndHashCode
@@ -148,7 +124,6 @@ public abstract class Inhabitant extends OwnedEntity {
         public final boolean requiresSpecialFood;
         public final boolean isSnailEater;
         
-        // Default properties for types that don't have all properties
         public static InhabitantProperties defaults() {
             return new InhabitantProperties(false, false, false);
         }

@@ -3,10 +3,6 @@ package nl.hu.bep.domain.accessories;
 import nl.hu.bep.domain.Accessory;
 import lombok.*;
 
-/**
- * Represents a water filter accessory for aquariums.
-
- */
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -19,7 +15,7 @@ public class Filter extends Accessory {
     public Filter(String model, String serialNumber, boolean isExternal, int capacityLiters, Long ownerId) {
         super(model, serialNumber, ownerId);
         this.isExternal = isExternal;
-        this.capacityLiters = capacityLiters; // Remove duplicate validation - factory already validates
+        this.capacityLiters = capacityLiters;
     }
 
     @Override
@@ -51,7 +47,6 @@ public class Filter extends Accessory {
         this.isExternal = isExternal;
     }
 
-    // Repository access methods
     @Override
     public boolean isExternal() { return isExternal; }
     
@@ -59,20 +54,20 @@ public class Filter extends Accessory {
     public int getCapacityLiters() { return capacityLiters; }
     
     @Override
-    public boolean isLed() { return false; } // Filters don't have LED
+    public boolean isLed() { return false; }
     
     @Override
-    public java.time.LocalTime getTurnOnTime() { return null; } // Filters don't have time settings
+    public java.time.LocalTime getTurnOnTime() { return null; }
     
     @Override
-    public java.time.LocalTime getTurnOffTime() { return null; } // Filters don't have time settings
+    public java.time.LocalTime getTurnOffTime() { return null; }
     
     @Override
-    public double getMinTemperature() { return 0.0; } // Filters don't have temperature
+    public double getMinTemperature() { return 0.0; }
     
     @Override
-    public double getMaxTemperature() { return 0.0; } // Filters don't have temperature
+    public double getMaxTemperature() { return 0.0; }
     
     @Override
-    public double getCurrentTemperature() { return 0.0; } // Filters don't have temperature
+    public double getCurrentTemperature() { return 0.0; }
 }

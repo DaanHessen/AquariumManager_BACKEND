@@ -5,16 +5,11 @@ import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.value.Dimensions;
-import nl.hu.bep.data.interfaces.IAquariumRepository;
+import nl.hu.bep.data.interfaces.AquariumRepository;
 import java.sql.*;
-import java.util.HashSet;
 import java.util.List;
 
-/**
- * Ultra-simple AquariumRepository - PURE JDBC operations only.
- * No business logic is handled here.
- */
-public class AquariumRepository extends Repository<Aquarium, Long> implements IAquariumRepository {
+public class AquariumRepositoryImpl extends RepositoryImpl<Aquarium, Long> implements AquariumRepository {
     
     @Override
     protected String getTableName() { return "aquariums"; }
@@ -75,7 +70,6 @@ public class AquariumRepository extends Repository<Aquarium, Long> implements IA
         ps.setLong(14, aquarium.getId());
     }
     
-    // Simple query - NO business logic
     public List<Aquarium> findByOwnerId(Long ownerId) {
         return findByField("owner_id", ownerId);
     }

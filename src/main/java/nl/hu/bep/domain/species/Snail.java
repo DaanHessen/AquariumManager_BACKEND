@@ -8,12 +8,7 @@ import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-/**
- * Represents a snail in an aquarium.
- * Clean POJO implementation following DDD principles.
- */
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -38,12 +33,11 @@ public class Snail extends Inhabitant {
 
     public boolean isCompatibleWith(Inhabitant other) {
         if (other instanceof Fish fish && fish.getSnailEater()) {
-            return false; // Snail-eating fish are not compatible with snails
+            return false; // can't have fish eating snails now
         }
-        return true; // Snails are generally peaceful
+        return true;
     }
 
-    // Polymorphic methods to eliminate instanceof checks
     @Override
     public String getInhabitantType() {
         return "Snail";
@@ -51,53 +45,16 @@ public class Snail extends Inhabitant {
 
     @Override
     public Boolean getAggressiveEater() {
-        return false; // Snails are not aggressive eaters
+        return false;
     }
 
     @Override
     public Boolean getRequiresSpecialFood() {
-        return false; // Snails typically don't require special food
+        return false;
     }
 
     @Override
     public Boolean getSnailEater() {
         return this.isSnailEater;
-    }
-
-    // Factory methods
-    public static Snail create(String species, String name, Long ownerId, Optional<String> color, Optional<Integer> count,
-                            Optional<Boolean> isSchooling, Optional<WaterType> waterType,
-                            Optional<String> description, InhabitantProperties properties) {
-        return Snail.builder()
-                .name(name)
-                .species(species)
-                .ownerId(ownerId)
-                .color(color.orElse(null))
-                .count(count.orElse(null))
-                .isSchooling(isSchooling.orElse(null))
-                .waterType(waterType.orElse(null))
-                .description(description.orElse(null))
-                .isSnailEater(properties != null ? properties.isSnailEater : false)
-                .build();
-    }
-
-    public static Snail reconstruct(long id, String name, String species, int count,
-                                 boolean isSchooling, WaterType waterType, Long ownerId, String color,
-                                 String description, LocalDateTime dateCreated, Long aquariumId,
-                                 boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
-        return Snail.builder()
-                .id(id)
-                .name(name)
-                .species(species)
-                .count(count)
-                .isSchooling(isSchooling)
-                .waterType(waterType)
-                .ownerId(ownerId)
-                .color(color)
-                .description(description)
-                .dateCreated(dateCreated)
-                .aquariumId(aquariumId)
-                .isSnailEater(isSnailEater)
-                .build();
     }
 }

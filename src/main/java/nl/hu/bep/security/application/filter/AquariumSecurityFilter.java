@@ -23,10 +23,6 @@ import nl.hu.bep.security.application.service.JwtService;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Security filter for JWT authentication.
- * Refactored to use CDI for service injection following enterprise patterns.
- */
 @Slf4j
 @Provider
 @Secured
