@@ -13,8 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-// TODO: simplify
-
 @Slf4j
 public class DatabaseConfig {
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
@@ -23,43 +21,37 @@ public class DatabaseConfig {
     static {
         try {
             Class.forName("org.postgresql.Driver");
-            log.info("PostgreSQL JDBC driver loaded successfully");
         } catch (ClassNotFoundException e) {
-            log.error("Failed to load PostgreSQL JDBC driver", e);
             throw new RuntimeException("PostgreSQL JDBC driver not found", e);
         }
     }
 
     public static synchronized void initialize() {
         if (initialized.get()) {
-            log.info("Database already initialized, skipping re-initialization");
             return;
         }
-        log.info("Initializing database configuration...");
+        
         String envUrl = System.getenv("DATABASE_URL");
         if (envUrl == null || envUrl.isBlank()) {
-            log.error("DATABASE_URL environment variable must be set (JDBC format, e.g. jdbc:postgresql://user:pass@host:port/db)");
             throw new IllegalStateException("DATABASE_URL environment variable must be set");
         }
+        
         jdbcUrl = envUrl;
-        log.info("JDBC URL: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
         
-        initializeSchemaIfEmpty();
-        
-        initialized.set(true);
+        try {
+            initializeSchemaIfEmpty();
+            initialized.set(true);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize database", e);
+        }
     }
 
     private static void initializeSchemaIfEmpty() {
         try (Connection connection = getConnection()) {
             if (isDatabaseEmpty(connection)) {
-                log.info("Database is empty, initializing schema...");
                 executeSchemaScript(connection);
-                log.info("Database schema initialized successfully");
-            } else {
-                log.info("Database already contains tables, skipping schema initialization");
             }
         } catch (SQLException e) {
-            log.error("Failed to initialize database schema", e);
             throw new RuntimeException("Failed to initialize database schema", e);
         }
     }
@@ -69,9 +61,7 @@ public class DatabaseConfig {
         try (PreparedStatement ps = connection.prepareStatement(query);
              ResultSet rs = ps.executeQuery()) {
             rs.next();
-            int tableCount = rs.getInt(1);
-            log.info("Found {} tables in database", tableCount);
-            return tableCount == 0;
+            return rs.getInt(1) == 0;
         }
     }
 
@@ -110,56 +100,13 @@ public class DatabaseConfig {
     }
 
     public static Connection getConnection() throws SQLException {
-        // Handle Neon-style URLs with embedded credentials
-        if (jdbcUrl.contains("@") && !jdbcUrl.contains("user=")) {
-            // Parse URL like: jdbc:postgresql://username:password@host:port/database?params
-            try {
-                // Extract the part after jdbc:postgresql://
-                String urlPart = jdbcUrl.substring("jdbc:postgresql://".length());
-                
-                // Split by @ to separate credentials from host
-                String[] parts = urlPart.split("@", 2);
-                if (parts.length != 2) {
-                    throw new SQLException("Invalid URL format: missing @ separator");
-                }
-                
-                String credentials = parts[0];
-                String hostAndDb = parts[1];
-                
-                // Parse credentials
-                String[] credParts = credentials.split(":", 2);
-                if (credParts.length != 2) {
-                    throw new SQLException("Invalid URL format: missing username:password");
-                }
-                
-                String username = credParts[0];
-                String password = credParts[1];
-                
-                // Reconstruct URL without embedded credentials
-                String cleanUrl = "jdbc:postgresql://" + hostAndDb;
-                
-                // Add port 5432 if missing
-                if (!hostAndDb.contains(":") && hostAndDb.contains("/")) {
-                    cleanUrl = cleanUrl.replace("/", ":5432/");
-                }
-                
-                log.debug("Connecting with parsed URL: {}", cleanUrl.replaceAll("password=[^&]*", "password=***"));
-                return DriverManager.getConnection(cleanUrl, username, password);
-            } catch (Exception e) {
-                log.error("Failed to parse Neon-style URL, trying direct connection", e);
-                return DriverManager.getConnection(jdbcUrl);
-            }
-        } else {
-            // Standard JDBC URL format
-            return DriverManager.getConnection(jdbcUrl);
-        }
+        return DriverManager.getConnection(jdbcUrl);
     }
 
     public static boolean isHealthy() {
         try (Connection connection = getConnection()) {
-            return connection != null && !connection.isClosed();
+            return !connection.isClosed();
         } catch (SQLException e) {
-            log.error("Database health check failed: {}", e.getMessage());
             return false;
         }
     }
