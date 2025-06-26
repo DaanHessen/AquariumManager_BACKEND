@@ -1,5 +1,8 @@
 package nl.hu.bep.presentation.resource;
 
+import nl.hu.bep.data.*;
+import nl.hu.bep.presentation.dto.mapper.EntityMapper;
+import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.application.service.AquariumManagerService;
 import nl.hu.bep.presentation.dto.request.AquariumRequest;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
@@ -24,16 +27,22 @@ import java.util.Map;
 @Slf4j
 public class AquariumManagerResource {
 
-    private AquariumManagerService aquariumManagerService;
+    private final AquariumManagerService aquariumManagerService;
 
+    // Constructor for testing with injected service
+    public AquariumManagerResource(AquariumManagerService aquariumManagerService) {
+        this.aquariumManagerService = aquariumManagerService;
+    }
+
+    // Fallback constructor for cases when HK2 fails - good defensive programming
     public AquariumManagerResource() {
-        var aquariumRepository = new nl.hu.bep.data.AquariumRepositoryImpl();
-        var accessoryRepository = new nl.hu.bep.data.AccessoryRepositoryImpl();
-        var ornamentRepository = new nl.hu.bep.data.OrnamentRepositoryImpl();
-        var inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl();
-        var ownerRepository = new nl.hu.bep.data.OwnerRepositoryImpl();
-        var entityMapper = new nl.hu.bep.presentation.dto.mapper.EntityMapper();
-        var inhabitantFactory = new nl.hu.bep.application.factory.InhabitantFactory();
+        var aquariumRepository = new AquariumRepositoryImpl();
+        var accessoryRepository = new AccessoryRepositoryImpl();
+        var ornamentRepository = new OrnamentRepositoryImpl();
+        var inhabitantRepository = new InhabitantRepositoryImpl();
+        var ownerRepository = new OwnerRepositoryImpl();
+        var entityMapper = new EntityMapper();
+        var inhabitantFactory = new InhabitantFactory();
         
         this.aquariumManagerService = new AquariumManagerService(
             aquariumRepository,
@@ -44,10 +53,6 @@ public class AquariumManagerResource {
             entityMapper,
             inhabitantFactory
         );
-    }
-
-    public AquariumManagerResource(AquariumManagerService aquariumManagerService) {
-        this.aquariumManagerService = aquariumManagerService;
     }
 
     @GET
