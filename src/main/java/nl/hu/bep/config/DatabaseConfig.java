@@ -110,7 +110,49 @@ public class DatabaseConfig {
     }
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(jdbcUrl);
+        // Handle Neon-style URLs with embedded credentials
+        if (jdbcUrl.contains("@") && !jdbcUrl.contains("user=")) {
+            // Parse URL like: jdbc:postgresql://username:password@host:port/database?params
+            try {
+                // Extract the part after jdbc:postgresql://
+                String urlPart = jdbcUrl.substring("jdbc:postgresql://".length());
+                
+                // Split by @ to separate credentials from host
+                String[] parts = urlPart.split("@", 2);
+                if (parts.length != 2) {
+                    throw new SQLException("Invalid URL format: missing @ separator");
+                }
+                
+                String credentials = parts[0];
+                String hostAndDb = parts[1];
+                
+                // Parse credentials
+                String[] credParts = credentials.split(":", 2);
+                if (credParts.length != 2) {
+                    throw new SQLException("Invalid URL format: missing username:password");
+                }
+                
+                String username = credParts[0];
+                String password = credParts[1];
+                
+                // Reconstruct URL without embedded credentials
+                String cleanUrl = "jdbc:postgresql://" + hostAndDb;
+                
+                // Add port 5432 if missing
+                if (!hostAndDb.contains(":") && hostAndDb.contains("/")) {
+                    cleanUrl = cleanUrl.replace("/", ":5432/");
+                }
+                
+                log.debug("Connecting with parsed URL: {}", cleanUrl.replaceAll("password=[^&]*", "password=***"));
+                return DriverManager.getConnection(cleanUrl, username, password);
+            } catch (Exception e) {
+                log.error("Failed to parse Neon-style URL, trying direct connection", e);
+                return DriverManager.getConnection(jdbcUrl);
+            }
+        } else {
+            // Standard JDBC URL format
+            return DriverManager.getConnection(jdbcUrl);
+        }
     }
 
     public static boolean isHealthy() {
