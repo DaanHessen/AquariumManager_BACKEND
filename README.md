@@ -26,6 +26,10 @@ A Java-based REST API for managing aquarium systems. Built for a school assignme
 - Maven (build tool)
 - Apache Tomcat 10 (embedded, via Cargo plugin)
 
+### Database
+
+The database is hosted online using Neon-DB, a service offering free hosting of databases. Works perfectly with both Railway for backend hosting and Vercel for frontend hosting.
+
 ## Documentation
 
 Visit the [API url](https://web-production-8a8d.up.railway.app/api/) of the backend to see the documentation.
