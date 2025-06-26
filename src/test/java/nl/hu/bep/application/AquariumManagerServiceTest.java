@@ -11,6 +11,9 @@ import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
 import nl.hu.bep.presentation.dto.request.AquariumRequest;
 import nl.hu.bep.presentation.dto.response.AquariumResponse;
+import nl.hu.bep.presentation.dto.response.AccessoryResponse;
+import nl.hu.bep.presentation.dto.response.OrnamentResponse;
+import nl.hu.bep.presentation.dto.response.InhabitantResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -345,6 +348,338 @@ class AquariumManagerServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Accessory Management")
+    class AccessoryManagement {
+
+        @Test
+        @DisplayName("Should get all accessories for owner")
+        void shouldGetAllAccessoriesForOwner() {
+            // Arrange
+            List<Accessory> accessories = List.of(
+                    mock(Accessory.class),
+                    mock(Accessory.class)
+            );
+            List<AccessoryResponse> expectedResponses = List.of(
+                    mock(AccessoryResponse.class),
+                    mock(AccessoryResponse.class)
+            );
+
+            when(accessoryRepository.findByOwnerId(OWNER_ID)).thenReturn(accessories);
+            when(entityMapper.mapToAccessoryResponse(accessories.get(0))).thenReturn(expectedResponses.get(0));
+            when(entityMapper.mapToAccessoryResponse(accessories.get(1))).thenReturn(expectedResponses.get(1));
+
+            // Act
+            List<AccessoryResponse> result = service.getAllAccessories(OWNER_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.size());
+            assertEquals(expectedResponses, result);
+
+            verify(accessoryRepository).findByOwnerId(OWNER_ID);
+            verify(entityMapper, times(2)).mapToAccessoryResponse(any(Accessory.class));
+        }
+
+        @Test
+        @DisplayName("Should get single accessory by id")
+        void shouldGetSingleAccessoryById() {
+            // Arrange
+            Long accessoryId = 100L;
+            Accessory accessory = mock(Accessory.class);
+            AccessoryResponse expectedResponse = mock(AccessoryResponse.class);
+
+            when(accessoryRepository.findById(accessoryId)).thenReturn(Optional.of(accessory));
+            when(entityMapper.mapToAccessoryResponse(accessory)).thenReturn(expectedResponse);
+
+            // Act
+            AccessoryResponse result = service.getAccessory(accessoryId, OWNER_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(expectedResponse, result);
+
+            verify(accessoryRepository).findById(accessoryId);
+            verify(accessory).validateOwnership(OWNER_ID);
+            verify(entityMapper).mapToAccessoryResponse(accessory);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when accessory not found")
+        void shouldThrowExceptionWhenAccessoryNotFound() {
+            // Arrange
+            Long accessoryId = 999L;
+            when(accessoryRepository.findById(accessoryId)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            ApplicationException.NotFoundException exception = assertThrows(
+                    ApplicationException.NotFoundException.class,
+                    () -> service.getAccessory(accessoryId, OWNER_ID)
+            );
+
+            assertEquals("Accessory with ID " + accessoryId + " not found", exception.getMessage());
+            verify(accessoryRepository).findById(accessoryId);
+            verifyNoInteractions(entityMapper);
+        }
+
+        @Test
+        @DisplayName("Should get accessories by aquarium")
+        void shouldGetAccessoriesByAquarium() {
+            // Arrange
+            List<Accessory> accessories = List.of(mock(Accessory.class));
+            List<AccessoryResponse> expectedResponses = List.of(mock(AccessoryResponse.class));
+
+            when(accessoryRepository.findByAquariumId(AQUARIUM_ID)).thenReturn(accessories);
+            when(entityMapper.mapToAccessoryResponse(accessories.get(0))).thenReturn(expectedResponses.get(0));
+
+            // Act
+            List<AccessoryResponse> result = service.getAccessoriesByAquarium(AQUARIUM_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(expectedResponses, result);
+
+            verify(accessoryRepository).findByAquariumId(AQUARIUM_ID);
+            verify(entityMapper).mapToAccessoryResponse(accessories.get(0));
+        }
+    }
+
+    @Nested
+    @DisplayName("Ornament Management")
+    class OrnamentManagement {
+
+        @Test
+        @DisplayName("Should get all ornaments for owner")
+        void shouldGetAllOrnamentsForOwner() {
+            // Arrange
+            List<Ornament> ornaments = List.of(
+                    mock(Ornament.class),
+                    mock(Ornament.class)
+            );
+            List<OrnamentResponse> expectedResponses = List.of(
+                    mock(OrnamentResponse.class),
+                    mock(OrnamentResponse.class)
+            );
+
+            when(ornamentRepository.findByOwnerId(OWNER_ID)).thenReturn(ornaments);
+            when(entityMapper.mapToOrnamentResponse(ornaments.get(0))).thenReturn(expectedResponses.get(0));
+            when(entityMapper.mapToOrnamentResponse(ornaments.get(1))).thenReturn(expectedResponses.get(1));
+
+            // Act
+            List<OrnamentResponse> result = service.getAllOrnaments(OWNER_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.size());
+            assertEquals(expectedResponses, result);
+
+            verify(ornamentRepository).findByOwnerId(OWNER_ID);
+            verify(entityMapper, times(2)).mapToOrnamentResponse(any(Ornament.class));
+        }
+
+        @Test
+        @DisplayName("Should get single ornament by id")
+        void shouldGetSingleOrnamentById() {
+            // Arrange
+            Long ornamentId = 200L;
+            Ornament ornament = mock(Ornament.class);
+            OrnamentResponse expectedResponse = mock(OrnamentResponse.class);
+
+            when(ornamentRepository.findById(ornamentId)).thenReturn(Optional.of(ornament));
+            when(entityMapper.mapToOrnamentResponse(ornament)).thenReturn(expectedResponse);
+
+            // Act
+            OrnamentResponse result = service.getOrnament(ornamentId, OWNER_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(expectedResponse, result);
+
+            verify(ornamentRepository).findById(ornamentId);
+            verify(ornament).validateOwnership(OWNER_ID);
+            verify(entityMapper).mapToOrnamentResponse(ornament);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when ornament not found")
+        void shouldThrowExceptionWhenOrnamentNotFound() {
+            // Arrange
+            Long ornamentId = 999L;
+            when(ornamentRepository.findById(ornamentId)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            ApplicationException.NotFoundException exception = assertThrows(
+                    ApplicationException.NotFoundException.class,
+                    () -> service.getOrnament(ornamentId, OWNER_ID)
+            );
+
+            assertEquals("Ornament with ID " + ornamentId + " not found", exception.getMessage());
+            verify(ornamentRepository).findById(ornamentId);
+            verifyNoInteractions(entityMapper);
+        }
+
+        @Test
+        @DisplayName("Should get ornaments by aquarium")
+        void shouldGetOrnamentsByAquarium() {
+            // Arrange
+            List<Ornament> ornaments = List.of(mock(Ornament.class));
+            List<OrnamentResponse> expectedResponses = List.of(mock(OrnamentResponse.class));
+
+            when(ornamentRepository.findByAquariumId(AQUARIUM_ID)).thenReturn(ornaments);
+            when(entityMapper.mapToOrnamentResponse(ornaments.get(0))).thenReturn(expectedResponses.get(0));
+
+            // Act
+            List<OrnamentResponse> result = service.getOrnamentsByAquarium(AQUARIUM_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(expectedResponses, result);
+
+            verify(ornamentRepository).findByAquariumId(AQUARIUM_ID);
+            verify(entityMapper).mapToOrnamentResponse(ornaments.get(0));
+        }
+    }
+
+    @Nested
+    @DisplayName("Inhabitant Management")
+    class InhabitantManagement {
+
+        @Test
+        @DisplayName("Should get all inhabitants for owner")
+        void shouldGetAllInhabitantsForOwner() {
+            // Arrange
+            List<Inhabitant> inhabitants = List.of(
+                    mock(Inhabitant.class),
+                    mock(Inhabitant.class)
+            );
+            List<InhabitantResponse> expectedResponses = List.of(
+                    mock(InhabitantResponse.class),
+                    mock(InhabitantResponse.class)
+            );
+
+            when(inhabitantRepository.findByOwnerId(OWNER_ID)).thenReturn(inhabitants);
+            when(entityMapper.mapToInhabitantResponse(inhabitants.get(0))).thenReturn(expectedResponses.get(0));
+            when(entityMapper.mapToInhabitantResponse(inhabitants.get(1))).thenReturn(expectedResponses.get(1));
+
+            // Act
+            List<InhabitantResponse> result = service.getAllInhabitants(OWNER_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(2, result.size());
+            assertEquals(expectedResponses, result);
+
+            verify(inhabitantRepository).findByOwnerId(OWNER_ID);
+            verify(entityMapper, times(2)).mapToInhabitantResponse(any(Inhabitant.class));
+        }
+
+        @Test
+        @DisplayName("Should get single inhabitant by id")
+        void shouldGetSingleInhabitantById() {
+            // Arrange
+            Long inhabitantId = 300L;
+            Inhabitant inhabitant = mock(Inhabitant.class);
+            InhabitantResponse expectedResponse = mock(InhabitantResponse.class);
+
+            when(inhabitantRepository.findById(inhabitantId)).thenReturn(Optional.of(inhabitant));
+            when(entityMapper.mapToInhabitantResponse(inhabitant)).thenReturn(expectedResponse);
+
+            // Act
+            InhabitantResponse result = service.getInhabitant(inhabitantId, OWNER_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(expectedResponse, result);
+
+            verify(inhabitantRepository).findById(inhabitantId);
+            verify(inhabitant).validateOwnership(OWNER_ID);
+            verify(entityMapper).mapToInhabitantResponse(inhabitant);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when inhabitant not found")
+        void shouldThrowExceptionWhenInhabitantNotFound() {
+            // Arrange
+            Long inhabitantId = 999L;
+            when(inhabitantRepository.findById(inhabitantId)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            ApplicationException.NotFoundException exception = assertThrows(
+                    ApplicationException.NotFoundException.class,
+                    () -> service.getInhabitant(inhabitantId, OWNER_ID)
+            );
+
+            assertEquals("Inhabitant with ID " + inhabitantId + " not found", exception.getMessage());
+            verify(inhabitantRepository).findById(inhabitantId);
+            verifyNoInteractions(entityMapper);
+        }
+
+        @Test
+        @DisplayName("Should get inhabitants by aquarium")
+        void shouldGetInhabitantsByAquarium() {
+            // Arrange
+            List<Inhabitant> inhabitants = List.of(mock(Inhabitant.class));
+            List<InhabitantResponse> expectedResponses = List.of(mock(InhabitantResponse.class));
+
+            when(inhabitantRepository.findByAquariumId(AQUARIUM_ID)).thenReturn(inhabitants);
+            when(entityMapper.mapToInhabitantResponse(inhabitants.get(0))).thenReturn(expectedResponses.get(0));
+
+            // Act
+            List<InhabitantResponse> result = service.getInhabitantsByAquarium(AQUARIUM_ID);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals(expectedResponses, result);
+
+            verify(inhabitantRepository).findByAquariumId(AQUARIUM_ID);
+            verify(entityMapper).mapToInhabitantResponse(inhabitants.get(0));
+        }
+    }
+
+    @Nested
+    @DisplayName("Owner Management")
+    class OwnerManagement {
+
+        @Test
+        @DisplayName("Should find owner by email")
+        void shouldFindOwnerByEmail() {
+            // Arrange
+            String email = "test@example.com";
+            Owner expectedOwner = mock(Owner.class);
+
+            when(ownerRepository.findByEmail(email)).thenReturn(Optional.of(expectedOwner));
+
+            // Act
+            Owner result = service.findOwnerByEmail(email);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(expectedOwner, result);
+
+            verify(ownerRepository).findByEmail(email);
+        }
+
+        @Test
+        @DisplayName("Should return null when owner not found by email")
+        void shouldReturnNullWhenOwnerNotFoundByEmail() {
+            // Arrange
+            String email = "notfound@example.com";
+
+            when(ownerRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            // Act
+            Owner result = service.findOwnerByEmail(email);
+
+            // Assert
+            assertNull(result);
+
+            verify(ownerRepository).findByEmail(email);
+        }
+    }
+
     // Helper methods
     private Aquarium createTestAquarium(Long id, String name) {
         Aquarium aquarium = Aquarium.create(
@@ -369,20 +704,16 @@ class AquariumManagerServiceTest {
                 100.0,
                 50.0,
                 60.0,
-                300.0, // volumeInLiters
                 SubstrateType.SAND,
                 WaterType.FRESHWATER,
+                25.0, // temperature
                 AquariumState.SETUP,
                 java.time.LocalDateTime.now(), // currentStateStartTime
-                0L, // currentStateDurationMinutes
-                OWNER_ID,
-                "owner@test.com", // ownerEmail
-                List.of(), // inhabitants
-                List.of(), // accessories
-                List.of(), // ornaments
                 "blue",
                 "Test aquarium",
-                java.time.LocalDateTime.now() // dateCreated
+                java.time.LocalDateTime.now(), // dateCreated
+                OWNER_ID,
+                1L // aquariumManagerId
         );
     }
 }

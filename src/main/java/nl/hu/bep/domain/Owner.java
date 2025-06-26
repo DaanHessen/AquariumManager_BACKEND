@@ -151,12 +151,6 @@ public class Owner {
         return this.aquariumManagerId == null;
     }
 
-    public Set<Aquarium> getOwnedAquariums() {
-        // This method returns an empty set for now since Owner uses aquariumIds
-        // In a full implementation, this would need to be resolved by the repository layer
-        return new HashSet<>();
-    }
-
     public void addToAquariums(Aquarium aquarium) {
         if (aquarium != null && aquarium.getId() != null) {
             this.aquariumIds.add(aquarium.getId());
