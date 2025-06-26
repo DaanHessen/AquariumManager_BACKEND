@@ -30,14 +30,14 @@ public class DatabaseConfig {
         if (initialized.get()) {
             return;
         }
-        
+
         String envUrl = System.getenv("DATABASE_URL");
         if (envUrl == null || envUrl.isBlank()) {
             throw new IllegalStateException("DATABASE_URL environment variable must be set");
         }
-        
+
         jdbcUrl = envUrl;
-        
+
         try {
             initializeSchemaIfEmpty();
             initialized.set(true);
@@ -59,7 +59,7 @@ public class DatabaseConfig {
     private static boolean isDatabaseEmpty(Connection connection) throws SQLException {
         String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'";
         try (PreparedStatement ps = connection.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+                ResultSet rs = ps.executeQuery()) {
             rs.next();
             return rs.getInt(1) == 0;
         }

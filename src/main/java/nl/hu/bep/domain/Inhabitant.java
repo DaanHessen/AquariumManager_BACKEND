@@ -4,6 +4,7 @@ import nl.hu.bep.domain.base.OwnedEntity;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.config.AquariumConstants;
+import nl.hu.bep.domain.species.*;
 
 import lombok.*;
 import java.util.Optional;
@@ -95,18 +96,186 @@ public abstract class Inhabitant extends OwnedEntity {
         return aquariumId != null;
     }
 
-    public static Inhabitant create(String species, String name, String ownerId, Optional<String> color, 
-                                  Optional<Integer> count, Optional<Boolean> isSchooling, 
-                                  Optional<WaterType> waterType, Optional<String> description, 
-                                  InhabitantProperties properties) {
-        throw new UnsupportedOperationException("Use specific subclass create method instead");
+    public static Inhabitant create(String type, String species, String name, Long ownerId, 
+                                  Optional<String> color, Optional<Integer> count, 
+                                  Optional<Boolean> isSchooling, Optional<WaterType> waterType, 
+                                  Optional<String> description, InhabitantProperties properties) {
+        
+        return switch (type.toLowerCase()) {
+            case "fish" -> Fish.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .isAggressiveEater(properties != null ? properties.isAggressiveEater : false)
+                    .requiresSpecialFood(properties != null ? properties.requiresSpecialFood : false)
+                    .isSnailEater(properties != null ? properties.isSnailEater : false)
+                    .build();
+                    
+            case "plant" -> Plant.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            case "snail" -> Snail.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .isSnailEater(properties != null ? properties.isSnailEater : false)
+                    .build();
+                    
+            case "shrimp" -> Shrimp.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            case "crayfish" -> Crayfish.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            case "coral" -> Coral.builder()
+                    .name(name)
+                    .species(species)
+                    .ownerId(ownerId)
+                    .color(color.orElse(null))
+                    .count(count.orElse(null))
+                    .isSchooling(isSchooling.orElse(null))
+                    .waterType(waterType.orElse(null))
+                    .description(description.orElse(null))
+                    .build();
+                    
+            default -> throw new IllegalArgumentException("Invalid inhabitant type: " + type);
+        };
     }
 
-    public static Inhabitant reconstruct(String type, long id, String name, String species, int count, 
-                                       boolean isSchooling, WaterType waterType, Long ownerId, String color, 
+    public static Inhabitant reconstruct(String type, long id, String species, String color, int count, 
+                                       boolean isSchooling, WaterType waterType, Long ownerId, String name, 
                                        String description, LocalDateTime dateCreated, Long aquariumId, 
                                        boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
-        throw new UnsupportedOperationException("Subclasses must implement reconstruct method");
+        
+        if (type == null || type.isEmpty()) {
+            throw new IllegalArgumentException("Inhabitant type is required for reconstruction");
+        }
+
+        return switch (type.toLowerCase()) {
+            case "fish" -> Fish.builder()
+                    .id(id)
+                    .species(species)
+                    .color(color)
+                    .count(count)
+                    .isSchooling(isSchooling)
+                    .waterType(waterType)
+                    .ownerId(ownerId)
+                    .name(name)
+                    .description(description)
+                    .dateCreated(dateCreated)
+                    .aquariumId(aquariumId)
+                    .isAggressiveEater(isAggressiveEater)
+                    .requiresSpecialFood(requiresSpecialFood)
+                    .isSnailEater(isSnailEater)
+                    .build();
+                    
+            case "plant" -> Plant.builder()
+                    .id(id)
+                    .species(species)
+                    .color(color)
+                    .count(count)
+                    .isSchooling(isSchooling)
+                    .waterType(waterType)
+                    .ownerId(ownerId)
+                    .name(name)
+                    .description(description)
+                    .dateCreated(dateCreated)
+                    .aquariumId(aquariumId)
+                    .build();
+                    
+            case "snail" -> Snail.builder()
+                    .id(id)
+                    .species(species)
+                    .color(color)
+                    .count(count)
+                    .isSchooling(isSchooling)
+                    .waterType(waterType)
+                    .ownerId(ownerId)
+                    .name(name)
+                    .description(description)
+                    .dateCreated(dateCreated)
+                    .aquariumId(aquariumId)
+                    .isSnailEater(isSnailEater)
+                    .build();
+                    
+            case "shrimp" -> Shrimp.builder()
+                    .id(id)
+                    .species(species)
+                    .color(color)
+                    .count(count)
+                    .isSchooling(isSchooling)
+                    .waterType(waterType)
+                    .ownerId(ownerId)
+                    .name(name)
+                    .description(description)
+                    .dateCreated(dateCreated)
+                    .aquariumId(aquariumId)
+                    .build();
+                    
+            case "crayfish" -> Crayfish.builder()
+                    .id(id)
+                    .species(species)
+                    .color(color)
+                    .count(count)
+                    .isSchooling(isSchooling)
+                    .waterType(waterType)
+                    .ownerId(ownerId)
+                    .name(name)
+                    .description(description)
+                    .dateCreated(dateCreated)
+                    .aquariumId(aquariumId)
+                    .build();
+                    
+            case "coral" -> Coral.builder()
+                    .id(id)
+                    .species(species)
+                    .color(color)
+                    .count(count)
+                    .isSchooling(isSchooling)
+                    .waterType(waterType)
+                    .ownerId(ownerId)
+                    .name(name)
+                    .description(description)
+                    .dateCreated(dateCreated)
+                    .aquariumId(aquariumId)
+                    .build();
+                    
+            default -> throw new IllegalArgumentException("Unsupported inhabitant type: " + type);
+        };
     }
 
     public abstract InhabitantProperties getTypeSpecificProperties();

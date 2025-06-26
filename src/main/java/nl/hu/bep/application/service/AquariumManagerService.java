@@ -4,7 +4,6 @@ import nl.hu.bep.domain.*;
 import nl.hu.bep.presentation.dto.request.*;
 import nl.hu.bep.presentation.dto.response.*;
 import nl.hu.bep.data.interfaces.*;
-import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
 
@@ -24,7 +23,6 @@ public class AquariumManagerService {
     private final InhabitantRepository inhabitantRepository;
     private final OwnerRepository ownerRepository;
     private final EntityMapper entityMapper;
-    private final InhabitantFactory inhabitantFactory;
 
     public AquariumManagerService(
             AquariumRepository aquariumRepository,
@@ -32,15 +30,13 @@ public class AquariumManagerService {
             OrnamentRepository ornamentRepository,
             InhabitantRepository inhabitantRepository,
             OwnerRepository ownerRepository,
-            EntityMapper entityMapper,
-            InhabitantFactory inhabitantFactory) {
+            EntityMapper entityMapper) {
         this.aquariumRepository = aquariumRepository;
         this.accessoryRepository = accessoryRepository;
         this.ornamentRepository = ornamentRepository;
         this.inhabitantRepository = inhabitantRepository;
         this.ownerRepository = ownerRepository;
         this.entityMapper = entityMapper;
-        this.inhabitantFactory = inhabitantFactory;
     }
 
     public List<AquariumResponse> getAllAquariums(Long ownerId) {
@@ -307,7 +303,7 @@ public class AquariumManagerService {
                 request.getSnailEaterValue()
         );
 
-        Inhabitant inhabitant = inhabitantFactory.createInhabitant(
+        Inhabitant inhabitant = Inhabitant.create(
                 request.type(),
                 request.species(),
                 request.name(),

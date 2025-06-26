@@ -2,7 +2,6 @@ package nl.hu.bep.presentation.resource;
 
 import nl.hu.bep.data.*;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
-import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.application.service.AquariumManagerService;
 import nl.hu.bep.presentation.dto.request.AquariumRequest;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
@@ -42,7 +41,6 @@ public class AquariumManagerResource {
         var inhabitantRepository = new InhabitantRepositoryImpl();
         var ownerRepository = new OwnerRepositoryImpl();
         var entityMapper = new EntityMapper();
-        var inhabitantFactory = new InhabitantFactory();
         
         this.aquariumManagerService = new AquariumManagerService(
             aquariumRepository,
@@ -50,8 +48,7 @@ public class AquariumManagerResource {
             ornamentRepository,
             inhabitantRepository,
             ownerRepository,
-            entityMapper,
-            inhabitantFactory
+            entityMapper
         );
     }
 

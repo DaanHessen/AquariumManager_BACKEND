@@ -35,7 +35,6 @@ public class OrnamentResource {
         var inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl();
         var ownerRepository = new nl.hu.bep.data.OwnerRepositoryImpl();
         var entityMapper = new nl.hu.bep.presentation.dto.mapper.EntityMapper();
-        var inhabitantFactory = new nl.hu.bep.application.factory.InhabitantFactory();
         
         this.aquariumManagerService = new AquariumManagerService(
             aquariumRepository,
@@ -43,8 +42,7 @@ public class OrnamentResource {
             ornamentRepository,
             inhabitantRepository,
             ownerRepository,
-            entityMapper,
-            inhabitantFactory
+            entityMapper
         );
     }
 

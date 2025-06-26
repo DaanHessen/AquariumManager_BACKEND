@@ -5,7 +5,6 @@ import nl.hu.bep.data.interfaces.*;
 import nl.hu.bep.presentation.resource.*;
 import nl.hu.bep.presentation.dto.mapper.EntityMapper;
 import nl.hu.bep.application.service.AquariumManagerService;
-import nl.hu.bep.application.factory.InhabitantFactory;
 import nl.hu.bep.security.application.filter.AquariumSecurityFilter;
 import nl.hu.bep.security.application.filter.OwnershipFilter;
 import nl.hu.bep.security.application.service.AuthenticationService;
@@ -29,7 +28,6 @@ public class HK2Binder extends AbstractBinder {
         // Service bindings
         bind(AquariumManagerService.class).in(Singleton.class);
         bind(EntityMapper.class).in(Singleton.class);
-        bind(InhabitantFactory.class).in(Singleton.class);
         bind(JwtService.class).in(Singleton.class);
         bind(AuthenticationService.class).in(Singleton.class);
         
