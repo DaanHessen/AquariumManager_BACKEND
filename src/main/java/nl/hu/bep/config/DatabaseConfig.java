@@ -1,25 +1,34 @@
 package nl.hu.bep.config;
 
 import lombok.extern.slf4j.Slf4j;
-
-import jakarta.annotation.Resource;
-import jakarta.enterprise.context.ApplicationScoped;
-import javax.sql.DataSource;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+// TODO: simplify
+
 @Slf4j
-@ApplicationScoped
 public class DatabaseConfig {
     private static final AtomicBoolean initialized = new AtomicBoolean(false);
     private static String jdbcUrl;
-    private static String username;
-    private static String password;
-    
-    @Resource(lookup = "java:comp/DefaultDataSource")
-    private DataSource dataSource;
+
+    static {
+        try {
+            Class.forName("org.postgresql.Driver");
+            log.info("PostgreSQL JDBC driver loaded successfully");
+        } catch (ClassNotFoundException e) {
+            log.error("Failed to load PostgreSQL JDBC driver", e);
+            throw new RuntimeException("PostgreSQL JDBC driver not found", e);
+        }
+    }
 
     public static synchronized void initialize() {
         if (initialized.get()) {
@@ -27,51 +36,81 @@ public class DatabaseConfig {
             return;
         }
         log.info("Initializing database configuration...");
-        try {
-            createDataSource();
-            initialized.set(true);
-            log.info("Database configuration initialized successfully");
-        } catch (Exception e) {
-            log.error("Failed to initialize database configuration: {}", e.getMessage(), e);
-            initialized.set(true);
+        String envUrl = System.getenv("DATABASE_URL");
+        if (envUrl == null || envUrl.isBlank()) {
+            log.error("DATABASE_URL environment variable must be set (JDBC format, e.g. jdbc:postgresql://user:pass@host:port/db)");
+            throw new IllegalStateException("DATABASE_URL environment variable must be set");
+        }
+        jdbcUrl = envUrl;
+        log.info("JDBC URL: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
+        
+        initializeSchemaIfEmpty();
+        
+        initialized.set(true);
+    }
+
+    private static void initializeSchemaIfEmpty() {
+        try (Connection connection = getConnection()) {
+            if (isDatabaseEmpty(connection)) {
+                log.info("Database is empty, initializing schema...");
+                executeSchemaScript(connection);
+                log.info("Database schema initialized successfully");
+            } else {
+                log.info("Database already contains tables, skipping schema initialization");
+            }
+        } catch (SQLException e) {
+            log.error("Failed to initialize database schema", e);
+            throw new RuntimeException("Failed to initialize database schema", e);
         }
     }
 
-    private static void createDataSource() {
-        // For simplicity, use DriverManager directly (no pool)
-        String host, port, database;
-        String databaseUrl = System.getenv("DATABASE_URL");
-        if (databaseUrl != null && databaseUrl.startsWith("postgres://")) {
-            // Parse DATABASE_URL (e.g., postgres://user:pass@host:port/db)
-            String[] urlParts = databaseUrl.split("[@/:]");
-            username = urlParts[3];
-            password = urlParts[4];
-            host = urlParts[5];
-            port = urlParts[6];
-            database = urlParts[7];
-            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
-        } else {
-            host = System.getenv().getOrDefault("DB_HOST", "localhost");
-            port = System.getenv().getOrDefault("DB_PORT", "5432");
-            database = System.getenv().getOrDefault("DB_NAME", "aquariumdb");
-            username = System.getenv().getOrDefault("DB_USER", "postgres");
-            password = System.getenv().getOrDefault("DB_PASSWORD", "postgres");
-            jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
+    private static boolean isDatabaseEmpty(Connection connection) throws SQLException {
+        String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'";
+        try (PreparedStatement ps = connection.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+            rs.next();
+            int tableCount = rs.getInt(1);
+            log.info("Found {} tables in database", tableCount);
+            return tableCount == 0;
         }
-        log.info("JDBC URL: {}", jdbcUrl.replaceAll("password=[^&]*", "password=***"));
+    }
+
+    private static void executeSchemaScript(Connection connection) throws SQLException {
+        try (InputStream is = DatabaseConfig.class.getResourceAsStream("/schema.sql")) {
+            if (is == null) {
+                try (InputStream altIs = DatabaseConfig.class.getClassLoader().getResourceAsStream("schema.sql")) {
+                    if (altIs == null) {
+                        throw new RuntimeException("Schema file not found in classpath");
+                    }
+                    executeScript(connection, altIs);
+                }
+            } else {
+                executeScript(connection, is);
+            }
+        } catch (IOException e) {
+            throw new SQLException("Failed to read schema file", e);
+        }
+    }
+
+    private static void executeScript(Connection connection, InputStream inputStream) throws SQLException, IOException {
+        StringBuilder script = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (!line.isEmpty() && !line.startsWith("--")) {
+                    script.append(line).append("\n");
+                }
+            }
+        }
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(script.toString());
+        }
     }
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(jdbcUrl, username, password);
-    }
-    
-    // For container-managed transactions, provide DataSource access
-    public Connection getManagedConnection() throws SQLException {
-        if (dataSource != null) {
-            return dataSource.getConnection();
-        }
-        // Fallback to direct connection if DataSource not available
-        return getConnection();
+        return DriverManager.getConnection(jdbcUrl);
     }
 
     public static boolean isHealthy() {

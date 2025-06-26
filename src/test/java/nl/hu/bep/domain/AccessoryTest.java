@@ -1,171 +1,222 @@
 package nl.hu.bep.domain;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalTime;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Lighting;
 import nl.hu.bep.domain.accessories.Thermostat;
-import nl.hu.bep.domain.enums.SubstrateType;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 
+import java.time.LocalTime;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DisplayName("Accessory Domain Tests")
 class AccessoryTest {
 
-  private Accessory accessory;
+    private static final Long OWNER_ID = 1L;
+    private static final Long DIFFERENT_OWNER_ID = 2L;
+    private static final Long AQUARIUM_ID = 10L;
 
-  @Test
-  @DisplayName("createFromType should create correct Filter instance")
-  void testCreateFilter() {
-    String type = "filter";
-    String model = "SuperFilter 3000";
-    String serialNumber = "SF3000-12345";
-    boolean isExternal = true;
-    int capacityLiters = 200;
+    @Nested
+    @DisplayName("Filter Tests")
+    class FilterTests {
 
-    Accessory accessory = Accessory.createFromType(
-        type, model, serialNumber,
-        isExternal, capacityLiters,
-        false, null, null,
-        0.0, 0.0, 0.0,
-        1L);
+        @Test
+        @DisplayName("Should create filter with valid parameters")
+        void shouldCreateFilterWithValidParameters() {
+            // Act
+            Accessory filter = Accessory.createFromType("filter", "Eheim Classic", "12345", 
+                    true, 250, false, null, null, 0, 0, 0, OWNER_ID, "grey", "A classic filter.");
 
-    assertNotNull(accessory);
-    assertTrue(accessory instanceof Filter);
-    assertEquals(model, accessory.getModel());
-    assertEquals(serialNumber, accessory.getSerialNumber());
-    assertEquals(1L, accessory.getOwnerId());
+            // Assert
+            assertNotNull(filter);
+            assertTrue(filter instanceof Filter);
+            assertEquals("Eheim Classic", filter.getModel());
+            assertEquals(OWNER_ID, filter.getOwnerId());
+            assertEquals(250, filter.getCapacityLiters());
+            assertEquals("grey", filter.getColor());
+            assertEquals("A classic filter.", filter.getDescription());
+        }
 
-    Filter filter = (Filter) accessory;
-    assertEquals(isExternal, filter.isExternal());
-    assertEquals(capacityLiters, filter.getCapacityLiters());
-  }
+        @Test
+        @DisplayName("Should assign filter to aquarium")
+        void shouldAssignFilterToAquarium() {
+            // Arrange
+            Accessory filter = Accessory.createFromType("filter", "Eheim Classic", "12345", 
+                    true, 250, false, null, null, 0, 0, 0, OWNER_ID, "grey", "A classic filter.");
 
-  @Test
-  @DisplayName("createFromType should create correct Lighting instance")
-  void testCreateLighting() {
-    String type = "lighting";
-    String model = "LuxLight 500";
-    String serialNumber = "LL500-67890";
-    boolean isLED = true;
-    LocalTime timeOn = LocalTime.of(8, 0);
-    LocalTime timeOff = LocalTime.of(20, 0);
+            // Act
+            filter.assignToAquarium(AQUARIUM_ID, OWNER_ID);
 
-    Accessory accessory = Accessory.createFromType(
-        type, model, serialNumber,
-        false, 0,
-        isLED, timeOn, timeOff,
-        0.0, 0.0, 0.0,
-        1L);
+            // Assert
+            assertEquals(AQUARIUM_ID, filter.getAquariumId());
+        }
 
-    assertNotNull(accessory);
-    assertTrue(accessory instanceof Lighting);
-    assertEquals(model, accessory.getModel());
-    assertEquals(serialNumber, accessory.getSerialNumber());
-    assertEquals(1L, accessory.getOwnerId());
+        @Test
+        @DisplayName("Should throw exception when assigning filter with wrong owner")
+        void shouldThrowExceptionWhenAssigningFilterWithWrongOwner() {
+            // Arrange
+            Accessory filter = Accessory.createFromType("filter", "Eheim Classic", "12345", 
+                    true, 250, false, null, null, 0, 0, 0, OWNER_ID, "grey", "A classic filter.");
 
-    Lighting lighting = (Lighting) accessory;
-    assertEquals(isLED, lighting.isLed());
-    assertEquals(timeOn, lighting.getTurnOnTime());
-    assertEquals(timeOff, lighting.getTurnOffTime());
-  }
+            // Act & Assert
+            assertThrows(IllegalArgumentException.class, () -> 
+                    filter.assignToAquarium(AQUARIUM_ID, DIFFERENT_OWNER_ID));
+        }
+    }
 
-  @Test
-  @DisplayName("createFromType should create correct Thermostat instance")
-  void testCreateThermostat() {
-    String type = "thermostat";
-    String model = "TempControl Pro";
-    String serialNumber = "TCP-24680";
-    double minTemperature = 22.5;
-    double maxTemperature = 28.0;
-    double currentTemperature = 25.0;
+    @Nested
+    @DisplayName("Lighting Tests")
+    class LightingTests {
 
-    Accessory accessory = Accessory.createFromType(
-        type, model, serialNumber,
-        false, 0,
-        false, null, null,
-        minTemperature, maxTemperature, currentTemperature,
-        1L);
+        @Test
+        @DisplayName("Should create lighting with valid parameters")
+        void shouldCreateLightingWithValidParameters() {
+            // Act
+            Accessory lighting = Accessory.createFromType("lighting", "LEDdy Slim", "67890", 
+                    false, 0, true, LocalTime.of(8, 0), LocalTime.of(22, 0), 0, 0, 0, 
+                    OWNER_ID, "black", "A slim LED light.");
 
-    assertNotNull(accessory);
-    assertTrue(accessory instanceof Thermostat);
-    assertEquals(model, accessory.getModel());
-    assertEquals(serialNumber, accessory.getSerialNumber());
-    assertEquals(1L, accessory.getOwnerId());
+            // Assert
+            assertNotNull(lighting);
+            assertTrue(lighting instanceof Lighting);
+            assertEquals("LEDdy Slim", lighting.getModel());
+            assertEquals(LocalTime.of(8, 0), lighting.getTurnOnTime());
+            assertEquals(LocalTime.of(22, 0), lighting.getTurnOffTime());
+            assertEquals("black", lighting.getColor());
+            assertEquals("A slim LED light.", lighting.getDescription());
+        }
 
-    Thermostat thermostat = (Thermostat) accessory;
-    assertEquals(minTemperature, thermostat.getMinTemperature());
-    assertEquals(maxTemperature, thermostat.getMaxTemperature());
-    assertEquals(currentTemperature, thermostat.getCurrentTemperature());
-  }
+        @Test
+        @DisplayName("Should validate lighting schedule")
+        void shouldValidateLightingSchedule() {
+            // Arrange
+            Accessory lighting = Accessory.createFromType("lighting", "LEDdy Slim", "67890", 
+                    false, 0, true, LocalTime.of(8, 0), LocalTime.of(22, 0), 0, 0, 0, 
+                    OWNER_ID, "black", "A slim LED light.");
 
-  @Test
-  @DisplayName("Accessory update method should update common properties")
-  void testAccessoryUpdate() {
-    String initialModel = "InitialModel";
-    String initialSerialNumber = "Initial-123";
-    String updatedModel = "UpdatedModel";
-    String updatedSerialNumber = "Updated-456";
+            // Act & Assert
+            assertTrue(lighting.getTurnOnTime().isBefore(lighting.getTurnOffTime()));
+        }
+    }
 
-    Accessory accessory = Accessory.createFromType(
-        "filter", initialModel, initialSerialNumber,
-        false, 100,
-        false, null, null,
-        0.0, 0.0, 0.0,
-        1L);
+    @Nested
+    @DisplayName("Thermostat Tests")
+    class ThermostatTests {
 
-    accessory.update(updatedModel, updatedSerialNumber);
+        @Test
+        @DisplayName("Should create thermostat with valid parameters")
+        void shouldCreateThermostatWithValidParameters() {
+            // Act
+            Accessory thermostat = Accessory.createFromType("thermostat", "Jager", "54321", 
+                    false, 0, false, null, null, 22, 28, 25, OWNER_ID, "blue", "A reliable heater.");
 
-    assertEquals(updatedModel, accessory.getModel());
-    assertEquals(updatedSerialNumber, accessory.getSerialNumber());
-    assertEquals(1L, accessory.getOwnerId());
-  }
+            // Assert
+            assertNotNull(thermostat);
+            assertTrue(thermostat instanceof Thermostat);
+            assertEquals("Jager", thermostat.getModel());
+            assertEquals(22, thermostat.getMinTemperature());
+            assertEquals(28, thermostat.getMaxTemperature());
+            assertEquals(25, thermostat.getCurrentTemperature());
+            assertEquals("blue", thermostat.getColor());
+            assertEquals("A reliable heater.", thermostat.getDescription());
+        }
 
-  @Test
-  @DisplayName("Filter updateProperties should update specific properties")
-  void testFilterUpdateProperties() {
-    Filter filter = (Filter) Accessory.createFromType(
-        "filter", "model", "serial",
-        false, 100,
-        false, null, null,
-        0.0, 0.0, 0.0,
-        1L);
+        @Test
+        @DisplayName("Should validate thermostat temperature range")
+        void shouldValidateThermostatTemperatureRange() {
+            // Arrange
+            Accessory thermostat = Accessory.createFromType("thermostat", "Jager", "54321", 
+                    false, 0, false, null, null, 22, 28, 25, OWNER_ID, "blue", "A reliable heater.");
 
-    boolean newIsExternal = true;
-    int newCapacity = 200;
+            // Act & Assert
+            assertTrue(thermostat.getMinTemperature() <= thermostat.getCurrentTemperature());
+            assertTrue(thermostat.getCurrentTemperature() <= thermostat.getMaxTemperature());
+        }
+    }
 
-    filter.updateProperties(newIsExternal, newCapacity);
+    @Nested
+    @DisplayName("Factory and Validation Tests")
+    class FactoryAndValidationTests {
 
-    assertEquals(newIsExternal, filter.isExternal());
-    assertEquals(newCapacity, filter.getCapacityLiters());
-    assertEquals(1L, filter.getOwnerId());
-  }
+        @Test
+        @DisplayName("Should throw exception for unsupported accessory type")
+        void shouldThrowExceptionForUnsupportedAccessoryType() {
+            // Act & Assert
+            assertThrows(IllegalArgumentException.class, () -> 
+                    Accessory.createFromType("toaster", "Philips", "999", false, 0, false, 
+                            null, null, 0, 0, 0, OWNER_ID, "white", "Makes toast."));
+        }
 
-  @Test
-  @DisplayName("Aquarium assignment should work correctly")
-  void testAquariumAssignment() {
-    Accessory accessory = Accessory.createFromType(
-        "filter", "FilterModel", "F-12345",
-        true, 150,
-        false, null, null,
-        0.0, 0.0, 0.0,
-        1L);
+        @Test
+        @DisplayName("Should validate accessory ownership")
+        void shouldValidateAccessoryOwnership() {
+            // Arrange
+            Accessory accessory = Accessory.createFromType("filter", "Test Filter", "123", 
+                    true, 200, false, null, null, 0, 0, 0, OWNER_ID, "black", "Test filter.");
 
-    Aquarium aquarium = Aquarium.create(
-        "Test Aquarium", 100.0, 40.0, 50.0,
-        nl.hu.bep.domain.enums.SubstrateType.GRAVEL,
-        nl.hu.bep.domain.enums.WaterType.FRESH);
+            // Act & Assert
+            assertDoesNotThrow(() -> accessory.validateOwnership(OWNER_ID));
+            assertThrows(IllegalArgumentException.class, () -> accessory.validateOwnership(DIFFERENT_OWNER_ID));
+        }
 
-    aquarium.addToAccessories(accessory);
+        @Test
+        @DisplayName("Should unassign accessory from aquarium")
+        void shouldUnassignAccessoryFromAquarium() {
+            // Arrange
+            Accessory accessory = Accessory.createFromType("filter", "Test Filter", "123", 
+                    true, 200, false, null, null, 0, 0, 0, OWNER_ID, "black", "Test filter.");
+            accessory.assignToAquarium(AQUARIUM_ID, OWNER_ID);
 
-    assertEquals(aquarium, accessory.getAquarium());
-    assertTrue(aquarium.getAccessories().contains(accessory));
+            // Act
+            accessory.removeFromAquarium(OWNER_ID);
 
-    aquarium.removeFromAccessories(accessory);
+            // Assert
+            assertNull(accessory.getAquariumId());
+        }
 
-    assertNull(accessory.getAquarium());
-    assertFalse(aquarium.getAccessories().contains(accessory));
-  }
+        @Test
+        @DisplayName("Should throw exception when unassigning with wrong owner")
+        void shouldThrowExceptionWhenUnassigningWithWrongOwner() {
+            // Arrange
+            Accessory accessory = Accessory.createFromType("filter", "Test Filter", "123", 
+                    true, 200, false, null, null, 0, 0, 0, OWNER_ID, "black", "Test filter.");
+            accessory.assignToAquarium(AQUARIUM_ID, OWNER_ID);
+
+            // Act & Assert
+            assertThrows(IllegalArgumentException.class, () -> 
+                    accessory.removeFromAquarium(DIFFERENT_OWNER_ID));
+        }
+    }
+
+    @Nested
+    @DisplayName("Accessory Equality and Hash Code")
+    class AccessoryEqualityAndHashCode {
+
+        @Test
+        @DisplayName("Should test accessory equality")
+        void shouldTestAccessoryEquality() {
+            // Arrange
+            Accessory accessory1 = Accessory.createFromType("filter", "Filter1", "123", 
+                    true, 200, false, null, null, 0, 0, 0, OWNER_ID, "black", "Filter 1.");
+            Accessory accessory2 = Accessory.createFromType("filter", "Filter2", "456", 
+                    true, 300, false, null, null, 0, 0, 0, OWNER_ID, "blue", "Filter 2.");
+
+            // Act & Assert
+            assertNotEquals(accessory1, accessory2); // Different accessories should not be equal
+            assertEquals(accessory1, accessory1); // Same instance should be equal
+        }
+
+        @Test
+        @DisplayName("Should have consistent hash code")
+        void shouldHaveConsistentHashCode() {
+            // Arrange
+            Accessory accessory = Accessory.createFromType("filter", "Test Filter", "123", 
+                    true, 200, false, null, null, 0, 0, 0, OWNER_ID, "black", "Test filter.");
+
+            // Act & Assert
+            assertEquals(accessory.hashCode(), accessory.hashCode()); // Hash code should be consistent
+        }
+    }
 }

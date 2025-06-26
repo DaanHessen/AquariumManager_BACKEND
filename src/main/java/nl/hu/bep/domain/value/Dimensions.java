@@ -1,9 +1,10 @@
 package nl.hu.bep.domain.value;
 
+import nl.hu.bep.domain.utils.Validator;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import nl.hu.bep.domain.utils.Validator;
 
 /**
  * Value object representing aquarium dimensions.
@@ -27,7 +28,6 @@ public class Dimensions {
         return (length * width * height) / 1000;
     }
 
-    // Convenience method
     public double getVolume() {
         return getVolumeInLiters();
     }

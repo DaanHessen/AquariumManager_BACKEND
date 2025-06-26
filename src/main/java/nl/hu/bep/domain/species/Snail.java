@@ -1,38 +1,24 @@
 package nl.hu.bep.domain.species;
 
-import lombok.*;
-import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.Inhabitant;
-import nl.hu.bep.domain.base.SpeciesValidation;
+import nl.hu.bep.domain.enums.WaterType;
 
-/**
- * Represents a snail in an aquarium.
- * Contains snail-specific properties.
- * Clean POJO implementation without JPA dependencies.
- */
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
 @Getter
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Snail extends Inhabitant {
     private boolean isSnailEater;
 
-    // Private constructor for factory method
-    private Snail(String species, String color, int count, boolean isSchooling,
-                 WaterType waterType, Long ownerId, String name, String description,
-                 boolean isSnailEater) {
-        super(species, color, count, isSchooling, waterType, ownerId, name, description);
-        this.isSnailEater = isSnailEater;
-    }
-
-    // Factory method with validation
-    public static Snail create(String species, String color, int count, boolean isSchooling, boolean isSnailEater,
-            WaterType waterType, Long ownerId, String name, String description) {
-        
-        // Use shared validation - no more duplication!
-        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
-        
-        return new Snail(species, color, count, isSchooling, waterType, ownerId, name, description, isSnailEater);
+    @Builder
+    public Snail(Long id, String name, String species, Long ownerId, String color, Integer count, Boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId, Boolean isSnailEater) {
+        super(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
+        this.isSnailEater = isSnailEater != null ? isSnailEater : false;
     }
 
     @Override
@@ -40,8 +26,35 @@ public class Snail extends Inhabitant {
         return "Snail";
     }
 
-    // Business logic methods
-    public void updateProperties(boolean isSnailEater) {
-        this.isSnailEater = isSnailEater;
+    @Override
+    public InhabitantProperties getTypeSpecificProperties() {
+        return new InhabitantProperties(false, false, isSnailEater);
+    }
+
+    public boolean isCompatibleWith(Inhabitant other) {
+        if (other instanceof Fish fish && fish.getSnailEater()) {
+            return false; // can't have fish eating snails now
+        }
+        return true;
+    }
+
+    @Override
+    public String getInhabitantType() {
+        return "Snail";
+    }
+
+    @Override
+    public Boolean getAggressiveEater() {
+        return false;
+    }
+
+    @Override
+    public Boolean getRequiresSpecialFood() {
+        return false;
+    }
+
+    @Override
+    public Boolean getSnailEater() {
+        return this.isSnailEater;
     }
 }

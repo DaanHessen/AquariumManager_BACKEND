@@ -1,17 +1,17 @@
 package nl.hu.bep.security.application.context;
 
 import jakarta.ws.rs.core.SecurityContext;
-import nl.hu.bep.exception.security.SecurityException;
+import nl.hu.bep.exception.ApplicationException;
 
 public class SecurityContextHelper {
 
     public static Long getAuthenticatedOwnerId(SecurityContext securityContext) {
         if (securityContext == null) {
-            throw new SecurityException.AuthenticationException("Security context is null. Authentication required.");
+            throw new ApplicationException.SecurityException.AuthenticationException("Security context is null. Authentication required.");
         }
 
         if (securityContext.getUserPrincipal() == null) {
-            throw new SecurityException.AuthenticationException("Owner is not authenticated.");
+            throw new ApplicationException.SecurityException.AuthenticationException("Owner is not authenticated.");
         }
 
         if (securityContext instanceof AquariumSecurityContext) {
@@ -20,7 +20,7 @@ public class SecurityContextHelper {
             try {
                 return Long.parseLong(securityContext.getUserPrincipal().getName());
             } catch (NumberFormatException e) {
-                throw new SecurityException.AuthenticationException(
+                throw new ApplicationException.SecurityException.AuthenticationException(
                         "Invalid security context. Cannot extract owner ID.");
             }
         }
@@ -28,11 +28,11 @@ public class SecurityContextHelper {
 
     public static String getAuthenticatedUsername(SecurityContext securityContext) {
         if (securityContext == null) {
-            throw new SecurityException.AuthenticationException("Security context is null. Authentication required.");
+            throw new ApplicationException.SecurityException.AuthenticationException("Security context is null. Authentication required.");
         }
 
         if (securityContext.getUserPrincipal() == null) {
-            throw new SecurityException.AuthenticationException("Owner is not authenticated.");
+            throw new ApplicationException.SecurityException.AuthenticationException("Owner is not authenticated.");
         }
 
         if (securityContext instanceof AquariumSecurityContext) {

@@ -1,0 +1,18 @@
+services:
+  api:
+    build: 
+      context: ../..
+      dockerfile: docs/db/Dockerfile
+    ports:
+      - "8085:8080"
+    environment:
+      - DATABASE_URL=jdbc:postgresql://ep-super-moon-a8o3ieda-pooler.eastus2.azure.neon.tech:5432/aquariummanager?user=aquariummanager_owner&password=npg_01eDLfcEAKwW&sslmode=require
+      - JAVA_OPTS=-Xmx512m -Dfile.encoding=UTF-8
+    volumes:
+      - ./logs:/usr/local/tomcat/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s 

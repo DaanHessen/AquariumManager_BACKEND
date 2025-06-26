@@ -5,14 +5,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 
-/**
- * Standardized health check servlet for Railway deployment.
- * Uses annotations for configuration and minimal dependencies.
- */
 @WebServlet(name = "HealthCheckServlet", urlPatterns = {"/health"}, loadOnStartup = 1)
 public class HealthCheckServlet extends HttpServlet {
     
@@ -26,7 +21,6 @@ public class HealthCheckServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_OK);
         
-        // Simple JSON response for Railway health checks
         String healthResponse = String.format(
             "{\"status\":\"UP\",\"timestamp\":%d,\"service\":\"AquariumAPI\"}",
             System.currentTimeMillis()

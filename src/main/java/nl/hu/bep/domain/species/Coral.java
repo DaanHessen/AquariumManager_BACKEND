@@ -1,38 +1,68 @@
 package nl.hu.bep.domain.species;
 
-import lombok.*;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.base.SpeciesValidation;
 
-/**
- * Represents a coral in an aquarium.
- * Clean POJO implementation without JPA dependencies.
- */
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
 @Getter
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(callSuper = true)
 public class Coral extends Inhabitant {
 
-    // Private constructor for factory method
-    private Coral(String species, String color, int count, boolean isSchooling,
-                 WaterType waterType, Long ownerId, String name, String description) {
-        super(species, color, count, isSchooling, waterType, ownerId, name, description);
-    }
-
-    // Factory method with validation
-    public static Coral create(String species, String color, int count, boolean isSchooling, 
-            WaterType waterType, Long ownerId, String name, String description) {
-        
-        // Use shared validation - no more duplication!
-        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
-        
-        return new Coral(species, color, count, isSchooling, waterType, ownerId, name, description);
+    @Builder
+    public Coral(Long id, String name, String species, Long ownerId, String color,
+                 Integer count, Boolean isSchooling, WaterType waterType,
+                 String description, LocalDateTime dateCreated, Long aquariumId) {
+        super(id, name, species, ownerId, color, count, isSchooling, WaterType.SALTWATER, description, dateCreated, aquariumId);
+        // Ensure coral-specific validation if any
+        if (this.getWaterType() != WaterType.SALTWATER) {
+            throw new IllegalArgumentException("Coral must be in saltwater.");
+        }
     }
 
     @Override
     public String getType() {
         return "Coral";
+    }
+
+    @Override
+    public InhabitantProperties getTypeSpecificProperties() {
+        return InhabitantProperties.defaults();
+    }
+
+    public boolean isCompatibleWith(Inhabitant other) {
+        if (this.getWaterType() != WaterType.SALTWATER) {
+            return false; // no coral in freshwater
+        }
+        if (other.getWaterType() != WaterType.SALTWATER) {
+            return false; // coral is only compatible with other saltwater inhabitants
+        }
+        return true;
+    }
+
+    @Override
+    public String getInhabitantType() {
+        return "Coral";
+    }
+
+    @Override
+    public Boolean getAggressiveEater() {
+        return false; // ever seen corals eat aggressive? me neither
+    }
+
+    @Override
+    public Boolean getRequiresSpecialFood() {
+        return true; // idk what they eat but I am making it special
+    }
+
+    @Override
+    public Boolean getSnailEater() {
+        return false; // corals do not eat snails
     }
 }

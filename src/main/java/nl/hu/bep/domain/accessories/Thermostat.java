@@ -1,13 +1,9 @@
 package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
-import nl.hu.bep.domain.utils.Validator;
+
 import lombok.*;
 
-/**
- * Represents a temperature control accessory for aquariums.
-
- */
 @Getter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
@@ -21,8 +17,8 @@ public class Thermostat extends Accessory {
     public Thermostat(String model, String serialNumber, double minTemperature, 
                      double maxTemperature, double currentTemperature, Long ownerId) {
         super(model, serialNumber, ownerId);
-        this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
-        this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
+        this.minTemperature = minTemperature;
+        this.maxTemperature = maxTemperature;
         this.currentTemperature = currentTemperature;
     }
 
@@ -31,26 +27,45 @@ public class Thermostat extends Accessory {
         return "Thermostat";
     }
 
-    // Business logic methods
     public void updateProperties(double minTemperature, double maxTemperature, double currentTemperature) {
-        this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
-        this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
+        if (minTemperature <= 0) {
+            throw new IllegalArgumentException("Minimum temperature must be positive");
+        }
+        if (maxTemperature <= 0) {
+            throw new IllegalArgumentException("Maximum temperature must be positive");
+        }
+        if (minTemperature >= maxTemperature) {
+            throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+        }
+        this.minTemperature = minTemperature;
+        this.maxTemperature = maxTemperature;
         this.currentTemperature = currentTemperature;
     }
 
     public void adjustMinTemperature(double minTemperature) {
-        this.minTemperature = Validator.positive(minTemperature, "Minimum temperature");
+        if (minTemperature <= 0) {
+            throw new IllegalArgumentException("Minimum temperature must be positive");
+        }
+        if (minTemperature >= this.maxTemperature) {
+            throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+        }
+        this.minTemperature = minTemperature;
     }
 
     public void adjustMaxTemperature(double maxTemperature) {
-        this.maxTemperature = Validator.positive(maxTemperature, "Maximum temperature");
+        if (maxTemperature <= 0) {
+            throw new IllegalArgumentException("Maximum temperature must be positive");
+        }
+        if (this.minTemperature >= maxTemperature) {
+            throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+        }
+        this.maxTemperature = maxTemperature;
     }
 
     public void updateCurrentTemperature(double currentTemperature) {
         this.currentTemperature = currentTemperature;
     }
 
-    // Business calculations
     public boolean isWithinRange() {
         return currentTemperature >= minTemperature && currentTemperature <= maxTemperature;
     }
@@ -72,4 +87,28 @@ public class Thermostat extends Accessory {
         if (requiresCooling()) return "TOO_HOT";
         return "OPTIMAL";
     }
+
+    @Override
+    public boolean isExternal() { return false; }
+    
+    @Override
+    public int getCapacityLiters() { return 0; }
+    
+    @Override
+    public boolean isLed() { return false; }
+    
+    @Override
+    public java.time.LocalTime getTurnOnTime() { return null; }
+    
+    @Override
+    public java.time.LocalTime getTurnOffTime() { return null; }
+    
+    @Override
+    public double getMinTemperature() { return minTemperature; }
+    
+    @Override
+    public double getMaxTemperature() { return maxTemperature; }
+    
+    @Override
+    public double getCurrentTemperature() { return currentTemperature; }
 }

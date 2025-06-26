@@ -1,89 +1,52 @@
 package nl.hu.bep.domain;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.DisplayName;
+import nl.hu.bep.exception.ApplicationException;
 import org.junit.jupiter.api.Test;
-
-import nl.hu.bep.domain.enums.WaterType;
+import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.*;
 
 class OrnamentTest {
 
-  @Test
-  @DisplayName("create should initialize Ornament with correct values")
-  void testCreateOrnament() {
-    String name = "Castle";
-    String description = "A decorative castle for aquarium";
-    String color = "Gray";
-    boolean isAirPumpCompatible = false;
-    Long ownerId = 1L;
-    String material = "Stone";
+    @Test
+    void createOrnament() {
+        Ornament ornament = Ornament.create("Shipwreck", 1L, Optional.of("A sunken ship."), Optional.of("brown"), Optional.of("resin"), Optional.of(true));
+        assertEquals("Shipwreck", ornament.getName());
+        assertEquals(1L, ornament.getOwnerId());
+        assertEquals("A sunken ship.", ornament.getDescription());
+        assertTrue(ornament.isAirPumpCompatible());
+    }
 
-    Ornament ornament = new Ornament(name, description, color, isAirPumpCompatible, ownerId, material);
+    @Test
+    void createOrnamentWithMinimalInfo() {
+        Ornament ornament = Ornament.create("Rock", 1L, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        assertEquals("Rock", ornament.getName());
+        assertEquals(1L, ornament.getOwnerId());
+        assertNull(ornament.getDescription());
+        assertFalse(ornament.isAirPumpCompatible());
+    }
 
-    assertNotNull(ornament);
-    assertEquals(name, ornament.getName());
-    assertEquals(description, ornament.getDescription());
-    assertEquals(color, ornament.getColor());
-    assertEquals(isAirPumpCompatible, ornament.isAirPumpCompatible());
-    assertEquals(ownerId, ornament.getOwnerId());
-    assertEquals(material, ornament.getMaterial());
-    assertNotNull(ornament.getDateCreated());
-    assertNull(ornament.getAquarium());
-  }
+    @Test
+    void updateOrnament() {
+        Ornament ornament = Ornament.create("Castle", 1L, Optional.of("A small castle."), Optional.of("grey"), Optional.of("stone"), Optional.of(false));
+        ornament.update(Optional.of("Large Castle"), Optional.of("A large, imposing castle."), Optional.empty(), Optional.empty(), Optional.of(true));
+        assertEquals("Large Castle", ornament.getName());
+        assertEquals("A large, imposing castle.", ornament.getDescription());
+        assertEquals("grey", ornament.getColor());
+        assertTrue(ornament.isAirPumpCompatible());
+    }
 
-  @Test
-  @DisplayName("update method should update properties correctly")
-  void testUpdateOrnament() {
-    Ornament ornament = new Ornament(
-        "Pirate Ship", "A sunken pirate ship decoration", "Black", false, 1L, "Wood");
+    @Test
+    void assignToAquarium() {
+        Ornament ornament = Ornament.create("Cave", 1L, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        ornament.assignToAquarium(10L, 1L);
+        assertEquals(10L, ornament.getAquariumId());
+    }
 
-    String newName = "Sunken Ship";
-    String newDescription = "A more realistic sunken ship";
-    String newColor = "Brown";
-    boolean newIsAirPumpCompatible = true;
-    String newMaterial = "Metal";
-
-    ornament.update(newName, newDescription, newColor, newIsAirPumpCompatible, newMaterial);
-
-    assertEquals(newName, ornament.getName());
-    assertEquals(newDescription, ornament.getDescription());
-    assertEquals(newColor, ornament.getColor());
-    assertEquals(newIsAirPumpCompatible, ornament.isAirPumpCompatible());
-    assertEquals(newMaterial, ornament.getMaterial());
-    assertEquals(1L, ornament.getOwnerId());
-  }
-
-  @Test
-  @DisplayName("Aquarium assignment should work correctly")
-  void testAquariumAssignment() {
-    Ornament ornament = new Ornament(
-        "Log", "A decorative log for hiding", "Brown", false, 1L, "Wood");
-
-    Aquarium aquarium = Aquarium.create(
-        "Test Aquarium", 100.0, 40.0, 50.0,
-        nl.hu.bep.domain.enums.SubstrateType.GRAVEL, WaterType.FRESH);
-
-    aquarium.addToOrnaments(ornament);
-
-    assertEquals(aquarium, ornament.getAquarium());
-    assertTrue(aquarium.getOrnaments().contains(ornament));
-
-    aquarium.removeFromOrnaments(ornament);
-
-    assertNull(ornament.getAquarium());
-    assertFalse(aquarium.getOrnaments().contains(ornament));
-  }
-
-  @Test
-  @DisplayName("AirPump compatibility should be stored correctly")
-  void testAirPumpCompatibility() {
-    Ornament incompatibleOrnament = new Ornament(
-        "Plant", "Decorative plant", "Green", false, 1L, "Plastic");
-
-    Ornament compatibleOrnament = new Ornament(
-        "Bubbling Rock", "A rock with air pump attachment", "Gray", true, 1L, "Stone");
-
-    assertFalse(incompatibleOrnament.isAirPumpCompatible());
-    assertTrue(compatibleOrnament.isAirPumpCompatible());
-  }
+    @Test
+    void assignToAquariumNotOwner() {
+        Ornament ornament = Ornament.create("Cave", 1L, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        assertThrows(ApplicationException.BusinessRuleException.class, () -> {
+            ornament.assignToAquarium(10L, 2L);
+        });
+    }
 }

@@ -1,17 +1,12 @@
 package nl.hu.bep.domain;
 
-import lombok.*;
 import nl.hu.bep.domain.utils.Validator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.HashSet;
+import lombok.*;
 
-/**
- * Root aggregate for the aquarium management domain.
- * Manages the overall aquarium system for an installation.
-
- */
 @Getter
 @EqualsAndHashCode(of = "id")
 @ToString(exclude = {"ownerIds", "aquariumIds", "inhabitantIds"})
@@ -24,7 +19,6 @@ public class AquariumManager {
     private String description;
     private LocalDateTime dateCreated;
     
-    // ID-based relationships for clean separation
     @Builder.Default
     private Set<Long> ownerIds = new HashSet<>();
     @Builder.Default
@@ -32,7 +26,6 @@ public class AquariumManager {
     @Builder.Default
     private Set<Long> inhabitantIds = new HashSet<>();
 
-    // Factory method for new installations
     public static AquariumManager create(LocalDate installationDate, String description) {
         return AquariumManager.builder()
                 .installationDate(Validator.notNull(installationDate, "Installation date"))
@@ -41,7 +34,6 @@ public class AquariumManager {
                 .build();
     }
 
-    // Public method for repository reconstruction only
     public static AquariumManager reconstruct(Long id, LocalDate installationDate, String description,
                                              LocalDateTime dateCreated, Set<Long> ownerIds,
                                              Set<Long> aquariumIds, Set<Long> inhabitantIds) {
@@ -56,12 +48,10 @@ public class AquariumManager {
                 .build();
     }
 
-    // Business logic methods
     public void updateDescription(String description) {
         this.description = description;
     }
 
-    // Owner management
     public void addOwner(Long ownerId) {
         if (ownerId != null) {
             this.ownerIds.add(ownerId);
@@ -72,7 +62,6 @@ public class AquariumManager {
         this.ownerIds.remove(ownerId);
     }
 
-    // Aquarium management
     public void addAquarium(Long aquariumId) {
         if (aquariumId != null) {
             this.aquariumIds.add(aquariumId);
@@ -83,7 +72,6 @@ public class AquariumManager {
         this.aquariumIds.remove(aquariumId);
     }
 
-    // Inhabitant management
     public void addInhabitant(Long inhabitantId) {
         if (inhabitantId != null) {
             this.inhabitantIds.add(inhabitantId);
@@ -94,7 +82,6 @@ public class AquariumManager {
         this.inhabitantIds.remove(inhabitantId);
     }
 
-    // Business calculations
     public boolean hasAquariums() {
         return !aquariumIds.isEmpty();
     }

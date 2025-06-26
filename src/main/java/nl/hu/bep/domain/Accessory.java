@@ -1,18 +1,15 @@
 package nl.hu.bep.domain;
 
-import lombok.*;
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Lighting;
 import nl.hu.bep.domain.accessories.Thermostat;
+
+import lombok.*;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 
-/**
- * Abstract base class for all aquarium accessories.
-
- */
 @Getter
 @EqualsAndHashCode(of = "id", callSuper = false)
 @ToString(exclude = {"aquariumId"})
@@ -23,12 +20,11 @@ public abstract class Accessory extends AssignableEntity {
   private String model;
   private String serialNumber;
   private Long ownerId;
-  private Long aquariumId; // ID-based relationship
+  private Long aquariumId;
   private String color;
   private String description;
   private LocalDateTime dateCreated;
 
-  // Protected constructor for subclasses
   protected Accessory(String model, String serialNumber, Long ownerId) {
     this.model = Validator.notEmpty(model, "Accessory model");
     this.serialNumber = Validator.notEmpty(serialNumber, "Accessory serial number");
@@ -36,7 +32,6 @@ public abstract class Accessory extends AssignableEntity {
     this.dateCreated = LocalDateTime.now();
   }
 
-  // Business methods
   public void updateModel(String model) {
     this.model = Validator.notEmpty(model, "Accessory model");
   }
@@ -53,7 +48,6 @@ public abstract class Accessory extends AssignableEntity {
     this.description = description;
   }
 
-  // Comprehensive update method
   public Accessory update(String model, String serialNumber, String color, String description) {
     if (model != null) updateModel(model);
     if (serialNumber != null) updateSerialNumber(serialNumber);
@@ -62,29 +56,40 @@ public abstract class Accessory extends AssignableEntity {
     return this;
   }
 
-  // Secure aquarium assignment methods with domain validation
   public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
-      // Domain security: Only owner can assign accessory to aquarium
       if (!this.ownerId.equals(requestingOwnerId)) {
           throw new IllegalArgumentException("Only the accessory owner can assign it to an aquarium");
       }
-      // Direct assignment with validation passed
       this.aquariumId = aquariumId;
   }
 
   public void removeFromAquarium(Long requestingOwnerId) {
-      // Domain security: Only owner can remove accessory from aquarium
       if (!this.ownerId.equals(requestingOwnerId)) {
           throw new IllegalArgumentException("Only the accessory owner can remove it from an aquarium");
       }
-      // Direct removal with validation passed
       this.aquariumId = null;
   }
 
-  // Abstract method for accessory type
+  public void validateOwnership(Long requestingOwnerId) {
+      if (requestingOwnerId == null) {
+          throw new IllegalArgumentException("Requesting Owner ID cannot be null");
+      }
+      if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {
+          throw new IllegalArgumentException("Entity does not belong to the current user");
+      }
+  }
+
   public abstract String getAccessoryType();
 
-  // Public method for repository reconstruction only
+  public abstract boolean isExternal();
+  public abstract int getCapacityLiters();
+  public abstract boolean isLed();
+  public abstract LocalTime getTurnOnTime();
+  public abstract LocalTime getTurnOffTime();
+  public abstract double getMinTemperature();
+  public abstract double getMaxTemperature();
+  public abstract double getCurrentTemperature();
+
   public static Accessory reconstruct(String type, Long id, String model, String serialNumber, 
                                      Long ownerId, Long aquariumId, String color, String description,
                                      LocalDateTime dateCreated, boolean isExternal, int capacityLiters,
@@ -102,7 +107,6 @@ public abstract class Accessory extends AssignableEntity {
       default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
     };
 
-    // Set reconstructed properties
     accessory.id = id;
     accessory.aquariumId = aquariumId;
     accessory.color = color;
@@ -112,7 +116,6 @@ public abstract class Accessory extends AssignableEntity {
     return accessory;
   }
 
-  // Factory method for creating accessories from type
   public static Accessory createFromType(String type, String model, String serialNumber,
       boolean isExternal, int capacityLiters,
       boolean isLED, LocalTime timeOn, LocalTime timeOff,
@@ -124,9 +127,25 @@ public abstract class Accessory extends AssignableEntity {
     }
 
     Accessory accessory = switch (type.toLowerCase()) {
-      case "filter" -> new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
+      case "filter" -> {
+        if (capacityLiters <= 0) {
+          throw new IllegalArgumentException("Filter capacity must be provided and positive");
+        }
+        yield new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
+      }
       case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
-      case "heater", "thermostat" -> new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
+      case "heater", "thermostat" -> {
+        if (minTemperature <= 0) {
+          throw new IllegalArgumentException("Minimum temperature must be positive");
+        }
+        if (maxTemperature <= 0) {
+          throw new IllegalArgumentException("Maximum temperature must be positive");
+        }
+        if (minTemperature >= maxTemperature) {
+          throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+        }
+        yield new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
+      }
       default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
     };
 

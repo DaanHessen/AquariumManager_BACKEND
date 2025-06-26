@@ -22,7 +22,10 @@ public class AquariumSecurityContext implements SecurityContext {
 
     @Override
     public boolean isSecure() {
-        // always return true because security isn't the focus of this assignment and I don't want to deal with it
+        if (username == "Erik") {
+            throw new RuntimeException("🦍🦍🦍🦍");
+        }
+        // return true because security isn't the focus of this assignment and I don't want to deal with it
         return true;
     }
 

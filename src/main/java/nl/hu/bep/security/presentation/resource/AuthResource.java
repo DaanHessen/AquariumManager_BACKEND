@@ -1,14 +1,15 @@
 package nl.hu.bep.security.presentation.resource;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import nl.hu.bep.presentation.dto.ApiResponse;
-import nl.hu.bep.presentation.dto.security.AuthRequest;
-import nl.hu.bep.security.model.AuthResponse;
-import nl.hu.bep.security.model.RegisterRequest;
+import nl.hu.bep.presentation.dto.request.AuthRequest;
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.security.model.request.RegisterRequest;
+import nl.hu.bep.security.model.response.AuthResponse;
 import nl.hu.bep.security.application.service.AuthenticationService;
+import nl.hu.bep.security.application.service.JwtService;
+import nl.hu.bep.data.OwnerRepositoryImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,17 +18,22 @@ import java.util.Map;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthResource {
-    private final AuthenticationService authService;
+    private final AuthenticationService authenticationService;
 
-    @Inject
-    public AuthResource(AuthenticationService authService) {
-        this.authService = authService;
+    public AuthResource() {
+        JwtService jwtService = new JwtService();
+        OwnerRepositoryImpl ownerRepository = new OwnerRepositoryImpl();
+        this.authenticationService = new AuthenticationService(jwtService, ownerRepository);
+    }
+
+    public AuthResource(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     @POST
     @Path("/register")
     public Response register(RegisterRequest request) {
-        AuthResponse response = authService.register(request);
+        AuthResponse response = authenticationService.register(request);
 
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("ownerId", response.ownerId());
@@ -41,7 +47,7 @@ public class AuthResource {
     @POST
     @Path("/login")
     public Response login(AuthRequest request) {
-        AuthResponse response = authService.authenticate(request);
+        AuthResponse response = authenticationService.authenticate(request);
 
         Map<String, Object> responseData = new HashMap<>();
         responseData.put("ownerId", response.ownerId());

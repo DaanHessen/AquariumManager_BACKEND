@@ -3,252 +3,350 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
-
+import nl.hu.bep.exception.ApplicationException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import nl.hu.bep.domain.species.Fish;
-import nl.hu.bep.exception.domain.DomainException;
+import org.junit.jupiter.api.Nested;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("Aquarium Domain Tests")
 class AquariumTest {
 
-  @Test
-  @DisplayName("Creating an aquarium should initialize with correct values")
-  void testCreateAquarium() {
-    String name = "Test Aquarium";
-    double length = 100.0;
-    double width = 40.0;
-    double height = 50.0;
-    SubstrateType substrate = SubstrateType.GRAVEL;
-    WaterType waterType = WaterType.FRESH;
+    private static final Long OWNER_ID = 1L;
+    private static final Long DIFFERENT_OWNER_ID = 2L;
 
-    Aquarium aquarium = Aquarium.create(name, length, width, height, substrate, waterType);
+    @Nested
+    @DisplayName("Aquarium Creation")
+    class AquariumCreation {
+        
+        @Test
+        @DisplayName("Should create aquarium with valid parameters")
+        void shouldCreateAquariumWithValidParameters() {
+            // Arrange
+            String name = "MyAquarium";
+            double length = 100.0;
+            double width = 50.0;
+            double height = 50.0;
+            SubstrateType substrate = SubstrateType.SAND;
+            WaterType waterType = WaterType.FRESHWATER;
+            String color = "blue";
+            String description = "A beautiful aquarium";
+            AquariumState state = AquariumState.RUNNING;
 
-    assertNotNull(aquarium);
-    assertEquals(name, aquarium.getName());
-    assertEquals(length, aquarium.getDimensions().getLength());
-    assertEquals(width, aquarium.getDimensions().getWidth());
-    assertEquals(height, aquarium.getDimensions().getHeight());
-    assertEquals(substrate, aquarium.getSubstrate());
-    assertEquals(waterType, aquarium.getWaterType());
-    assertEquals(AquariumState.SETUP, aquarium.getState());
-    assertEquals(24.0, aquarium.getTemperature());
-    assertTrue(aquarium.getAccessories().isEmpty());
-    assertTrue(aquarium.getInhabitants().isEmpty());
-    assertTrue(aquarium.getOrnaments().isEmpty());
-  }
+            // Act
+            Aquarium aquarium = Aquarium.create(name, length, width, height, substrate, waterType, color, description, state);
 
-  @Test
-  @DisplayName("Aquarium state transitions should work correctly")
-  void testAquariumStateTransitions() {
-    Aquarium aquarium = createTestAquarium();
+            // Assert
+            assertNotNull(aquarium);
+            assertEquals(name, aquarium.getName());
+            assertEquals(substrate, aquarium.getSubstrate());
+            assertEquals(waterType, aquarium.getWaterType());
+            assertEquals(color, aquarium.getColor());
+            assertEquals(description, aquarium.getDescription());
+            assertEquals(state, aquarium.getState());
+            assertNotNull(aquarium.getDimensions());
+            assertNotNull(aquarium.getDateCreated());
+        }
 
-    assertEquals(AquariumState.SETUP, aquarium.getState());
-    aquarium.activateAquarium();
-    assertEquals(AquariumState.RUNNING, aquarium.getState());
+        @Test
+        @DisplayName("Should throw exception when name is null")
+        void shouldThrowExceptionWhenNameIsNull() {
+            // Arrange & Act & Assert
+            assertThrows(ApplicationException.ValidationException.class, () -> 
+                Aquarium.create(null, 100.0, 50.0, 50.0, SubstrateType.SAND, 
+                    WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING)
+            );
+        }
 
-    aquarium.startMaintenance();
-    assertEquals(AquariumState.MAINTENANCE, aquarium.getState());
+        @Test
+        @DisplayName("Should throw exception when name is empty")
+        void shouldThrowExceptionWhenNameIsEmpty() {
+            // Arrange & Act & Assert
+            assertThrows(ApplicationException.ValidationException.class, () -> 
+                Aquarium.create("", 100.0, 50.0, 50.0, SubstrateType.SAND, 
+                    WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING)
+            );
+        }
 
-    aquarium.activateAquarium();
-    assertEquals(AquariumState.RUNNING, aquarium.getState());
+        @Test
+        @DisplayName("Should throw exception when substrate is null")
+        void shouldThrowExceptionWhenSubstrateIsNull() {
+            // Arrange & Act & Assert
+            assertThrows(ApplicationException.ValidationException.class, () -> 
+                Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, null, 
+                    WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING)
+            );
+        }
 
-    aquarium.deactivateAquarium();
-    assertEquals(AquariumState.INACTIVE, aquarium.getState());
-  }
-
-  @Test
-  @DisplayName("Invalid state transitions should throw exceptions")
-  void testInvalidStateTransitions() {
-    Aquarium aquarium = createTestAquarium();
-    aquarium.deactivateAquarium();
-
-    DomainException exception = assertThrows(DomainException.class,
-        aquarium::activateAquarium);
-    assertTrue(exception.getMessage().contains("Cannot activate aquarium from"));
-
-    aquarium.updateState(AquariumState.RUNNING);
-    aquarium.startMaintenance();
-    assertEquals(AquariumState.MAINTENANCE, aquarium.getState());
-
-    aquarium.updateState(AquariumState.SETUP);
-
-    exception = assertThrows(DomainException.class,
-        aquarium::startMaintenance);
-    assertTrue(exception.getMessage().contains("Cannot start maintenance"));
-  }
-
-  @Test
-  @DisplayName("Adding an inhabitant with compatible water type should succeed")
-  void testAddCompatibleInhabitant() {
-    Aquarium aquarium = createTestAquarium();
-    aquarium.activateAquarium();
-
-    Inhabitant inhabitant = Inhabitant.createFromType(
-        "Fish", "Guppy", "Orange", 5,
-        true, WaterType.FRESH, false, false, false, 1L, null, null);
-
-    aquarium.addToInhabitants(inhabitant);
-
-    assertEquals(1, aquarium.getInhabitants().size());
-    assertTrue(aquarium.getInhabitants().contains(inhabitant));
-    assertEquals(aquarium, inhabitant.getAquarium());
-  }
-
-  @Test
-  @DisplayName("Adding an inhabitant with incompatible water type should throw exception")
-  void testAddIncompatibleInhabitant() {
-    Aquarium aquarium = createTestAquarium();
-    aquarium.activateAquarium();
-
-    Inhabitant saltWaterFish = Inhabitant.createFromType(
-        "Fish", "Clownfish", "Orange", 2,
-        false, WaterType.SALT, false, false, false, 1L, null, null);
-
-    DomainException exception = assertThrows(DomainException.IncompatibleWaterTypeException.class,
-        () -> aquarium.addToInhabitants(saltWaterFish));
-    assertTrue(exception.getMessage().contains("Incompatible water types"));
-  }
-
-  @Test
-  @DisplayName("Adding an inhabitant to inactive aquarium should throw exception")
-  void testAddInhabitantToInactiveAquarium() {
-    Aquarium aquarium = createTestAquarium();
-    aquarium.deactivateAquarium();
-
-    Inhabitant inhabitant = Inhabitant.createFromType(
-        "Fish", "Guppy", "Orange", 5,
-        true, WaterType.FRESH, false, false, false, 1L, null, null);
-
-    DomainException exception = assertThrows(DomainException.class,
-        () -> aquarium.addToInhabitants(inhabitant));
-    assertTrue(exception.getMessage().contains("Cannot add inhabitants to an inactive aquarium"));
-  }
-
-  @Test
-  @DisplayName("Calculating volume should return correct value")
-  void testGetVolume() {
-    double length = 100.0;
-    double width = 40.0;
-    double height = 50.0;
-    Aquarium aquarium = createTestAquarium(length, width, height);
-
-    double expectedVolume = (length * width * height) / 1000.0;
-
-    assertEquals(expectedVolume, aquarium.getVolume());
-  }
-
-  @Test
-  @DisplayName("Owner assignment should work correctly")
-  void testOwnerAssignment() {
-    Aquarium aquarium = createTestAquarium();
-    Owner owner = Owner.create("Test", "Owner", "test@example.com", "password123");
-    try {
-      java.lang.reflect.Field idField = Owner.class.getDeclaredField("id");
-      idField.setAccessible(true);
-      idField.set(owner, 1L);
-    } catch (Exception e) {
-      fail("Failed to set owner ID: " + e.getMessage());
+        @Test
+        @DisplayName("Should throw exception when water type is null")
+        void shouldThrowExceptionWhenWaterTypeIsNull() {
+            // Arrange & Act & Assert
+            assertThrows(ApplicationException.ValidationException.class, () -> 
+                Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, SubstrateType.SAND, 
+                    null, "blue", "description", AquariumState.RUNNING)
+            );
+        }
     }
 
-    aquarium.assignToOwner(owner);
+    @Nested
+    @DisplayName("Aquarium Ownership")
+    class AquariumOwnership {
 
-    assertEquals(owner, aquarium.getOwner());
-    assertTrue(aquarium.isOwnedBy(1L));
+        private Aquarium aquarium;
 
-    aquarium.unassignFromOwner();
+        @BeforeEach
+        void setUp() {
+            aquarium = Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, 
+                SubstrateType.SAND, WaterType.FRESHWATER, "blue", 
+                "A beautiful aquarium", AquariumState.RUNNING);
+        }
 
-    assertNull(aquarium.getOwner());
-    assertFalse(aquarium.isOwnedBy(1L));
-  }
+        @Test
+        @DisplayName("Should assign owner to aquarium")
+        void shouldAssignOwnerToAquarium() {
+            // Act
+            aquarium.assignToOwner(OWNER_ID);
 
-  @Test
-  @DisplayName("Update method should update all properties correctly")
-  void testUpdate() {
-    Aquarium aquarium = createTestAquarium();
-    String newName = "Updated Aquarium";
-    double newLength = 120.0;
-    double newWidth = 60.0;
-    double newHeight = 70.0;
-    SubstrateType newSubstrate = SubstrateType.SAND;
-    WaterType newWaterType = WaterType.SALT;
-    AquariumState newState = AquariumState.MAINTENANCE;
-    Double newTemperature = 28.5;
+            // Assert
+            assertEquals(OWNER_ID, aquarium.getOwnerId());
+        }
 
-    aquarium.update(newName, newLength, newWidth, newHeight,
-        newSubstrate, newWaterType, newState, newTemperature);
+        @Test
+        @DisplayName("Should validate ownership successfully for correct owner")
+        void shouldValidateOwnershipSuccessfullyForCorrectOwner() {
+            // Arrange
+            aquarium.assignToOwner(OWNER_ID);
 
-    assertEquals(newName, aquarium.getName());
-    assertEquals(newLength, aquarium.getDimensions().getLength());
-    assertEquals(newWidth, aquarium.getDimensions().getWidth());
-    assertEquals(newHeight, aquarium.getDimensions().getHeight());
-    assertEquals(newSubstrate, aquarium.getSubstrate());
-    assertEquals(newWaterType, aquarium.getWaterType());
-    assertEquals(newState, aquarium.getState());
-    assertEquals(newTemperature, aquarium.getTemperature());
-  }
+            // Act & Assert
+            assertDoesNotThrow(() -> aquarium.validateOwnership(OWNER_ID));
+        }
 
-  @Test
-  void testCreateAndAddFish() {
-    // Arrange
-    Aquarium aquarium = Aquarium.create("Test Aqua", 60, 30, 30, SubstrateType.GRAVEL, WaterType.FRESH);
-    // Use Owner.create with a password String
-    Owner owner = Owner.create("owner", "pass", "owner@mail.com", "password"); 
-    try { // Set ID via reflection if needed for the test
-        java.lang.reflect.Field idField = Owner.class.getDeclaredField("id");
-        idField.setAccessible(true);
-        idField.set(owner, 1L);
-    } catch (Exception e) { fail("Failed to set owner ID: " + e.getMessage()); }
-    aquarium.assignToOwner(owner);
+        @Test
+        @DisplayName("Should throw exception when validating ownership for different owner")
+        void shouldThrowExceptionWhenValidatingOwnershipForDifferentOwner() {
+            // Arrange
+            aquarium.assignToOwner(OWNER_ID);
 
-    // Act
-    Fish fish = aquarium.createAndAddFish("Neon Tetra", "Blue/Red", 10, true, false, false, WaterType.FRESH, false, null);
+            // Act & Assert
+            assertThrows(ApplicationException.class, () -> 
+                aquarium.validateOwnership(DIFFERENT_OWNER_ID)
+            );
+        }
 
-    // Assert
-    assertNotNull(fish);
-    assertEquals(1, aquarium.getInhabitants().size());
-    assertTrue(aquarium.getInhabitants().contains(fish));
-    assertEquals(aquarium, fish.getAquarium());
-    assertEquals(owner.getId(), fish.getOwnerId()); // Verify owner ID is set
-    assertNull(fish.getName()); // Verify name is null as it wasn't provided
-  }
-  
-  @Test
-  void testCreateAndAddOrnament() {
-      // Arrange
-      Aquarium aquarium = Aquarium.create("Test Aqua", 60, 30, 30, SubstrateType.GRAVEL, WaterType.FRESH);
-      // Use Owner.create with a password String
-      Owner owner = Owner.create("owner", "pass", "owner@mail.com", "password"); 
-      try { // Set ID via reflection if needed
-          java.lang.reflect.Field idField = Owner.class.getDeclaredField("id");
-          idField.setAccessible(true);
-          idField.set(owner, 1L);
-      } catch (Exception e) { fail("Failed to set owner ID: " + e.getMessage()); }
-      aquarium.assignToOwner(owner);
+        @Test
+        @DisplayName("Should throw exception when validating ownership for unassigned aquarium")
+        void shouldThrowExceptionWhenValidatingOwnershipForUnassignedAquarium() {
+            // Act & Assert
+            assertThrows(ApplicationException.class, () -> 
+                aquarium.validateOwnership(OWNER_ID)
+            );
+        }
+    }
 
-      // Act
-      Ornament ornament = aquarium.createAndAddOrnament("Castle", "Big", "Gray", true);
+    @Nested
+    @DisplayName("Aquarium State Management")
+    class AquariumStateManagement {
 
-      // Assert
-      assertNotNull(ornament);
-      assertEquals(1, aquarium.getOrnaments().size());
-      assertTrue(aquarium.getOrnaments().contains(ornament));
-      assertEquals(aquarium, ornament.getAquarium());
-      assertEquals(owner.getId(), ornament.getOwnerId()); // Verify owner ID is set
-  }
+        private Aquarium aquarium;
 
-  private Aquarium createTestAquarium() {
-    return createTestAquarium(100.0, 40.0, 50.0);
-  }
+        @BeforeEach
+        void setUp() {
+            aquarium = Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, 
+                SubstrateType.SAND, WaterType.FRESHWATER, "blue", 
+                "A beautiful aquarium", AquariumState.SETUP);
+            aquarium.assignToOwner(OWNER_ID);
+        }
 
-  private Aquarium createTestAquarium(double length, double width, double height) {
-    return Aquarium.create(
-        "Test Aquarium",
-        length,
-        width,
-        height,
-        SubstrateType.GRAVEL,
-        WaterType.FRESH);
-  }
+        @Test
+        @DisplayName("Should update state to running")
+        void shouldUpdateStateToRunning() {
+            // Act
+            aquarium.updateState(AquariumState.RUNNING);
+
+            // Assert
+            assertEquals(AquariumState.RUNNING, aquarium.getState());
+        }
+
+        @Test
+        @DisplayName("Should activate aquarium")
+        void shouldActivateAquarium() {
+            // Act
+            aquarium.activateAquarium();
+
+            // Assert
+            assertEquals(AquariumState.RUNNING, aquarium.getState());
+            assertNotNull(aquarium.getCurrentStateStartTime());
+        }
+
+        @Test
+        @DisplayName("Should start maintenance")
+        void shouldStartMaintenance() {
+            // Arrange
+            aquarium.activateAquarium();
+
+            // Act
+            aquarium.startMaintenance();
+
+            // Assert
+            assertEquals(AquariumState.MAINTENANCE, aquarium.getState());
+        }
+
+        @Test
+        @DisplayName("Should deactivate aquarium")
+        void shouldDeactivateAquarium() {
+            // Arrange
+            aquarium.activateAquarium();
+
+            // Act
+            aquarium.deactivateAquarium();
+
+            // Assert
+            assertEquals(AquariumState.INACTIVE, aquarium.getState());
+        }
+    }
+
+    @Nested
+    @DisplayName("Aquarium Equality and Hash Code")
+    class AquariumEqualityAndHashCode {
+
+        @Test
+        @DisplayName("Should be equal when same id")
+        void shouldBeEqualWhenSameId() {
+            // Arrange
+            Aquarium aquarium1 = Aquarium.create("Aquarium1", 100.0, 50.0, 50.0, 
+                SubstrateType.SAND, WaterType.FRESHWATER, "blue", "desc1", AquariumState.RUNNING);
+            Aquarium aquarium2 = Aquarium.create("Aquarium2", 200.0, 60.0, 60.0, 
+                SubstrateType.GRAVEL, WaterType.SALTWATER, "red", "desc2", AquariumState.SETUP);
+
+            // Both have null IDs after creation (set by persistence layer in real usage)
+            
+            // Act & Assert
+            assertEquals(aquarium1, aquarium2); // Equal because both have null ID
+        }
+
+        @Test
+        @DisplayName("Should have same hash code when equal")
+        void shouldHaveSameHashCodeWhenEqual() {
+            // Arrange
+            Aquarium aquarium = Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, 
+                SubstrateType.SAND, WaterType.FRESHWATER, "blue", "description", AquariumState.RUNNING);
+
+            // Act & Assert
+            assertEquals(aquarium.hashCode(), aquarium.hashCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("Inhabitant Management")
+    class InhabitantManagement {
+
+        private Aquarium aquarium;
+        private Inhabitant mockInhabitant;
+
+        @BeforeEach
+        void setUp() {
+            aquarium = Aquarium.create("MyAquarium", 100.0, 50.0, 50.0, 
+                SubstrateType.SAND, WaterType.FRESHWATER, "blue", 
+                "A beautiful aquarium", AquariumState.RUNNING);
+            aquarium.assignToOwner(OWNER_ID);
+            
+            // Create a simple mock inhabitant for testing
+            mockInhabitant = new TestInhabitant(1L, "TestFish", "TestSpecies", OWNER_ID, 
+                "blue", 1, false, WaterType.FRESHWATER, "Test description");
+        }
+
+        @Test
+        @DisplayName("Should add inhabitant to aquarium")
+        void shouldAddInhabitantToAquarium() {
+            // Act
+            assertDoesNotThrow(() -> aquarium.addInhabitant(mockInhabitant, OWNER_ID));
+
+            // Assert
+            assertEquals(1, aquarium.getInhabitants().size());
+            assertTrue(aquarium.getInhabitants().contains(mockInhabitant));
+        }
+
+        @Test
+        @DisplayName("Should remove inhabitant from aquarium")
+        void shouldRemoveInhabitantFromAquarium() {
+            // Arrange
+            aquarium.addInhabitant(mockInhabitant, OWNER_ID);
+
+            // Act
+            aquarium.removeInhabitant(mockInhabitant, OWNER_ID);
+
+            // Assert
+            assertEquals(0, aquarium.getInhabitants().size());
+            assertFalse(aquarium.getInhabitants().contains(mockInhabitant));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when adding inhabitant with wrong owner")
+        void shouldThrowExceptionWhenAddingInhabitantWithWrongOwner() {
+            // Act & Assert
+            assertThrows(ApplicationException.class, () -> 
+                aquarium.addInhabitant(mockInhabitant, DIFFERENT_OWNER_ID)
+            );
+        }
+
+        @Test
+        @DisplayName("Should throw exception when removing inhabitant with wrong owner")
+        void shouldThrowExceptionWhenRemovingInhabitantWithWrongOwner() {
+            // Arrange
+            aquarium.addInhabitant(mockInhabitant, OWNER_ID);
+
+            // Act & Assert
+            assertThrows(ApplicationException.class, () -> 
+                aquarium.removeInhabitant(mockInhabitant, DIFFERENT_OWNER_ID)
+            );
+        }
+
+        // Simple test inhabitant implementation
+        private static class TestInhabitant extends Inhabitant {
+            public TestInhabitant(Long id, String name, String species, Long ownerId, 
+                                 String color, Integer count, Boolean isSchooling, 
+                                 WaterType waterType, String description) {
+                super(id, name, species, ownerId, color, count, isSchooling, 
+                      waterType, description, java.time.LocalDateTime.now(), null);
+            }
+
+            @Override
+            public boolean isCompatibleWith(Inhabitant other) {
+                return true; // Simple compatibility for testing
+            }
+
+            @Override
+            public String getType() {
+                return "test";
+            }
+
+            @Override
+            public String getInhabitantType() {
+                return "TestInhabitant";
+            }
+
+            @Override
+            public Boolean getAggressiveEater() {
+                return false;
+            }
+
+            @Override
+            public Boolean getRequiresSpecialFood() {
+                return false;
+            }
+
+            @Override
+            public Boolean getSnailEater() {
+                return false;
+            }
+
+            @Override
+            public InhabitantProperties getTypeSpecificProperties() {
+                return InhabitantProperties.defaults();
+            }
+        }
+    }
 }

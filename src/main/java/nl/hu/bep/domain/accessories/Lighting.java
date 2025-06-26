@@ -2,6 +2,7 @@ package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.domain.utils.Validator;
+
 import lombok.*;
 import java.time.LocalTime;
 import java.time.Duration;
@@ -61,4 +62,28 @@ public class Lighting extends Accessory {
     public void updateLedType(boolean isLed) {
         this.isLed = isLed;
     }
+
+    @Override
+    public boolean isExternal() { return false; }
+    
+    @Override
+    public int getCapacityLiters() { return 0; }
+    
+    @Override
+    public boolean isLed() { return isLed; }
+    
+    @Override
+    public LocalTime getTurnOnTime() { return turnOnTime; }
+    
+    @Override
+    public LocalTime getTurnOffTime() { return turnOffTime; }
+    
+    @Override
+    public double getMinTemperature() { return 0.0; }
+    
+    @Override
+    public double getMaxTemperature() { return 0.0; }
+    
+    @Override
+    public double getCurrentTemperature() { return 0.0; }
 }

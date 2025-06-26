@@ -3,484 +3,333 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.exception.domain.DomainException;
+import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.value.Dimensions;
-import nl.hu.bep.domain.species.Fish;
-import jakarta.persistence.*;
-import lombok.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.PositiveOrZero;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.stream.Collectors;
-import java.util.function.BiConsumer;
-import java.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nl.hu.bep.config.AquariumConstants;
 
-@Entity
-@Table(name = "aquariums")
+import lombok.*;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
-@EqualsAndHashCode(exclude = { "accessories", "inhabitants", "ornaments", "aquariumManager", "owner", "stateHistory" })
-@ToString(exclude = { "accessories", "inhabitants", "ornaments", "aquariumManager", "owner", "stateHistory" })
+@EqualsAndHashCode(of = "id")
+@ToString(exclude = {"ownerId", "aquariumManagerId"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Setter(value = AccessLevel.PRIVATE)
 public class Aquarium {
-  private static final Logger log = LoggerFactory.getLogger(Aquarium.class);
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+    private Long id;
+    private String name;
+    private Dimensions dimensions;
+    private SubstrateType substrate;
+    private WaterType waterType;
+    private Double temperature;
+    private AquariumState state;
+    private LocalDateTime currentStateStartTime;
+    private String color;
+    private String description;
+    private LocalDateTime dateCreated;
 
-  @NotNull
-  @Size(min = 1, max = 50)
-  private String name;
+    private Long ownerId;
+    private Long aquariumManagerId;
 
-  @Embedded
-  private Dimensions dimensions;
+    private Set<Inhabitant> inhabitants = new HashSet<>();
 
-  @NotNull
-  @Enumerated(EnumType.STRING)
-  private SubstrateType substrate;
 
-  @NotNull
-  @Enumerated(EnumType.STRING)
-  private WaterType waterType;
+    public static Aquarium create(String name, double length, double width, double height,
+                                  SubstrateType substrate, WaterType waterType, String color, String description, AquariumState state) {
+        Validator.notEmpty(name, "Aquarium name");
+        Validator.notNull(substrate, "Substrate type");
+        Validator.notNull(waterType, "Water type");
 
-  @PositiveOrZero
-  @Column(name = "temperature")
-  private Double temperature;
+        Aquarium aquarium = new Aquarium();
+        aquarium.name = name;
+        aquarium.dimensions = new Dimensions(length, width, height);
+        aquarium.substrate = substrate;
+        aquarium.waterType = waterType;
+        aquarium.temperature = AquariumConstants.DEFAULT_AQUARIUM_TEMPERATURE;
+        aquarium.state = state != null ? state : AquariumState.SETUP;
+        aquarium.currentStateStartTime = LocalDateTime.now();
+        aquarium.color = color;
+        aquarium.description = description;
+        aquarium.dateCreated = LocalDateTime.now();
 
-  @NotNull
-  @Enumerated(EnumType.STRING)
-  private AquariumState state;
-
-  @Column(name = "current_state_start_time")
-  private LocalDateTime currentStateStartTime;
-
-  @Column(name = "color")
-  private String color;
-
-  @Column(name = "description", length = 255)
-  private String description;
-
-  @Column(name = "date_created", updatable = false)
-  private LocalDateTime dateCreated;
-
-  @OneToMany(mappedBy = "aquarium", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private Set<Accessory> accessories = new HashSet<>();
-
-  @OneToMany(mappedBy = "aquarium", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private Set<Inhabitant> inhabitants = new HashSet<>();
-
-  @OneToMany(mappedBy = "aquarium", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-  private Set<Ornament> ornaments = new HashSet<>();
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "aquarium_manager_id")
-  private AquariumManager aquariumManager;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "owner_id")
-  private Owner owner;
-
-  public static Aquarium create(String name, double length, double width, double height,
-      SubstrateType substrate, WaterType waterType, String color, String description, AquariumState state) {
-    Validator.notEmpty(name, "Aquarium name");
-    Validator.notNull(substrate, "Substrate type");
-    Validator.notNull(waterType, "Water type");
-
-    Aquarium aquarium = new Aquarium();
-    aquarium.name = name;
-    aquarium.dimensions = new Dimensions(length, width, height);
-    aquarium.substrate = substrate;
-    aquarium.waterType = waterType;
-    aquarium.temperature = 24.0;
-    aquarium.accessories = new HashSet<>();
-    aquarium.inhabitants = new HashSet<>();
-    aquarium.ornaments = new HashSet<>();
-    aquarium.state = state != null ? state : AquariumState.SETUP;
-    aquarium.currentStateStartTime = LocalDateTime.now();
-    aquarium.color = color;
-    aquarium.description = description;
-    aquarium.dateCreated = LocalDateTime.now();
-
-    return aquarium;
-  }
-
-  public void updateName(String name) {
-    this.name = Validator.notEmpty(name, "Aquarium name");
-  }
-
-  public void updateDimensions(Double length, Double width, Double height) {
-    Validator.notNull(length, "Length");
-    Validator.notNull(width, "Width");
-    Validator.notNull(height, "Height");
-    this.dimensions = new Dimensions(length, width, height);
-  }
-
-  public void updateSubstrate(SubstrateType substrate) {
-    this.substrate = Validator.notNull(substrate, "Substrate type");
-  }
-
-  public void updateWaterType(WaterType waterType) {
-    this.waterType = Validator.notNull(waterType, "Water type");
-  }
-
-  public void updateTemperature(Double temperature) {
-    if (temperature != null && temperature < 0) {
-      throw new IllegalArgumentException("Temperature cannot be negative");
-    }
-    this.temperature = temperature;
-  }
-
-  public void updateState(AquariumState newState) {
-    AquariumState oldState = this.state;
-    this.state = Validator.notNull(newState, "Aquarium state");
-    
-    // Only create history if state actually changed
-    if (oldState != newState) {
-      transitionToState(newState);
-    }
-  }
-
-  public void activateAquarium() {
-    if (this.state != AquariumState.SETUP && this.state != AquariumState.MAINTENANCE) {
-      throw new DomainException("Cannot activate aquarium from " + this.state + " state");
-    }
-    transitionToState(AquariumState.RUNNING);
-  }
-
-  public void startMaintenance() {
-    if (this.state != AquariumState.RUNNING) {
-      throw new DomainException("Cannot start maintenance when aquarium is not running");
-    }
-    transitionToState(AquariumState.MAINTENANCE);
-  }
-
-  public void deactivateAquarium() {
-    transitionToState(AquariumState.INACTIVE);
-  }
-
-  /**
-   * Handles state transition with proper history tracking
-   */
-  private void transitionToState(AquariumState newState) {
-    if (this.state == newState) {
-      return; // No change needed
-    } 
-
-    // Update current state and timestamp
-    this.state = newState;
-    this.currentStateStartTime = LocalDateTime.now();
-  }
-  
-  /**
-   * Handles state transition with frontend-provided duration for the previous state
-   */
-  public void transitionToStateWithDuration(AquariumState newState, Long previousStateDurationMinutes) {
-    if (this.state == newState) {
-      return; // No change needed
+        return aquarium;
     }
 
-    // Update current state and timestamp
-    this.state = newState;
-    this.currentStateStartTime = LocalDateTime.now();
-  }
-
-  /**
-   * Gets the current state duration in minutes
-   */
-  public long getCurrentStateDurationMinutes() {
-    if (currentStateStartTime == null) {
-      return 0;
-    }
-    return java.time.temporal.ChronoUnit.MINUTES.between(currentStateStartTime, LocalDateTime.now());
-  }
-
-  public void addToInhabitants(Inhabitant inhabitant) {
-    Validator.notNull(inhabitant, "Inhabitant");
-
-    if (this.state == AquariumState.INACTIVE) {
-      throw new DomainException("Cannot add inhabitants to an inactive aquarium");
-    }
-
-    validateInhabitantCompatibility(inhabitant);
-
-    if (inhabitant.getAquarium() != null && inhabitant.getAquarium() != this) {
-      inhabitant.getAquarium().getInhabitants().remove(inhabitant);
+    public static Aquarium reconstruct(Long id, String name, Dimensions dimensions,
+                                     SubstrateType substrate, WaterType waterType, Double temperature,
+                                     AquariumState state, LocalDateTime currentStateStartTime,
+                                     String color, String description, LocalDateTime dateCreated,
+                                     Long aquariumManagerId, Long ownerId) {
+        Aquarium aquarium = new Aquarium();
+        aquarium.id = id;
+        aquarium.name = name;
+        aquarium.dimensions = dimensions;
+        aquarium.substrate = substrate;
+        aquarium.waterType = waterType;
+        aquarium.temperature = temperature;
+        aquarium.state = state;
+        aquarium.currentStateStartTime = currentStateStartTime;
+        aquarium.color = color;
+        aquarium.description = description;
+        aquarium.dateCreated = dateCreated;
+        aquarium.aquariumManagerId = aquariumManagerId;
+        aquarium.ownerId = ownerId;
+        return aquarium;
     }
 
-    addToCollection(inhabitants, inhabitant, this::setInhabitantAquarium);
-  }
-
-  private void validateInhabitantCompatibility(Inhabitant inhabitant) {
-    if (inhabitant.getWaterType() != this.waterType) {
-      throw new DomainException.IncompatibleWaterTypeException(
-          "Incompatible water types: Aquarium has " + this.waterType +
-              " but inhabitant requires " + inhabitant.getWaterType());
-    }
-  }
-
-  private void setInhabitantAquarium(Inhabitant inhabitant, Aquarium aquarium) {
-    inhabitant.setAquarium(aquarium);
-  }
-
-  private void setOrnamentAquarium(Ornament ornament, Aquarium aquarium) {
-    ornament.setAquarium(aquarium);
-  }
-
-  private void setAccessoryAquarium(Accessory accessory, Aquarium aquarium) {
-    accessory.setAquarium(aquarium);
-  }
-
-  private <T> void addToCollection(Set<T> collection, T item, BiConsumer<T, Aquarium> setter) {
-    if (item == null || collection.contains(item)) {
-      return;
+    public Set<Inhabitant> getInhabitants() {
+        return Collections.unmodifiableSet(inhabitants);
     }
 
-    collection.add(item);
-    setter.accept(item, this);
-  }
+    public void addInhabitant(Inhabitant inhabitant, Long requestingOwnerId) {
+        validateOwnership(requestingOwnerId);
+        if (inhabitant.getAquariumId() != null && !inhabitant.getAquariumId().equals(this.id)) {
+            throw new ApplicationException.BusinessRuleException("Inhabitant is already in another aquarium.");
+        }
 
-  private <T> void removeFromCollection(Set<T> collection, T item, BiConsumer<T, Aquarium> setter) {
-    if (item == null || !collection.contains(item)) {
-      return;
+        for (Inhabitant existing : inhabitants) {
+            if (!inhabitant.isCompatibleWith(existing)) {
+                throw new ApplicationException.BusinessRuleException("Inhabitant " + inhabitant.getName() + " is not compatible with " + existing.getName());
+            }
+        }
+
+        inhabitant.assignToAquarium(this.id, requestingOwnerId);
+        this.inhabitants.add(inhabitant);
     }
 
-    collection.remove(item);
-    setter.accept(item, null);
-  }
-
-  public void addToAccessories(Accessory accessory) {
-    Validator.notNull(accessory, "Accessory");
-
-    if (accessories.contains(accessory)) {
-      throw new DomainException("Accessory is already in this aquarium");
+    public void removeInhabitant(Inhabitant inhabitant, Long requestingOwnerId) {
+        validateOwnership(requestingOwnerId);
+        if (inhabitants.remove(inhabitant)) {
+            inhabitant.removeFromAquarium(requestingOwnerId);
+        }
     }
 
-    addToCollection(accessories, accessory, this::setAccessoryAquarium);
-  }
-
-  public void removeFromAccessories(Accessory accessory) {
-    Validator.notNull(accessory, "Accessory");
-    removeFromCollection(accessories, accessory, this::setAccessoryAquarium);
-  }
-
-  public void removeFromInhabitants(Inhabitant inhabitant) {
-    Validator.notNull(inhabitant, "Inhabitant");
-    removeFromCollection(inhabitants, inhabitant, this::setInhabitantAquarium);
-  }
-
-  public void addToOrnaments(Ornament ornament) {
-    Validator.notNull(ornament, "Ornament");
-
-    if (ornaments.contains(ornament)) {
-      throw new DomainException("Ornament is already in this aquarium");
+    public void assignToOwner(Long ownerId) {
+        Validator.notNull(ownerId, "Owner ID");
+        this.ownerId = ownerId;
     }
 
-    addToCollection(ornaments, ornament, this::setOrnamentAquarium);
-  }
-
-  public void removeFromOrnaments(Ornament ornament) {
-    Validator.notNull(ornament, "Ornament");
-    removeFromCollection(ornaments, ornament, this::setOrnamentAquarium);
-  }
-
-  public void assignToOwner(Owner owner) {
-    Validator.notNull(owner, "Owner");
-
-    unassignFromOwner();
-
-    this.owner = owner;
-    // Only try to update owner's collection if it's already initialized (not a proxy)
-    // This prevents lazy loading issues during entity creation
-    try {
-      if (!owner.getOwnedAquariums().contains(this)) {
-        owner.addToAquariums(this);
-      }
-    } catch (Exception e) {
-      // If accessing the collection fails (e.g., lazy loading issue),
-      // the bidirectional relationship will be handled at the persistence layer
-      // or when the collection is properly initialized
-      log.debug("Could not update owner's aquarium collection during assignment: {}", e.getMessage());
-    }
-  }
-
-  /**
-   * Assigns this aquarium to an owner without trying to update the owner's collection.
-   * This is safer to use during entity creation when lazy collections may not be initialized.
-   * The bidirectional relationship should be handled at the persistence/service layer.
-   */
-  public void assignToOwnerSafely(Owner owner) {
-    Validator.notNull(owner, "Owner");
-    
-    unassignFromOwner();
-    this.owner = owner;
-  }
-
-  public void unassignFromOwner() {
-    if (this.owner != null) {
-      Owner currentOwner = this.owner;
-      this.owner = null;
-      currentOwner.getOwnedAquariums().remove(this);
-    }
-  }
-
-  public void assignToManager(AquariumManager manager) {
-    Validator.notNull(manager, "Aquarium Manager");
-
-    unassignFromManager();
-
-    this.aquariumManager = manager;
-    if (!manager.getAquariums().contains(this)) {
-      manager.addToAquariums(this);
-    }
-  }
-
-  public void unassignFromManager() {
-    if (this.aquariumManager != null) {
-      AquariumManager currentManager = this.aquariumManager;
-      this.aquariumManager = null;
-      currentManager.getAquariums().remove(this);
-    }
-  }
-
-  public boolean isOwnedBy(Long ownerId) {
-    return this.owner != null && this.owner.getId() != null && this.owner.getId().equals(ownerId);
-  }
-
-  public double getVolume() {
-    return dimensions != null ? dimensions.getVolumeInLiters() : 0;
-  }
-
-  public Set<Inhabitant> getInhabitantsByWaterType(WaterType waterType) {
-    return this.inhabitants.stream()
-        .filter(i -> i.getWaterType() == waterType)
-        .collect(Collectors.toSet());
-  }
-
-  public Set<Inhabitant> getSchoolingInhabitants() {
-    return this.inhabitants.stream()
-        .filter(Inhabitant::isSchooling)
-        .collect(Collectors.toSet());
-  }
-
-  public void transferOrnament(Ornament ornament, Aquarium targetAquarium) {
-    if (ornament == null) {
-      return;
+    public void assignToManager(Long managerId) {
+        this.aquariumManagerId = managerId;
     }
 
-    if (this.ornaments.contains(ornament)) {
-      this.removeFromOrnaments(ornament);
+    public void unassignFromOwner() {
+        this.ownerId = null;
     }
 
-    if (targetAquarium != null && targetAquarium != this) {
-      targetAquarium.addToOrnaments(ornament);
-    }
-  }
-
-  public Ornament createAndAddOrnament(String name, String description, String color, boolean isAirPumpCompatible) {
-    if (this.owner == null) {
-        throw new DomainException("Cannot create ornament in an aquarium without an owner.");
-    }
-    Ornament ornament = new Ornament(name, description, color, isAirPumpCompatible, this.owner.getId(), null);
-    this.addToOrnaments(ornament);
-    return ornament;
-  }
-
-  public void transferAccessory(Accessory accessory, Aquarium targetAquarium) {
-    if (accessory == null) {
-      return;
+    public void unassignFromManager() {
+        this.aquariumManagerId = null;
     }
 
-    if (this.accessories.contains(accessory)) {
-      this.removeFromAccessories(accessory);
+    public boolean isOwnedBy(Long ownerId) {
+        return this.ownerId != null && this.ownerId.equals(ownerId);
     }
 
-    if (targetAquarium != null && targetAquarium != this) {
-      targetAquarium.addToAccessories(accessory);
-    }
-  }
+    public void validateOwnership(Long requestingOwnerId) {
+        if (requestingOwnerId == null) {
+            throw new ApplicationException.BusinessRuleException("Owner ID is required for ownership verification");
+        }
 
-  public void transferInhabitant(Inhabitant inhabitant, Aquarium targetAquarium) {
-    if (inhabitant == null) {
-      return;
-    }
-
-    if (this.inhabitants.contains(inhabitant)) {
-      this.removeFromInhabitants(inhabitant);
+        if (!isOwnedBy(requestingOwnerId)) {
+            throw new ApplicationException.BusinessRuleException("Access denied: You do not own this aquarium");
+        }
     }
 
-    if (targetAquarium != null && targetAquarium != this) {
-      targetAquarium.addToInhabitants(inhabitant);
-    }
-  }
-
-  public Fish createAndAddFish(String species, String color, int count, boolean isSchooling,
-      boolean isAggressiveEater, boolean requiresSpecialFood, WaterType waterType, boolean isSnailEater, String description) {
-    
-    if (this.owner == null) {
-        throw new DomainException("Cannot create fish in an aquarium without an owner.");
-    }
-    Fish fish = Fish.create(species, color, count, isSchooling, isAggressiveEater,
-        requiresSpecialFood, waterType, isSnailEater, this.owner.getId(), null, description);
-
-    this.addToInhabitants(fish);
-    return fish;
-  }
-
-  public void verifyOwnership(Long ownerId) {
-    if (!isOwnedBy(ownerId)) {
-      throw new DomainException("This aquarium is not owned by the user with ID: " + ownerId);
-    }
-  }
-
-  public void addOrnamentWithOwnershipCheck(Ornament ornament, Long ownerId) {
-    verifyOwnership(ownerId);
-    addToOrnaments(ornament);
-  }
-
-  public void addAccessoryWithOwnershipCheck(Accessory accessory, Long ownerId) {
-    verifyOwnership(ownerId);
-    addToAccessories(accessory);
-  }
-
-  public void addInhabitantWithOwnershipCheck(Inhabitant inhabitant, Long ownerId) {
-    verifyOwnership(ownerId);
-    addToInhabitants(inhabitant);
-  }
-
-  public Aquarium update(String name, Double length, Double width, Double height,
-      SubstrateType substrate, WaterType waterType, AquariumState state,
-      Double temperature) {
-    if (name != null) {
-      updateName(name);
+    public void updateName(String name) {
+        this.name = Validator.notEmpty(name, "Aquarium name");
     }
 
-    if (length != null && width != null && height != null) {
-      updateDimensions(length, width, height);
+    public void updateDimensions(Double length, Double width, Double height) {
+        Validator.notNull(length, "Length");
+        Validator.notNull(width, "Width");
+        Validator.notNull(height, "Height");
+        this.dimensions = new Dimensions(length, width, height);
     }
 
-    if (substrate != null) {
-      updateSubstrate(substrate);
+    public void updateSubstrate(SubstrateType substrate) {
+        this.substrate = Validator.notNull(substrate, "Substrate type");
     }
 
-    if (waterType != null) {
-      updateWaterType(waterType);
+    public void updateWaterType(WaterType waterType) {
+        this.waterType = Validator.notNull(waterType, "Water type");
     }
 
-    if (state != null) {
-      updateState(state);
+    public void updateTemperature(Double temperature) {
+        if (temperature != null && temperature < 0) {
+            throw new IllegalArgumentException("Temperature cannot be negative");
+        }
+        this.temperature = temperature;
     }
 
-    if (temperature != null) {
-      updateTemperature(temperature);
+    public void updateState(AquariumState newState) {
+        AquariumState oldState = this.state;
+        this.state = Validator.notNull(newState, "Aquarium state");
+
+        if (oldState != newState) {
+            this.currentStateStartTime = LocalDateTime.now();
+        }
     }
 
-    return this;
-  }
+    public void activateAquarium() {
+        if (this.state != AquariumState.SETUP && this.state != AquariumState.MAINTENANCE) {
+            throw new ApplicationException.BusinessRuleException("Cannot activate aquarium from " + this.state + " state");
+        }
+        transitionToState(AquariumState.RUNNING);
+    }
+
+    public void startMaintenance() {
+        if (this.state != AquariumState.RUNNING) {
+            throw new ApplicationException.BusinessRuleException("Cannot start maintenance when aquarium is not running");
+        }
+        transitionToState(AquariumState.MAINTENANCE);
+    }
+
+    public void deactivateAquarium() {
+        transitionToState(AquariumState.INACTIVE);
+    }
+
+    // might remove this shit
+    private void transitionToState(AquariumState newState) {
+        if (this.state == newState) {
+            return;
+        }
+
+        this.state = newState;
+        this.currentStateStartTime = LocalDateTime.now();
+    }
+
+    public void transitionToStateWithDuration(AquariumState newState, Long previousStateDurationMinutes) {
+        if (this.state == newState) {
+            return;
+        }
+
+        this.state = newState;
+        this.currentStateStartTime = LocalDateTime.now();
+    }
+
+    public long getCurrentStateDurationMinutes() {
+        if (currentStateStartTime == null) {
+            return 0;
+        }
+        return java.time.Duration.between(currentStateStartTime, LocalDateTime.now()).toMinutes();
+    }
+
+    public double getVolume() {
+        return dimensions.getVolume();
+    }
+
+    public int getRecommendedInhabitantCapacity() {
+        double volume = getVolume();
+
+        return switch (waterType) {
+            case FRESHWATER -> (int) (volume / 5.0); // 5 liters per small fish
+            case SALTWATER -> (int) (volume / 8.0);  // 8 liters per marine fish
+        };
+    }
+
+    public boolean canAccommodate(int additionalInhabitants) {
+        if (state != AquariumState.RUNNING) {
+            return false; // if aquarium isn't running, can't add new inhabitants
+        }
+
+        // maybe add proper capacity too
+        return additionalInhabitants <= getRecommendedInhabitantCapacity();
+    }
+
+    public boolean isWaterTypeCompatible(WaterType inhabitantWaterType) {
+        return this.waterType == inhabitantWaterType;
+    }
+
+    // might delete
+    public boolean isTemperatureInRange(double minTemp, double maxTemp) {
+        return temperature != null && temperature >= minTemp && temperature <= maxTemp;
+    }
+
+    public boolean isSuitableForTropicalFish() {
+        return isTemperatureInRange(24.0, 28.0) && waterType == WaterType.FRESHWATER;
+    }
+
+    public boolean isSuitableForMarineFish() {
+        return isTemperatureInRange(22.0, 26.0) && waterType == WaterType.SALTWATER;
+    }
+
+    public void validateReadinessForInhabitants() {
+        if (state != AquariumState.RUNNING) {
+            throw new ApplicationException.BusinessRuleException("Aquarium must be running before adding inhabitants");
+        }
+
+        if (temperature == null) {
+            throw new ApplicationException.BusinessRuleException("Temperature must be set before adding inhabitants");
+        }
+
+        if (temperature < 10.0 || temperature > 35.0) {
+            throw new ApplicationException.BusinessRuleException("Temperature must be between 10°C and 35°C for inhabitants");
+        }
+
+        if (getVolume() < 20.0) {
+            throw new ApplicationException.BusinessRuleException("Aquarium volume must be at least 20 liters for inhabitants");
+        }
+    }
+
+    public boolean isSubstrateCompatibleWith(String fishSpecies) {
+        return true; // might do something gwith this
+    }
+
+    // public int getRecommendedMaintenanceIntervalDays() {
+    //     double volume = getVolume();
+
+    //     if (volume < 50) {
+    //         return 3; // Small tanks need frequent maintenance
+    //     } else if (volume < 200) {
+    //         return 7; // Medium tanks weekly maintenance
+    //     } else {
+    //         return 14; // Large tanks bi-weekly maintenance
+    //     }
+    // }
+
+    // public boolean isMaintenanceOverdue() {
+    //     if (state != AquariumState.RUNNING) {
+    //         return false; // Not relevant if not running
+    //     }
+
+    //     long daysSinceLastMaintenance = getCurrentStateDurationMinutes() / (24 * 60);
+    //     return daysSinceLastMaintenance > getRecommendedMaintenanceIntervalDays();
+    // }
+
+    public boolean canTransitionTo(AquariumState newState) {
+        return switch (this.state) {
+            case SETUP -> newState == AquariumState.RUNNING || newState == AquariumState.INACTIVE;
+            case RUNNING -> newState == AquariumState.MAINTENANCE || newState == AquariumState.INACTIVE;
+            case MAINTENANCE -> newState == AquariumState.RUNNING || newState == AquariumState.INACTIVE;
+            case INACTIVE -> newState == AquariumState.SETUP;
+        };
+    }
+
+    public Aquarium update(String name, Double length, Double width, Double height,
+                           SubstrateType substrate, WaterType waterType, AquariumState state,
+                           Double temperature) {
+
+        if (name != null) updateName(name);
+        if (length != null && width != null && height != null) updateDimensions(length, width, height);
+        if (substrate != null) updateSubstrate(substrate);
+        if (waterType != null) updateWaterType(waterType);
+        if (state != null) updateState(state);
+        if (temperature != null) updateTemperature(temperature);
+
+        return this;
+    }
+
+    public boolean canAccommodate(Inhabitant inhabitant) {
+        if (this.waterType != inhabitant.getWaterType()) {
+            return false;
+        }
+
+        return true;
+    }
 }

@@ -1,38 +1,55 @@
 package nl.hu.bep.domain.species;
 
-import lombok.*;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-import nl.hu.bep.domain.base.SpeciesValidation;
 
-/**
- * Represents a plant in an aquarium.
- * Clean POJO implementation without JPA dependencies.
- */
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
 @Getter
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Plant extends Inhabitant {
 
-    // Private constructor for factory method
-    private Plant(String species, String color, int count, boolean isSchooling,
-                 WaterType waterType, Long ownerId, String name, String description) {
-        super(species, color, count, isSchooling, waterType, ownerId, name, description);
-    }
-
-    // Factory method with validation
-    public static Plant create(String species, String color, int count, boolean isSchooling, 
-            WaterType waterType, Long ownerId, String name, String description) {
-        
-        // Use shared validation - no more duplication!
-        SpeciesValidation.validateSpeciesCreation(species, waterType, ownerId, count);
-        
-        return new Plant(species, color, count, isSchooling, waterType, ownerId, name, description);
+    @Builder
+    public Plant(Long id, String name, String species, Long ownerId, String color, Integer count, Boolean isSchooling, WaterType waterType, String description, LocalDateTime dateCreated, Long aquariumId) {
+        super(id, name, species, ownerId, color, count, isSchooling, waterType, description, dateCreated, aquariumId);
     }
 
     @Override
     public String getType() {
         return "Plant";
+    }
+
+    @Override
+    public InhabitantProperties getTypeSpecificProperties() {
+        return InhabitantProperties.defaults();
+    }
+
+    public boolean isCompatibleWith(Inhabitant other) {
+        return true; // dont care
+    }
+
+    @Override
+    public String getInhabitantType() {
+        return "Plant";
+    }
+
+    @Override
+    public Boolean getAggressiveEater() {
+        return false;
+    }
+
+    @Override
+    public Boolean getRequiresSpecialFood() {
+        return false;
+    }
+
+    @Override
+    public Boolean getSnailEater() {
+        return false;
     }
 }

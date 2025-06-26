@@ -1,7 +1,14 @@
 package nl.hu.bep.security.application.filter;
 
+import nl.hu.bep.data.*;
+import nl.hu.bep.security.application.annotation.RequiresOwnership;
+import nl.hu.bep.security.application.context.SecurityContextHelper;
+import nl.hu.bep.data.interfaces.AquariumRepository;
+import nl.hu.bep.data.interfaces.AccessoryRepository;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
+import nl.hu.bep.data.interfaces.OrnamentRepository;
+
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -10,16 +17,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.security.application.annotation.RequiresOwnership;
-import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.data.AquariumRepository;
-import nl.hu.bep.data.AccessoryRepository;
-import nl.hu.bep.data.InhabitantRepository;
-import nl.hu.bep.data.OrnamentRepository;
-import nl.hu.bep.domain.services.OwnershipDomainService;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.util.Map;
 
 @Slf4j
@@ -31,27 +28,33 @@ public class OwnershipFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    @Inject
     private AquariumRepository aquariumRepository;
-    
-    @Inject
     private AccessoryRepository accessoryRepository;
-    
-    @Inject
     private InhabitantRepository inhabitantRepository;
-    
-    @Inject
     private OrnamentRepository ornamentRepository;
+
+    public OwnershipFilter() {
+        this.aquariumRepository = new AquariumRepositoryImpl();
+        this.accessoryRepository = new AccessoryRepositoryImpl();
+        this.inhabitantRepository = new InhabitantRepositoryImpl();
+        this.ornamentRepository = new OrnamentRepositoryImpl();
+    }
+
+    public OwnershipFilter(AquariumRepository aquariumRepository,
+                           AccessoryRepository accessoryRepository,
+                           InhabitantRepository inhabitantRepository,
+                           OrnamentRepository ornamentRepository) {
+        this.aquariumRepository = aquariumRepository;
+        this.accessoryRepository = accessoryRepository;
+        this.inhabitantRepository = inhabitantRepository;
+        this.ornamentRepository = ornamentRepository;
+    }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        Method method = resourceInfo.getResourceMethod();
+        var method = resourceInfo.getResourceMethod();
 
         RequiresOwnership ownershipAnnotation = method.getAnnotation(RequiresOwnership.class);
-        if (ownershipAnnotation == null) {
-            ownershipAnnotation = method.getDeclaringClass().getAnnotation(RequiresOwnership.class);
-        }
-
         if (ownershipAnnotation == null) {
             return;
         }
@@ -62,7 +65,7 @@ public class OwnershipFilter implements ContainerRequestFilter {
 
             RequiresOwnership.ResourceType resourceType = ownershipAnnotation.resourceType();
             String paramName = ownershipAnnotation.paramName();
-            Long resourceId = extractResourceId(method, paramName, requestContext);
+            Long resourceId = extractResourceIdFromPath(paramName, requestContext);
 
             if (resourceId == null) {
                 log.error("Failed to extract resource ID for parameter: {}", paramName);
@@ -93,23 +96,18 @@ public class OwnershipFilter implements ContainerRequestFilter {
         }
     }
 
-    private Long extractResourceId(Method method, String paramName, ContainerRequestContext requestContext) {
-        Parameter[] parameters = method.getParameters();
-        for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].getName().equals(paramName)) {
-                try {
-                    String pathParamValue = requestContext.getUriInfo()
-                            .getPathParameters()
-                            .getFirst(paramName);
+    private Long extractResourceIdFromPath(String paramName, ContainerRequestContext requestContext) {
+        try {
+            String pathParamValue = requestContext.getUriInfo()
+                    .getPathParameters()
+                    .getFirst(paramName);
 
-                    if (pathParamValue != null) {
-                        return Long.parseLong(pathParamValue);
-                    }
-                } catch (NumberFormatException e) {
-                    log.error("Invalid resource ID format for parameter {}", paramName);
-                    throw new IllegalArgumentException("Invalid resource ID format");
-                }
+            if (pathParamValue != null) {
+                return Long.parseLong(pathParamValue);
             }
+        } catch (NumberFormatException e) {
+            log.error("Invalid resource ID format for parameter {}", paramName);
+            throw new IllegalArgumentException("Invalid resource ID format");
         }
 
         throw new IllegalArgumentException("Resource ID parameter not found: " + paramName);
@@ -122,14 +120,15 @@ public class OwnershipFilter implements ContainerRequestFilter {
                         .build());
     }
 
-    // DDD-compliant ownership verification using domain services
     private boolean verifyAquariumOwnership(Long aquariumId, Long ownerId) {
         try {
             var aquarium = aquariumRepository.findById(aquariumId).orElse(null);
             if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            
+            aquarium.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
+            log.debug("Aquarium ownership verification failed: {}", e.getMessage());
             return false;
         }
     }
@@ -137,12 +136,12 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private boolean verifyInhabitantOwnership(Long inhabitantId, Long ownerId) {
         try {
             var inhabitant = inhabitantRepository.findById(inhabitantId).orElse(null);
-            if (inhabitant == null || inhabitant.getAquariumId() == null) return false;
-            var aquarium = aquariumRepository.findById(inhabitant.getAquariumId()).orElse(null);
-            if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            if (inhabitant == null) return false;
+            
+            inhabitant.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
+            log.debug("Inhabitant ownership verification failed: {}", e.getMessage());
             return false;
         }
     }
@@ -150,12 +149,11 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private boolean verifyAccessoryOwnership(Long accessoryId, Long ownerId) {
         try {
             var accessory = accessoryRepository.findById(accessoryId).orElse(null);
-            if (accessory == null || accessory.getAquariumId() == null) return false;
-            var aquarium = aquariumRepository.findById(accessory.getAquariumId()).orElse(null);
-            if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
-            return true;
+            if (accessory == null) return false;
+            
+            return accessory.getOwnerId().equals(ownerId);
         } catch (Exception e) {
+            log.debug("Accessory ownership verification failed: {}", e.getMessage());
             return false;
         }
     }
@@ -163,12 +161,12 @@ public class OwnershipFilter implements ContainerRequestFilter {
     private boolean verifyOrnamentOwnership(Long ornamentId, Long ownerId) {
         try {
             var ornament = ornamentRepository.findById(ornamentId).orElse(null);
-            if (ornament == null || ornament.getAquariumId() == null) return false;
-            var aquarium = aquariumRepository.findById(ornament.getAquariumId()).orElse(null);
-            if (aquarium == null) return false;
-            OwnershipDomainService.verifyOwnership(aquarium, ownerId);
+            if (ornament == null) return false;
+            
+            ornament.validateOwnership(ownerId);
             return true;
         } catch (Exception e) {
+            log.debug("Ornament ownership verification failed: {}", e.getMessage());
             return false;
         }
     }

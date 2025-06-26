@@ -1,9 +1,14 @@
 package nl.hu.bep.security.application.filter;
 
+import nl.hu.bep.presentation.dto.response.ApiResponse;
+import nl.hu.bep.security.application.annotation.Secured;
+import nl.hu.bep.security.application.context.AquariumSecurityContext;
+import nl.hu.bep.security.application.service.JwtService;
+import nl.hu.bep.config.AquariumConstants;
+
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -14,12 +19,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
-import nl.hu.bep.presentation.dto.ApiResponse;
-import nl.hu.bep.security.application.annotation.Secured;
-import nl.hu.bep.security.application.context.AquariumSecurityContext;
-import nl.hu.bep.security.application.service.JwtService;
-
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,21 +27,36 @@ import java.util.Map;
 @Secured
 @Priority(Priorities.AUTHENTICATION)
 public class AquariumSecurityFilter implements ContainerRequestFilter {
-    private static final String AUTHENTICATION_SCHEME = "Bearer";
-    private static final String[] PUBLIC_ENDPOINTS = { "/api/auth/register", "/api/auth/login" };
+    private static final String AUTHENTICATION_SCHEME = AquariumConstants.BEARER_SCHEME;
+    private static final String[] PUBLIC_ENDPOINTS = AquariumConstants.PUBLIC_ENDPOINTS;
 
-    @Inject
     private JwtService jwtService;
 
     @Context
     private ResourceInfo resourceInfo;
 
+    public AquariumSecurityFilter() {
+    }
+
+    public AquariumSecurityFilter(JwtService jwtService) {
+        this.jwtService = jwtService;
+    }
+
+    private JwtService getJwtService() {
+        if (jwtService == null) {
+            jwtService = new JwtService();
+        }
+        return jwtService;
+    }
+
     @Override
     public void filter(ContainerRequestContext requestContext) {
         String path = requestContext.getUriInfo().getPath();
+        log.info("Security filter triggered for path: {}", path);
 
         for (String publicEndpoint : PUBLIC_ENDPOINTS) {
             if (path.endsWith(publicEndpoint)) {
+                log.info("Path {} is public, skipping authentication", path);
                 return;
             }
         }
@@ -61,7 +75,7 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
         String token = authorizationHeader.substring(AUTHENTICATION_SCHEME.length()).trim();
 
         try {
-            DecodedJWT jwt = jwtService.verifyToken(token);
+            DecodedJWT jwt = getJwtService().verifyToken(token);
             Long userId = Long.parseLong(jwt.getSubject());
             String username = jwt.getClaim("username").asString();
 
@@ -85,7 +99,7 @@ public class AquariumSecurityFilter implements ContainerRequestFilter {
     }
 
     private boolean requiresAuthentication(ResourceInfo resourceInfo) {
-        Method method = resourceInfo.getResourceMethod();
+        var method = resourceInfo.getResourceMethod();
         return method.isAnnotationPresent(Secured.class) ||
                 resourceInfo.getResourceClass().isAnnotationPresent(Secured.class);
     }

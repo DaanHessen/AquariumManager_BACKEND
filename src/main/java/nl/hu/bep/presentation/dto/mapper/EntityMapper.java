@@ -1,203 +1,146 @@
 package nl.hu.bep.presentation.dto.mapper;
 
 import nl.hu.bep.domain.*;
-import nl.hu.bep.domain.accessories.*;
-import nl.hu.bep.domain.species.*;
-import nl.hu.bep.presentation.dto.*;
+import nl.hu.bep.presentation.dto.response.*;
 
 import java.util.List;
+import java.util.Collections;
 
-/**
- * Clean DTO mapper service - separates mapping concerns from business logic.
- * Service layer should NOT contain DTO mapping logic.
- */
 public class EntityMapper {
 
-    // ========== AQUARIUM MAPPING ==========
-    
     public AquariumResponse mapToAquariumResponse(Aquarium aquarium) {
+        if (aquarium == null) {
+            return null;
+        }
+        
         return new AquariumResponse(
                 aquarium.getId(),
                 aquarium.getName(),
                 aquarium.getDimensions().getLength(),
                 aquarium.getDimensions().getWidth(),
                 aquarium.getDimensions().getHeight(),
-                aquarium.getVolume(),
                 aquarium.getSubstrate(),
                 aquarium.getWaterType(),
+                aquarium.getTemperature(),
                 aquarium.getState(),
                 aquarium.getCurrentStateStartTime(),
-                aquarium.getCurrentStateDurationMinutes(),
-                aquarium.getOwnerId(),
-                null, // ownerEmail - not required in current implementation
-                List.of(), // inhabitants - basic response without relationships
-                List.of(), // accessories - basic response without relationships
-                List.of(), // ornaments - basic response without relationships
                 aquarium.getColor(),
                 aquarium.getDescription(),
-                aquarium.getDateCreated()
+                aquarium.getDateCreated(),
+                aquarium.getOwnerId(),
+                aquarium.getAquariumManagerId()
         );
     }
 
-    /**
-     * Enhanced mapper for detailed aquarium responses with full relationships.
-     * Used for detailed views that include all associated entities.
-     */
     public AquariumResponse mapToDetailedAquariumResponse(Aquarium aquarium, 
                                                          List<InhabitantResponse> inhabitants,
                                                          List<AccessoryResponse> accessories,
-                                                         List<OrnamentResponse> ornaments) {
-        return new AquariumResponse(
-                aquarium.getId(),
-                aquarium.getName(),
-                aquarium.getDimensions().getLength(),
-                aquarium.getDimensions().getWidth(),
-                aquarium.getDimensions().getHeight(),
-                aquarium.getVolume(),
-                aquarium.getSubstrate(),
-                aquarium.getWaterType(),
-                aquarium.getState(),
-                aquarium.getCurrentStateStartTime(),
-                aquarium.getCurrentStateDurationMinutes(),
-                aquarium.getOwnerId(),
-                null, // ownerEmail - not required in current implementation
-                inhabitants != null ? inhabitants : List.of(),
-                accessories != null ? accessories : List.of(),
-                ornaments != null ? ornaments : List.of(),
-                aquarium.getColor(),
-                aquarium.getDescription(),
-                aquarium.getDateCreated()
-        );
+                                                         List<OrnamentResponse> ornaments,
+                                                         String ownerEmail) {
+        return mapToAquariumResponse(aquarium);
     }
 
-    /**
-     * Enhanced mapper with owner email lookup.
-     * Used when owner information is available and needed.
-     */
-    public AquariumResponse mapToAquariumResponseWithOwner(Aquarium aquarium, String ownerEmail) {
-        return new AquariumResponse(
-                aquarium.getId(),
-                aquarium.getName(),
-                aquarium.getDimensions().getLength(),
-                aquarium.getDimensions().getWidth(),
-                aquarium.getDimensions().getHeight(),
-                aquarium.getVolume(),
-                aquarium.getSubstrate(),
-                aquarium.getWaterType(),
-                aquarium.getState(),
-                aquarium.getCurrentStateStartTime(),
-                aquarium.getCurrentStateDurationMinutes(),
-                aquarium.getOwnerId(),
-                ownerEmail,
-                List.of(), // inhabitants - basic response
-                List.of(), // accessories - basic response  
-                List.of(), // ornaments - basic response
-                aquarium.getColor(),
-                aquarium.getDescription(),
-                aquarium.getDateCreated()
-        );
-    }
-
-    // ========== ACCESSORY MAPPING ==========
-    
     public AccessoryResponse mapToAccessoryResponse(Accessory accessory) {
-        return switch (accessory.getAccessoryType().toLowerCase()) {
-            case "filter" -> {
-                Filter filter = (Filter) accessory;
-                yield new AccessoryResponse(
-                        accessory.getId(),
-                        accessory.getModel(),
-                        accessory.getSerialNumber(),
-                        "Filter",
-                        filter.isExternal(),
-                        filter.getCapacityLiters(),
-                        null, // isLed
-                        null, // turnOnTime
-                        null, // turnOffTime
-                        null, // minTemperature
-                        null, // maxTemperature
-                        null, // currentTemperature
-                        accessory.getColor(),
-                        accessory.getDescription(),
-                        accessory.getDateCreated()
-                );
-            }
-            case "lighting" -> {
-                Lighting lighting = (Lighting) accessory;
-                yield new AccessoryResponse(
-                        accessory.getId(),
-                        accessory.getModel(),
-                        accessory.getSerialNumber(),
-                        "Lighting",
-                        null, // isExternal
-                        null, // capacityLiters
-                        lighting.isLed(),
-                        lighting.getTurnOnTime(),
-                        lighting.getTurnOffTime(),
-                        null, // minTemperature
-                        null, // maxTemperature
-                        null, // currentTemperature
-                        accessory.getColor(),
-                        accessory.getDescription(),
-                        accessory.getDateCreated()
-                );
-            }
-            case "thermostat" -> {
-                Thermostat thermostat = (Thermostat) accessory;
-                yield new AccessoryResponse(
-                        accessory.getId(),
-                        accessory.getModel(),
-                        accessory.getSerialNumber(),
-                        "Thermostat",
-                        null, // isExternal
-                        null, // capacityLiters
-                        null, // isLed
-                        null, // turnOnTime
-                        null, // turnOffTime
-                        thermostat.getMinTemperature(),
-                        thermostat.getMaxTemperature(),
-                        thermostat.getCurrentTemperature(),
-                        accessory.getColor(),
-                        accessory.getDescription(),
-                        accessory.getDateCreated()
-                );
-            }
-            default -> throw new IllegalArgumentException("Unknown accessory type: " + accessory.getAccessoryType());
-        };
+        if (accessory == null) {
+            return null;
+        }
+        
+        return new AccessoryResponse(
+                accessory.getId(),
+                accessory.getAccessoryType(),
+                accessory.getModel(),
+                accessory.getSerialNumber(),
+                accessory.getColor(),
+                accessory.getDescription(),
+                accessory.getDateCreated(),
+                accessory.getOwnerId(),
+                accessory.getAquariumId(),
+                accessory.isExternal(),
+                (double) accessory.getCapacityLiters(),
+                accessory.isLed(),
+                accessory.getTurnOnTime(),
+                accessory.getTurnOffTime(),
+                accessory.getMinTemperature(),
+                accessory.getMaxTemperature(),
+                accessory.getCurrentTemperature()
+        );
     }
 
-    // ========== ORNAMENT MAPPING ==========
-    
     public OrnamentResponse mapToOrnamentResponse(Ornament ornament) {
+        if (ornament == null) {
+            return null;
+        }
+        
         return new OrnamentResponse(
                 ornament.getId(),
                 ornament.getName(),
-                ornament.getColor(),
                 ornament.getMaterial(),
+                ornament.getColor(),
                 ornament.getDescription(),
+                ornament.isAirPumpCompatible(),
                 ornament.getDateCreated(),
-                ornament.isAirPumpCompatible()
+                ornament.getOwnerId(),
+                ornament.getAquariumId()
         );
     }
 
-    // ========== INHABITANT MAPPING ==========
-    
     public InhabitantResponse mapToInhabitantResponse(Inhabitant inhabitant) {
+        if (inhabitant == null) {
+            return null;
+        }
+        
         return new InhabitantResponse(
                 inhabitant.getId(),
+                inhabitant.getInhabitantType(),
                 inhabitant.getSpecies(),
                 inhabitant.getColor(),
-                inhabitant.getDescription(),
-                inhabitant.getDateCreated(),
                 inhabitant.getCount(),
                 inhabitant.isSchooling(),
                 inhabitant.getWaterType(),
+                inhabitant.getName(),
+                inhabitant.getDescription(),
+                inhabitant.getDateCreated(),
+                inhabitant.getOwnerId(),
                 inhabitant.getAquariumId(),
-                inhabitant.getType(),
-                inhabitant instanceof Fish ? ((Fish) inhabitant).isAggressiveEater() : null,
-                inhabitant instanceof Fish ? ((Fish) inhabitant).isRequiresSpecialFood() : null,
-                inhabitant instanceof Fish ? ((Fish) inhabitant).isSnailEater() : 
-                        (inhabitant instanceof Snail ? ((Snail) inhabitant).isSnailEater() : null)
+                inhabitant.getAggressiveEater(),
+                inhabitant.getRequiresSpecialFood(),
+                inhabitant.getSnailEater()
         );
     }
-} 
+
+    public List<AquariumResponse> mapToAquariumResponses(List<Aquarium> aquariums) {
+        if (aquariums == null) {
+            return Collections.emptyList();
+        }
+        return aquariums.stream()
+                .map(this::mapToAquariumResponse)
+                .toList();
+    }
+
+    public List<AccessoryResponse> mapToAccessoryResponses(List<Accessory> accessories) {
+        if (accessories == null) {
+            return Collections.emptyList();
+        }
+        return accessories.stream()
+                .map(this::mapToAccessoryResponse)
+                .toList();
+    }
+
+    public List<OrnamentResponse> mapToOrnamentResponses(List<Ornament> ornaments) {
+        if (ornaments == null) {
+            return Collections.emptyList();
+        }
+        return ornaments.stream()
+                .map(this::mapToOrnamentResponse)
+                .toList();
+    }
+
+    public List<InhabitantResponse> mapToInhabitantResponses(List<Inhabitant> inhabitants) {
+        if (inhabitants == null) {
+            return Collections.emptyList();
+        }
+        return inhabitants.stream()
+                .map(this::mapToInhabitantResponse)
+                .toList();
+    }
+}
