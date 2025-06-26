@@ -5,9 +5,9 @@ import nl.hu.bep.domain.species.Fish;
 import nl.hu.bep.domain.species.Plant;
 import nl.hu.bep.domain.species.Snail;
 import nl.hu.bep.domain.species.Shrimp;
-import nl.hu.bep.application.factory.InhabitantFactory;
-import nl.hu.bep.exception.ApplicationException;
-import org.junit.jupiter.api.BeforeEach;
+
+
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -182,24 +182,17 @@ class InhabitantTest {
     }
 
     @Nested
-    @DisplayName("Inhabitant Factory Tests")
-    class InhabitantFactoryTests {
-
-        private InhabitantFactory inhabitantFactory;
-
-        @BeforeEach
-        void setUp() {
-            inhabitantFactory = new InhabitantFactory();
-        }
+    @DisplayName("Inhabitant Create Tests")
+    class InhabitantCreateTests {
 
         @Test
-        @DisplayName("Should create fish through factory")
-        void shouldCreateFishThroughFactory() {
+        @DisplayName("Should create fish through static method")
+        void shouldCreateFishThroughStaticMethod() {
             // Arrange
             Inhabitant.InhabitantProperties fishProperties = new Inhabitant.InhabitantProperties(true, true, false);
 
             // Act
-            Inhabitant fish = inhabitantFactory.createInhabitant("fish", "Clownfish", "Nemo", 
+            Inhabitant fish = Inhabitant.create("fish", "Clownfish", "Nemo", 
                     OWNER_ID, Optional.of("Orange"), Optional.of(1), Optional.of(false), 
                     Optional.of(WaterType.SALTWATER), Optional.of("A friendly fish"), fishProperties);
 
@@ -210,13 +203,13 @@ class InhabitantTest {
         }
 
         @Test
-        @DisplayName("Should create snail through factory")
-        void shouldCreateSnailThroughFactory() {
+        @DisplayName("Should create snail through static method")
+        void shouldCreateSnailThroughStaticMethod() {
             // Arrange
             Inhabitant.InhabitantProperties snailProperties = new Inhabitant.InhabitantProperties(false, false, true);
 
             // Act
-            Inhabitant snail = inhabitantFactory.createInhabitant("snail", "Garden Snail", "Gary", 
+            Inhabitant snail = Inhabitant.create("snail", "Garden Snail", "Gary", 
                     OWNER_ID, Optional.of("Brown"), Optional.of(1), Optional.of(false), 
                     Optional.of(WaterType.FRESHWATER), Optional.of("A slow snail"), snailProperties);
 
@@ -227,10 +220,10 @@ class InhabitantTest {
         }
 
         @Test
-        @DisplayName("Should create shrimp through factory")
-        void shouldCreateShrimpThroughFactory() {
+        @DisplayName("Should create shrimp through static method")
+        void shouldCreateShrimpThroughStaticMethod() {
             // Act
-            Inhabitant shrimp = inhabitantFactory.createInhabitant("shrimp", "Cherry Shrimp", "Shrimpy", 
+            Inhabitant shrimp = Inhabitant.create("shrimp", "Cherry Shrimp", "Shrimpy", 
                     OWNER_ID, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), 
                     Optional.empty(), Inhabitant.InhabitantProperties.defaults());
 
@@ -242,8 +235,8 @@ class InhabitantTest {
         @DisplayName("Should throw exception for unknown inhabitant type")
         void shouldThrowExceptionForUnknownInhabitantType() {
             // Act & Assert
-            assertThrows(ApplicationException.ValidationException.class, () -> 
-                    inhabitantFactory.createInhabitant("unknown", "Unknown", "Unknown", OWNER_ID, 
+            assertThrows(IllegalArgumentException.class, () -> 
+                    Inhabitant.create("unknown", "Unknown", "Unknown", OWNER_ID, 
                             Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), 
                             Optional.empty(), Inhabitant.InhabitantProperties.defaults()));
         }

@@ -1,7 +1,7 @@
 package nl.hu.bep.application;
 
 import nl.hu.bep.application.service.AquariumManagerService;
-import nl.hu.bep.application.factory.InhabitantFactory;
+
 import nl.hu.bep.data.interfaces.*;
 import nl.hu.bep.domain.*;
 import nl.hu.bep.domain.enums.AquariumState;
@@ -51,9 +51,6 @@ class AquariumManagerServiceTest {
     
     @Mock
     private EntityMapper entityMapper;
-    
-    @Mock
-    private InhabitantFactory inhabitantFactory;
 
     private AquariumManagerService service;
 
@@ -69,8 +66,7 @@ class AquariumManagerServiceTest {
                 ornamentRepository,
                 inhabitantRepository,
                 ownerRepository,
-                entityMapper,
-                inhabitantFactory
+                entityMapper
         );
     }
 
