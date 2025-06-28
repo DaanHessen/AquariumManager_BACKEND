@@ -28,12 +28,10 @@ public class AquariumManagerResource {
 
     private final AquariumManagerService aquariumManagerService;
 
-    // Constructor for testing with injected service
     public AquariumManagerResource(AquariumManagerService aquariumManagerService) {
         this.aquariumManagerService = aquariumManagerService;
     }
 
-    // Fallback constructor for cases when HK2 fails - good defensive programming
     public AquariumManagerResource() {
         var aquariumRepository = new AquariumRepositoryImpl();
         var accessoryRepository = new AccessoryRepositoryImpl();

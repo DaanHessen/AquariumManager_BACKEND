@@ -20,7 +20,6 @@ public class Coral extends Inhabitant {
                  Integer count, Boolean isSchooling, WaterType waterType,
                  String description, LocalDateTime dateCreated, Long aquariumId) {
         super(id, name, species, ownerId, color, count, isSchooling, WaterType.SALTWATER, description, dateCreated, aquariumId);
-        // Ensure coral-specific validation if any
         if (this.getWaterType() != WaterType.SALTWATER) {
             throw new IllegalArgumentException("Coral must be in saltwater.");
         }

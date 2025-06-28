@@ -21,7 +21,7 @@ public final class AquariumConstants {
     public static final double MAX_DIMENSION = 10.0;
     
     public static final int MIN_PASSWORD_LENGTH = 8;
-    public static final int BCRYPT_ROUNDS = 12;
+    public static final int BCRYPT_ROUNDS = 12; 
     
     public static final int CONNECTION_TIMEOUT_SECONDS = 30;
     public static final int QUERY_TIMEOUT_SECONDS = 10;

@@ -48,10 +48,8 @@ public class RootResource {
     @Produces(MediaType.TEXT_HTML)
     public Response getApiDocumentation() {
         try {
-            // Read the HTML documentation file from webapp directory
             InputStream htmlStream = getClass().getClassLoader().getResourceAsStream("index.html");
             if (htmlStream == null) {
-                // Fallback if file not found
                 return Response.status(Response.Status.NOT_FOUND)
                     .entity("<h1>API Documentation Not Found</h1><p>The documentation file could not be loaded.</p>")
                     .build();

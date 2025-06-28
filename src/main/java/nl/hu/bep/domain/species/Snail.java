@@ -38,6 +38,7 @@ public class Snail extends Inhabitant {
         return true;
     }
 
+    // TODO: there are 2 methods, getType() and getInhabitantType(), that return the same thing.
     @Override
     public String getInhabitantType() {
         return "Snail";

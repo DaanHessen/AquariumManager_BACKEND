@@ -7,6 +7,8 @@ import nl.hu.bep.presentation.dto.response.InhabitantResponse;
 import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
+import nl.hu.bep.data.*;
+import nl.hu.bep.presentation.dto.mapper.EntityMapper;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -26,15 +28,13 @@ public class InhabitantResource {
 
     private AquariumManagerService aquariumManagerService;
 
-    // Default constructor for Jersey/JAX-RS
     public InhabitantResource() {
-        // Initialize dependencies manually since no CDI injection
-        var aquariumRepository = new nl.hu.bep.data.AquariumRepositoryImpl();
-        var accessoryRepository = new nl.hu.bep.data.AccessoryRepositoryImpl();
-        var ornamentRepository = new nl.hu.bep.data.OrnamentRepositoryImpl();
-        var inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl();
-        var ownerRepository = new nl.hu.bep.data.OwnerRepositoryImpl();
-        var entityMapper = new nl.hu.bep.presentation.dto.mapper.EntityMapper();
+        var aquariumRepository = new AquariumRepositoryImpl();
+        var accessoryRepository = new AccessoryRepositoryImpl();
+        var ornamentRepository = new OrnamentRepositoryImpl();
+        var inhabitantRepository = new InhabitantRepositoryImpl();
+        var ownerRepository = new OwnerRepositoryImpl();
+        var entityMapper = new EntityMapper();
         
         this.aquariumManagerService = new AquariumManagerService(
             aquariumRepository,
