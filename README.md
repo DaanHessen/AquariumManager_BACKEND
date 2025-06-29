@@ -36,4 +36,4 @@ Visit the [API url](https://web-production-8a8d.up.railway.app/api/) of the back
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details..
