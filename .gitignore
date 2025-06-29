@@ -39,3 +39,4 @@ target/
 .env
 
 logs/
+logs/localhost_access_log.2025-06-29.txt
