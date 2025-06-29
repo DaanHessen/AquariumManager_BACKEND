@@ -3,10 +3,6 @@ package nl.hu.bep.common;
 import nl.hu.bep.security.application.service.JwtService;
 import org.glassfish.jersey.test.JerseyTest;
 
-/**
- * base class which provides a JWT token to be used in integration tests
- * for authenticated requests (no time to properly mock the JWT service in tests)
-  */
 public abstract class BaseIntegrationTest extends JerseyTest {
     
     private static final JwtService jwtService = new JwtService();

@@ -1,0 +1,155 @@
+### Ornaments API Tests
+### Base URL: http://localhost:8085/api
+### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
+
+@baseUrl = http://localhost:8085/api
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+
+### Get all ornaments for authenticated user
+GET {{baseUrl}}/ornaments
+Authorization: {{token}}
+
+### Get specific ornament by ID
+GET {{baseUrl}}/ornaments/1
+Authorization: {{token}}
+
+### Get ornaments by aquarium ID
+GET {{baseUrl}}/ornaments?aquariumId=1
+Authorization: {{token}}
+
+### Create decorative castle
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Medieval Castle",
+  "color": "Gray",
+  "material": "Resin",
+  "description": "Large decorative castle with multiple towers",
+  "isAirPumpCompatible": true,
+  "aquariumId": 1
+}
+
+### Create artificial coral ornament
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Artificial Brain Coral",
+  "color": "Orange",
+  "material": "Silicone",
+  "description": "Realistic-looking brain coral replica",
+  "isAirPumpCompatible": false,
+  "aquariumId": 1
+}
+
+### Create driftwood piece
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Malaysian Driftwood",
+  "color": "Brown",
+  "material": "Wood",
+  "description": "Natural driftwood piece for aquascaping",
+  "isAirPumpCompatible": false,
+  "aquariumId": 2
+}
+
+### Create artificial plant ornament
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Silk Amazon Sword",
+  "color": "Green",
+  "material": "Silk",
+  "description": "Artificial plant that looks realistic",
+  "isAirPumpCompatible": false,
+  "aquariumId": 2
+}
+
+### Create rock formation
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Lava Rock Formation",
+  "color": "Black",
+  "material": "Lava Rock",
+  "description": "Natural volcanic rock for marine aquariums",
+  "isAirPumpCompatible": true,
+  "aquariumId": 1
+}
+
+### Create treasure chest decoration
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Pirate Treasure Chest",
+  "color": "Gold",
+  "material": "Plastic",
+  "description": "Opening treasure chest with bubbles",
+  "isAirPumpCompatible": true,
+  "aquariumId": 2
+}
+
+### Update existing ornament
+PUT {{baseUrl}}/ornaments/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Medieval Castle",
+  "color": "Dark Gray",
+  "material": "High-Quality Resin",
+  "description": "Large decorative castle with LED lighting",
+  "isAirPumpCompatible": true,
+  "aquariumId": 1
+}
+
+### Delete ornament
+DELETE {{baseUrl}}/ornaments/1
+Authorization: {{token}}
+
+### Try to access ornament without authorization
+GET {{baseUrl}}/ornaments/1
+
+### Try to access non-existent ornament
+GET {{baseUrl}}/ornaments/999
+Authorization: {{token}}
+
+### Create air pump compatible ornament
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Bubbling Volcano",
+  "color": "Red",
+  "material": "Ceramic",
+  "description": "Volcano ornament with air pump compatibility",
+  "isAirPumpCompatible": true,
+  "aquariumId": 1
+}
+
+### Create ornament for non-existent aquarium
+POST {{baseUrl}}/ornaments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Lost Ornament",
+  "color": "Blue",
+  "material": "Ceramic",
+  "description": "Ornament for aquarium that doesn't exist",
+  "isAirPumpCompatible": false,
+  "aquariumId": 999
+} 

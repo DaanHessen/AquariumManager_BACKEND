@@ -1,0 +1,153 @@
+### Accessories API Tests
+### Base URL: http://localhost:8085/api
+### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
+
+@baseUrl = http://localhost:8085/api
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+
+### Get all accessories for authenticated user
+GET {{baseUrl}}/accessories
+Authorization: {{token}}
+
+### Get specific accessory by ID
+GET {{baseUrl}}/accessories/1
+Authorization: {{token}}
+
+### Get accessories by aquarium ID
+GET {{baseUrl}}/accessories?aquariumId=1
+Authorization: {{token}}
+
+### Create new filter accessory
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "AquaClear 70",
+  "serialNumber": "AC70-2024-001",
+  "type": "Filter",
+  "aquariumId": 1,
+  "isExternal": true,
+  "capacityLiters": 300,
+  "color": "Black",
+  "description": "300 GPH flow rate, external power filter"
+}
+
+### Create lighting system
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "LED Pro Marine",
+  "serialNumber": "LPM-48-2024-002",
+  "type": "Lighting",
+  "aquariumId": 1,
+  "isLED": true,
+  "color": "White",
+  "description": "Full spectrum LED, programmable timer, 48-inch",
+  "timeOn": "08:00",
+  "timeOff": "22:00"
+}
+
+### Create thermostat/heater
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "ThermoMax 300W",
+  "serialNumber": "TM300-2024-003",
+  "type": "Thermostat", 
+  "aquariumId": 2,
+  "color": "Silver",
+  "description": "300W submersible heater with digital thermostat",
+  "minTemperature": 22.0,
+  "maxTemperature": 28.0,
+  "currentTemperature": 25.0
+}
+
+### Create wave maker for circulation
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "WaveMaster 3000",
+  "serialNumber": "WM3000-2024-004",
+  "type": "Filter",
+  "aquariumId": 1,
+  "isExternal": false,
+  "capacityLiters": 200,
+  "color": "Blue",
+  "description": "Adjustable flow wavemaker for reef tanks"
+}
+
+### Create UV sterilizer
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "UV Guardian 25W",
+  "serialNumber": "UVG25-2024-005",
+  "type": "Filter",
+  "aquariumId": 1,
+  "isExternal": true,
+  "capacityLiters": 150,
+  "color": "Gray",
+  "description": "25W UV sterilizer for disease prevention"
+}
+
+### Update existing accessory
+PUT {{baseUrl}}/accessories/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "AquaClear 110 - Upgraded",
+  "serialNumber": "AC110-2024-001-UPG",
+  "type": "Filter",
+  "aquariumId": 1,
+  "isExternal": true,
+  "capacityLiters": 500,
+  "color": "Black",
+  "description": "500 GPH flow rate, external power filter with bio-media"
+}
+
+### Delete accessory
+DELETE {{baseUrl}}/accessories/1
+Authorization: {{token}}
+
+### Try to access accessory without authorization
+GET {{baseUrl}}/accessories/1
+
+### Try to access non-existent accessory
+GET {{baseUrl}}/accessories/999
+Authorization: {{token}}
+
+### Create accessory with missing required fields (should fail)
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "",
+  "type": "Filter",
+  "aquariumId": 1,
+  "description": "This should fail due to empty model"
+}
+
+### Create accessory for non-existent aquarium
+POST {{baseUrl}}/accessories
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "model": "Lost Filter",
+  "serialNumber": "LOST-2024-999",
+  "type": "Filter",
+  "aquariumId": 999,
+  "color": "Red",
+  "description": "Filter for aquarium that doesn't exist"
+} 

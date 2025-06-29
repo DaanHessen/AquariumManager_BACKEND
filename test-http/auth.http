@@ -1,0 +1,39 @@
+### Register new user
+POST http://localhost:8085/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Tester",
+  "lastName": "bruh",
+  "username": "testuser@example.com",
+  "password": "testpassword123"
+}
+
+### Login with valid credentials
+POST http://localhost:8085/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "testpassword123"
+}
+
+### Login with invalid credentials
+POST http://localhost:8085/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "wrongpassword"
+}
+
+### Register user with weak password
+POST http://localhost:8085/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "weak",
+  "lastName": "user",
+  "username": "weakuser@example.com",
+  "password": "123"
+}

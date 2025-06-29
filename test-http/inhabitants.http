@@ -1,0 +1,212 @@
+### Inhabitants API Tests
+### Base URL: http://localhost:8085/api
+### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
+
+@baseUrl = http://localhost:8085/api
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+
+### Get all inhabitants for authenticated user
+GET {{baseUrl}}/inhabitants
+Authorization: {{token}}
+
+### Get specific inhabitant by ID
+GET {{baseUrl}}/inhabitants/1
+Authorization: {{token}}
+
+### Get inhabitants by aquarium ID
+GET {{baseUrl}}/inhabitants?aquariumId=1
+Authorization: {{token}}
+
+### Create new fish inhabitant
+POST {{baseUrl}}/inhabitants
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nemo",
+  "species": "Clownfish",
+  "color": "Orange and White",
+  "count": 2,
+  "isSchooling": false,
+  "waterType": "SALTWATER",
+  "description": "Beautiful clownfish pair",
+  "aquariumId": 1,
+  "type": "Fish",
+  "isAggressiveEater": false,
+  "requiresSpecialFood": false,
+  "isSnailEater": false,
+  "age": 1,
+  "gender": "Mixed",
+  "phLevel": 8.2,
+  "temperature": 26.0,
+  "tankSize": 200.0,
+  "aggressionLevel": 2,
+  "saltTolerance": 1.025
+}
+
+### Create coral inhabitant for saltwater aquarium
+POST {{baseUrl}}/inhabitants
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Brain Coral",
+  "species": "Diploria strigosa",
+  "color": "Brown and Green",
+  "count": 1,
+  "isSchooling": false,
+  "waterType": "SALTWATER",
+  "description": "Large brain coral colony",
+  "aquariumId": 1,
+  "type": "Coral",
+  "age": 2,
+  "gender": "N/A",
+  "phLevel": 8.3,
+  "temperature": 25.5,
+  "tankSize": 200.0,
+  "aggressionLevel": 0,
+  "saltTolerance": 1.025
+}
+
+### Create freshwater plant
+POST {{baseUrl}}/inhabitants
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Amazon Sword",
+  "species": "Echinodorus bleheri",
+  "color": "Green",
+  "count": 3,
+  "isSchooling": false,
+  "waterType": "FRESHWATER",
+  "description": "Large aquatic plant for background",
+  "aquariumId": 2,
+  "type": "Plant",
+  "age": 1,
+  "gender": "N/A",
+  "phLevel": 6.8,
+  "temperature": 24.0,
+  "tankSize": 150.0,
+  "aggressionLevel": 0,
+  "saltTolerance": 0.0
+}
+
+### Create schooling fish
+POST {{baseUrl}}/inhabitants
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Neon Tetras",
+  "species": "Paracheirodon innesi",
+  "color": "Blue and Red",
+  "count": 15,
+  "isSchooling": true,
+  "waterType": "FRESHWATER",
+  "description": "Small schooling fish for community tank",
+  "aquariumId": 2,
+  "type": "Fish",
+  "isAggressiveEater": false,
+  "requiresSpecialFood": false,
+  "isSnailEater": false,
+  "age": 1,
+  "gender": "Mixed",
+  "phLevel": 6.5,
+  "temperature": 23.0,
+  "tankSize": 150.0,
+  "aggressionLevel": 1,
+  "saltTolerance": 0.0
+}
+
+### Create snail for cleanup crew
+POST {{baseUrl}}/inhabitants
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Nerite Snails",
+  "species": "Neritina natalensis",
+  "color": "Black and Yellow",
+  "count": 5,
+  "isSchooling": false,
+  "waterType": "FRESHWATER",
+  "description": "Algae eating snails",
+  "aquariumId": 2,
+  "type": "Snail",
+  "isAggressiveEater": false,
+  "requiresSpecialFood": false,
+  "isSnailEater": false,
+  "age": 1,
+  "gender": "Mixed",
+  "phLevel": 7.0,
+  "temperature": 24.0,
+  "tankSize": 150.0,
+  "aggressionLevel": 0,
+  "saltTolerance": 0.1
+}
+
+### Update existing inhabitant
+PUT {{baseUrl}}/inhabitants/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Nemo",
+  "species": "Amphiprion ocellaris",
+  "color": "Bright Orange and White",
+  "count": 3,
+  "isSchooling": false,
+  "waterType": "SALTWATER",
+  "description": "Updated clownfish group",
+  "aquariumId": 1,
+  "type": "Fish",
+  "isAggressiveEater": false,
+  "requiresSpecialFood": true,
+  "isSnailEater": false,
+  "age": 2,
+  "gender": "Mixed",
+  "phLevel": 8.1,
+  "temperature": 26.5,
+  "tankSize": 200.0,
+  "aggressionLevel": 2,
+  "saltTolerance": 1.025
+}
+
+### Delete inhabitant
+DELETE {{baseUrl}}/inhabitants/1
+Authorization: {{token}}
+
+### Try to access inhabitant without authorization
+GET {{baseUrl}}/inhabitants/1
+
+### Try to access non-existent inhabitant
+GET {{baseUrl}}/inhabitants/999
+Authorization: {{token}}
+
+### Create inhabitant with incompatible water type
+POST {{baseUrl}}/inhabitants
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Freshwater Fish in Saltwater",
+  "species": "Goldfish",
+  "color": "Gold",
+  "count": 1,
+  "isSchooling": false,
+  "waterType": "SALTWATER",
+  "description": "This should fail - goldfish need freshwater",
+  "aquariumId": 1,
+  "type": "Fish",
+  "isAggressiveEater": false,
+  "requiresSpecialFood": false,
+  "isSnailEater": false,
+  "age": 1,
+  "gender": "Male",
+  "phLevel": 8.0,
+  "temperature": 26.0,
+  "tankSize": 200.0,
+  "aggressionLevel": 1,
+  "saltTolerance": 0.0
+} 

@@ -1,0 +1,93 @@
+### Aquariums API Tests
+### Base URL: http://localhost:8085/api
+### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
+
+@baseUrl = http://localhost:8085/api
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+
+### Get all aquariums for authenticated user
+GET {{baseUrl}}/aquariums
+Authorization: {{token}}
+
+### Get specific aquarium by ID
+GET {{baseUrl}}/aquariums/1
+Authorization: {{token}}
+
+### Create new aquarium
+POST {{baseUrl}}/aquariums
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "My First Aquarium",
+  "length": 120.0,
+  "width": 60.0,
+  "height": 80.0,
+  "substrate": "SAND",
+  "waterType": "FRESHWATER",
+  "color": "Blue",
+  "description": "A beautiful freshwater aquarium for tropical fish",
+  "state": "SETUP"
+}
+
+### Create aquarium with saltwater setup
+POST {{baseUrl}}/aquariums
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Saltwater Paradise",
+  "length": 150.0,
+  "width": 80.0,
+  "height": 100.0,
+  "substrate": "GRAVEL",
+  "waterType": "SALTWATER",
+  "color": "Clear",
+  "description": "Marine aquarium for coral reef setup",
+  "state": "SETUP"
+}
+
+### Update existing aquarium
+PUT {{baseUrl}}/aquariums/1
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Aquarium Name",
+  "length": 120.0,
+  "width": 60.0,
+  "height": 80.0,
+  "substrate": "GRAVEL",
+  "waterType": "FRESHWATER",
+  "color": "Green",
+  "description": "Updated description with new substrate",
+  "state": "ACTIVE"
+}
+
+### Delete aquarium
+DELETE {{baseUrl}}/aquariums/1
+Authorization: {{token}}
+
+### Try to access aquarium without authorization
+GET {{baseUrl}}/aquariums/1
+
+### Try to access non-existent aquarium
+GET {{baseUrl}}/aquariums/999
+Authorization: {{token}}
+
+### Create aquarium with invalid dimensions
+POST {{baseUrl}}/aquariums
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "name": "Invalid Aquarium",
+  "length": -10.0,
+  "width": 60.0,
+  "height": 80.0,
+  "substrate": "SAND",
+  "waterType": "FRESHWATER",
+  "color": "Blue",
+  "description": "This should fail due to negative length",
+  "state": "SETUP"
+} 

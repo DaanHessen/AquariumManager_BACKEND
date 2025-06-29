@@ -33,6 +33,5 @@ public class TestDatabaseManagerFactory implements Factory<DatabaseManager> {
 
     @Override
     public void dispose(DatabaseManager instance) {
-        // No-op
     }
 } 

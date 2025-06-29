@@ -22,28 +22,23 @@ public class TestBinder extends AbstractBinder {
 
     @Override
     protected void configure() {
-        // Database Manager for Testing (H2)
         bindFactory(TestDatabaseManagerFactory.class).to(DatabaseManager.class).in(Singleton.class);
 
-        // Bind real repository implementations
         bind(AquariumRepositoryImpl.class).to(AquariumRepository.class).in(Singleton.class);
         bind(AccessoryRepositoryImpl.class).to(AccessoryRepository.class).in(Singleton.class);
         bind(InhabitantRepositoryImpl.class).to(InhabitantRepository.class).in(Singleton.class);
         bind(OrnamentRepositoryImpl.class).to(OrnamentRepository.class).in(Singleton.class);
         bind(OwnerRepositoryImpl.class).to(OwnerRepository.class).in(Singleton.class);
 
-        // Bind services
         bindAsContract(AquariumService.class).in(Singleton.class);
         bindAsContract(AccessoryService.class).in(Singleton.class);
         bindAsContract(InhabitantService.class).in(Singleton.class);
         bindAsContract(OrnamentService.class).in(Singleton.class);
         bindAsContract(AuthenticationService.class).in(Singleton.class);
 
-        // Bind other utilities
         bindAsContract(JwtService.class).in(Singleton.class);
         bindAsContract(EntityMapper.class).in(Singleton.class);
 
-        // Bind the TestHelper so it can be injected
         bindAsContract(TestHelper.class).in(Singleton.class);
     }
 } 
