@@ -3,11 +3,18 @@ package nl.hu.bep.data;
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.data.interfaces.InhabitantRepository;
+import jakarta.inject.Inject;
+import nl.hu.bep.config.DatabaseManager;
 
 import java.sql.*;
 import java.util.List;
 
 public class InhabitantRepositoryImpl extends RepositoryImpl<Inhabitant, Long> implements InhabitantRepository {
+    
+    @Inject
+    public InhabitantRepositoryImpl(DatabaseManager databaseManager) {
+        super(databaseManager);
+    }
     
     @Override
     protected String getTableName() { return "inhabitants"; }

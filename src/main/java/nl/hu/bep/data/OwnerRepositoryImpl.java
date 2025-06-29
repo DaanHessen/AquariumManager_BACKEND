@@ -3,6 +3,8 @@ package nl.hu.bep.data;
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.domain.enums.Role;
 import nl.hu.bep.data.interfaces.OwnerRepository;
+import jakarta.inject.Inject;
+import nl.hu.bep.config.DatabaseManager;
 
 import java.sql.*;
 import java.util.HashSet;
@@ -10,6 +12,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class OwnerRepositoryImpl extends RepositoryImpl<Owner, Long> implements OwnerRepository {
+    
+    @Inject
+    public OwnerRepositoryImpl(DatabaseManager databaseManager) {
+        super(databaseManager);
+    }
     
     @Override
     protected String getTableName() { return "owners"; }

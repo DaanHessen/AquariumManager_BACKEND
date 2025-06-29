@@ -2,12 +2,19 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Ornament;
 import nl.hu.bep.data.interfaces.OrnamentRepository;
+import jakarta.inject.Inject;
+import nl.hu.bep.config.DatabaseManager;
 
 import java.sql.*;
 import java.util.List;
 
 
 public class OrnamentRepositoryImpl extends RepositoryImpl<Ornament, Long> implements OrnamentRepository {
+    
+    @Inject
+    public OrnamentRepositoryImpl(DatabaseManager databaseManager) {
+        super(databaseManager);
+    }
     
     @Override
     protected String getTableName() {

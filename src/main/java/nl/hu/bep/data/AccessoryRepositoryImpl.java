@@ -2,12 +2,19 @@ package nl.hu.bep.data;
 
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.data.interfaces.AccessoryRepository;
+import jakarta.inject.Inject;
+import nl.hu.bep.config.DatabaseManager;
 
 import java.sql.*;
 import java.time.LocalTime;
 import java.util.List;
 
 public class AccessoryRepositoryImpl extends RepositoryImpl<Accessory, Long> implements AccessoryRepository {
+    
+    @Inject
+    public AccessoryRepositoryImpl(DatabaseManager databaseManager) {
+        super(databaseManager);
+    }
     
     @Override
     protected String getTableName() { return "accessories"; }

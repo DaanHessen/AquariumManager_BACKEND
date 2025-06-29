@@ -1,21 +1,31 @@
 package nl.hu.bep.presentation.resource;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import nl.hu.bep.config.AquariumConstants;
-import nl.hu.bep.config.DatabaseConfig;
+import nl.hu.bep.config.DatabaseManager;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
 
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @Path("/")
 public class RootResource {
+
+    private final DatabaseManager databaseManager;
+
+    @Inject
+    public RootResource(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -67,17 +77,16 @@ public class RootResource {
     private Map<String, Object> getDatabaseHealth() {
         Map<String, Object> dbHealth = new HashMap<>();
         
-        try {
-            boolean isHealthy = DatabaseConfig.isHealthy();
+        try (Connection connection = databaseManager.getConnection()) {
+            boolean isHealthy = connection != null && !connection.isClosed();
             dbHealth.put("status", isHealthy ? "UP" : "DOWN");
             dbHealth.put("message", isHealthy ? "Database connection successful" : "Database connection failed");
-            dbHealth.put("checked_at", LocalDateTime.now());
-        } catch (Exception e) {
+        } catch (SQLException e) {
             dbHealth.put("status", "DOWN");
             dbHealth.put("message", "Database health check failed: " + e.getMessage());
-            dbHealth.put("checked_at", LocalDateTime.now());
         }
         
+        dbHealth.put("checked_at", LocalDateTime.now());
         return dbHealth;
     }
 }

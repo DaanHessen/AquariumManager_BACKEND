@@ -1,14 +1,7 @@
 package nl.hu.bep.security.application.filter;
 
-import nl.hu.bep.data.*;
-import nl.hu.bep.security.application.annotation.RequiresOwnership;
-import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.data.interfaces.AquariumRepository;
-import nl.hu.bep.data.interfaces.AccessoryRepository;
-import nl.hu.bep.data.interfaces.InhabitantRepository;
-import nl.hu.bep.data.interfaces.OrnamentRepository;
-
 import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
@@ -17,7 +10,17 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
 import java.util.Map;
+
+import nl.hu.bep.data.*;
+import nl.hu.bep.data.interfaces.AquariumRepository;
+import nl.hu.bep.data.interfaces.AccessoryRepository;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
+import nl.hu.bep.data.interfaces.OrnamentRepository;
+import nl.hu.bep.domain.base.OwnedEntity;
+import nl.hu.bep.security.application.annotation.RequiresOwnership;
+import nl.hu.bep.security.application.context.SecurityContextHelper;
 
 @Slf4j
 @Provider
@@ -28,22 +31,13 @@ public class OwnershipFilter implements ContainerRequestFilter {
     @Context
     private ResourceInfo resourceInfo;
 
-    private AquariumRepository aquariumRepository;
-    private AccessoryRepository accessoryRepository;
-    private InhabitantRepository inhabitantRepository;
-    private OrnamentRepository ornamentRepository;
+    private final AquariumRepository aquariumRepository;
+    private final AccessoryRepository accessoryRepository;
+    private final InhabitantRepository inhabitantRepository;
+    private final OrnamentRepository ornamentRepository;
 
-    public OwnershipFilter() {
-        this.aquariumRepository = new AquariumRepositoryImpl();
-        this.accessoryRepository = new AccessoryRepositoryImpl();
-        this.inhabitantRepository = new InhabitantRepositoryImpl();
-        this.ornamentRepository = new OrnamentRepositoryImpl();
-    }
-
-    public OwnershipFilter(AquariumRepository aquariumRepository,
-                           AccessoryRepository accessoryRepository,
-                           InhabitantRepository inhabitantRepository,
-                           OrnamentRepository ornamentRepository) {
+    @Inject
+    public OwnershipFilter(AquariumRepository aquariumRepository, AccessoryRepository accessoryRepository, InhabitantRepository inhabitantRepository, OrnamentRepository ornamentRepository) {
         this.aquariumRepository = aquariumRepository;
         this.accessoryRepository = accessoryRepository;
         this.inhabitantRepository = inhabitantRepository;
@@ -51,7 +45,7 @@ public class OwnershipFilter implements ContainerRequestFilter {
     }
 
     @Override
-    public void filter(ContainerRequestContext requestContext) {
+    public void filter(ContainerRequestContext requestContext) throws IOException {
         var method = resourceInfo.getResourceMethod();
 
         RequiresOwnership ownershipAnnotation = method.getAnnotation(RequiresOwnership.class);

@@ -1,6 +1,7 @@
 package nl.hu.bep.data;
 
-import nl.hu.bep.config.DatabaseConfig;
+import jakarta.inject.Inject;
+import nl.hu.bep.config.DatabaseManager;
 import nl.hu.bep.exception.ApplicationException;
 import nl.hu.bep.data.interfaces.Repository;
 
@@ -9,7 +10,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
-    
+    private final DatabaseManager databaseManager;
+
+    @Inject
+    protected RepositoryImpl(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
+    }
+
     protected abstract T mapRow(ResultSet rs) throws SQLException;
     protected abstract void setInsertParameters(PreparedStatement ps, T entity) throws SQLException;
     protected abstract void setUpdateParameters(PreparedStatement ps, T entity) throws SQLException;
@@ -20,7 +27,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
 
     public Optional<T> findById(ID id) {
         String sql = "SELECT * FROM " + getTableName() + " WHERE " + getIdColumn() + " = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = databaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -34,7 +41,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
     public List<T> findAll() {
         String sql = "SELECT * FROM " + getTableName();
         List<T> result = new ArrayList<>();
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = databaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -47,7 +54,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
     }
 
     public T insert(T entity) {
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = databaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
             setInsertParameters(ps, entity);
             ps.executeUpdate();
@@ -66,7 +73,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
     }
 
     public T update(T entity) {
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = databaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(getUpdateSql())) {
             setUpdateParameters(ps, entity);
             ps.executeUpdate();
@@ -78,7 +85,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
 
     public void deleteById(ID id) {
         String sql = "DELETE FROM " + getTableName() + " WHERE " + getIdColumn() + " = ?";
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = databaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, id);
             ps.executeUpdate();
@@ -90,7 +97,7 @@ public abstract class RepositoryImpl<T, ID> implements Repository<T, ID> {
     public List<T> findByField(String fieldName, Object value) {
         String sql = "SELECT * FROM " + getTableName() + " WHERE " + fieldName + " = ?";
         List<T> result = new ArrayList<>();
-        try (Connection conn = DatabaseConfig.getConnection();
+        try (Connection conn = databaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, value);
             try (ResultSet rs = ps.executeQuery()) {

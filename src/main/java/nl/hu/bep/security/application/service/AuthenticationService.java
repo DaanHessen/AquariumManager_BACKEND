@@ -1,5 +1,6 @@
 package nl.hu.bep.security.application.service;
 
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.data.OwnerRepositoryImpl;
@@ -18,6 +19,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final OwnerRepositoryImpl ownerRepository;
 
+    @Inject
     public AuthenticationService(JwtService jwtService, OwnerRepositoryImpl ownerRepository) {
         this.jwtService = jwtService;
         this.ownerRepository = ownerRepository;

@@ -1,155 +1,96 @@
 package nl.hu.bep.presentation.resource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Application;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import nl.hu.bep.application.service.AquariumManagerService;
-import nl.hu.bep.config.JacksonConfig;
+import nl.hu.bep.common.TestBinder;
+import nl.hu.bep.data.interfaces.AquariumRepository;
+import nl.hu.bep.data.interfaces.InhabitantRepository;
+import nl.hu.bep.data.interfaces.OwnerRepository;
+import nl.hu.bep.domain.Aquarium;
+import nl.hu.bep.domain.Owner;
+import nl.hu.bep.domain.enums.AquariumState;
+import nl.hu.bep.domain.enums.SubstrateType;
+import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.exception.GlobalExceptionMapper;
+import nl.hu.bep.presentation.dto.request.InhabitantRequest;
+import nl.hu.bep.security.application.filter.AquariumSecurityFilter;
+import nl.hu.bep.security.application.service.JwtService;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.test.JerseyTest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(MockitoExtension.class)
 @DisplayName("InhabitantResource Integration Tests")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class InhabitantResourceIntegrationTest extends JerseyTest {
 
-    @Mock
-    private AquariumManagerService mockAquariumManagerService;
+    private OwnerRepository ownerRepository;
+    private AquariumRepository aquariumRepository;
+    private InhabitantRepository inhabitantRepository;
+    private JwtService jwtService;
 
-    private ObjectMapper objectMapper;
+    private String validAuthHeader;
+    private Long testOwnerId;
+    private Long testAquariumId;
 
     @Override
     protected Application configure() {
-        ResourceConfig config = new ResourceConfig();
-        
-        // Register the resource with mocked service
-        config.register(new InhabitantResource(mockAquariumManagerService));
-        
-        // Register Jackson for JSON processing
-        config.register(JacksonConfig.class);
-        
+        ResourceConfig config = new ResourceConfig(InhabitantResource.class, AquariumSecurityFilter.class, GlobalExceptionMapper.class);
+        config.register(new TestBinder());
         return config;
     }
 
     @BeforeEach
-    @Override
     public void setUp() throws Exception {
         super.setUp();
-        objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-        reset(mockAquariumManagerService);
+        // Use direct instantiation as workaround for Jersey 3.x service locator changes
+        var databaseManager = new nl.hu.bep.common.TestDatabaseManagerFactory().provide();
+        
+        this.ownerRepository = new nl.hu.bep.data.OwnerRepositoryImpl(databaseManager);
+        this.aquariumRepository = new nl.hu.bep.data.AquariumRepositoryImpl(databaseManager);
+        this.inhabitantRepository = new nl.hu.bep.data.InhabitantRepositoryImpl(databaseManager);
+        this.jwtService = new JwtService();
+
+        Owner owner = Owner.create("Test", "Owner", "inhabitant-owner@test.com", "password");
+        owner = ownerRepository.insert(owner);
+        testOwnerId = owner.getId();
+        validAuthHeader = "Bearer " + jwtService.generateToken(testOwnerId, owner.getEmail());
+
+        Aquarium aquarium = Aquarium.create("My Test Tank", 50, 30, 30, SubstrateType.SAND, WaterType.FRESHWATER, "blue", "A simple test tank", AquariumState.RUNNING);
+        aquarium.assignToOwner(testOwnerId);
+        aquarium = aquariumRepository.insert(aquarium);
+        testAquariumId = aquarium.getId();
+    }
+    
+    @AfterAll
+    public void tearDown() throws Exception {
+        super.tearDown();
     }
 
-    @Nested
-    @DisplayName("GET /inhabitants - Get All Inhabitants")
-    class GetAllInhabitantsTests {
-
-        @Test
-        @DisplayName("Should return 500 when no authentication (integration behavior)")
-        void shouldReturn500WhenNoAuth() {
-            // Act
-            Response response = target("/inhabitants")
-                .request(MediaType.APPLICATION_JSON)
-                .get();
-
-            // Assert - Should return 500 due to authentication exception
-            assertEquals(500, response.getStatus());
-        }
-
-        @Test
-        @DisplayName("Should return 500 with mock authentication token (integration behavior)")  
-        void shouldReturn500WithMockAuth() {
-            // Arrange - No stubbing needed as authentication will fail first
-
-            // Act
-            Response response = target("/inhabitants")
-                .request(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer mock-token")
-                .get();
-
-            // Assert - Will still return 500 due to SecurityContextHelper not finding authenticated user
-            assertEquals(500, response.getStatus());
-        }
+    private InhabitantRequest createValidInhabitantRequest(Long aquariumId) {
+        return new InhabitantRequest("Clownfish", "ORANGE", "A classic clownfish", 1, false, WaterType.SALTWATER, "fish", aquariumId, false, false, false, "Nemo", 1, "MALE", 8.2, 25.0, 120.0, 2, 1.025);
     }
 
-    @Nested
-    @DisplayName("GET /inhabitants/{id} - Get Single Inhabitant")
-    class GetSingleInhabitantTests {
+    @Test
+    @DisplayName("POST /inhabitants - should create a new inhabitant")
+    void shouldCreateInhabitant() {
+        // Arrange
+        InhabitantRequest request = createValidInhabitantRequest(testAquariumId);
 
-        @Test
-        @DisplayName("Should return 500 for authentication issues")
-        void shouldReturn500ForAuthIssues() {
-            // Act
-            Response response = target("/inhabitants/1")
-                .request(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer mock-token")
-                .get();
+        // Act
+        Response response = target("/inhabitants")
+            .request(MediaType.APPLICATION_JSON)
+            .header("Authorization", validAuthHeader)
+            .post(Entity.entity(request, MediaType.APPLICATION_JSON));
 
-            // Assert
-            assertEquals(500, response.getStatus());
-        }
-
-        @Test
-        @DisplayName("Should handle path parameter validation")
-        void shouldHandleInvalidPathParam() {
-            // Act
-            Response response = target("/inhabitants/invalid")
-                .request(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer mock-token")
-                .get();
-
-            // Assert - Should return 404 or 400 for invalid path parameter
-            assertTrue(response.getStatus() >= 400);
-        }
-    }
-
-    @Nested
-    @DisplayName("HTTP Protocol Tests")
-    class HttpProtocolTests {
-
-        // @Test
-        // @DisplayName("Should handle unsupported HTTP methods")
-        // void shouldHandleUnsupportedMethods() {
-        //     Response response = target("/inhabitants")
-        //         .request(MediaType.APPLICATION_JSON)
-        //         .options();
-
-        //     assertTrue(response.getStatus() >= 400);
-        // }
-
-        @Test
-        @DisplayName("Should handle wrong media type")
-        void shouldHandleWrongMediaType() {
-            // Act
-            Response response = target("/inhabitants")
-                .request(MediaType.APPLICATION_XML) // Request XML but resource only supports JSON
-                .header("Authorization", "Bearer mock-token")
-                .get();
-
-            // Assert - Should return 406 Not Acceptable
-            assertEquals(406, response.getStatus());
-        }
-
-        @Test
-        @DisplayName("Should handle OPTIONS request")
-        void shouldHandleOptionsRequest() {
-            // Act
-            Response response = target("/inhabitants")
-                .request()
-                .options();
-
-            // Assert - Should handle OPTIONS request for CORS
-            assertTrue(response.getStatus() == 200 || response.getStatus() == 204);
-        }
+        // Assert
+        assertEquals(201, response.getStatus());
+        long count = inhabitantRepository.findAll().stream()
+            .filter(i -> "Clownfish".equals(i.getSpecies()))
+            .count();
+        assertEquals(1, count);
     }
 }

@@ -6,11 +6,18 @@ import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.value.Dimensions;
 import nl.hu.bep.data.interfaces.AquariumRepository;
+import jakarta.inject.Inject;
+import nl.hu.bep.config.DatabaseManager;
 
 import java.sql.*;
 import java.util.List;
 
 public class AquariumRepositoryImpl extends RepositoryImpl<Aquarium, Long> implements AquariumRepository {
+    
+    @Inject
+    public AquariumRepositoryImpl(DatabaseManager databaseManager) {
+        super(databaseManager);
+    }
     
     @Override
     protected String getTableName() { return "aquariums"; }

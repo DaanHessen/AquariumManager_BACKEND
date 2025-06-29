@@ -1,14 +1,13 @@
 package nl.hu.bep.presentation.resource;
 
-import nl.hu.bep.application.service.AquariumManagerService;
+import jakarta.inject.Inject;
+import nl.hu.bep.application.service.InhabitantService;
 import nl.hu.bep.presentation.dto.request.InhabitantRequest;
 import nl.hu.bep.presentation.dto.response.ApiResponse;
 import nl.hu.bep.presentation.dto.response.InhabitantResponse;
 import nl.hu.bep.security.application.annotation.RequiresOwnership;
 import nl.hu.bep.security.application.annotation.Secured;
 import nl.hu.bep.security.application.context.SecurityContextHelper;
-import nl.hu.bep.data.*;
-import nl.hu.bep.presentation.dto.mapper.EntityMapper;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -26,34 +25,17 @@ import java.util.Map;
 @Secured
 public class InhabitantResource {
 
-    private AquariumManagerService aquariumManagerService;
+    private final InhabitantService inhabitantService;
 
-    public InhabitantResource() {
-        var aquariumRepository = new AquariumRepositoryImpl();
-        var accessoryRepository = new AccessoryRepositoryImpl();
-        var ornamentRepository = new OrnamentRepositoryImpl();
-        var inhabitantRepository = new InhabitantRepositoryImpl();
-        var ownerRepository = new OwnerRepositoryImpl();
-        var entityMapper = new EntityMapper();
-        
-        this.aquariumManagerService = new AquariumManagerService(
-            aquariumRepository,
-            accessoryRepository, 
-            ornamentRepository,
-            inhabitantRepository,
-            ownerRepository,
-            entityMapper
-        );
-    }
-
-    public InhabitantResource(AquariumManagerService aquariumManagerService) {
-        this.aquariumManagerService = aquariumManagerService;
+    @Inject
+    public InhabitantResource(InhabitantService inhabitantService) {
+        this.inhabitantService = inhabitantService;
     }
 
     @GET
     public Response getAllInhabitants(@Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        List<InhabitantResponse> inhabitants = aquariumManagerService.getAllInhabitants(ownerId);
+        List<InhabitantResponse> inhabitants = inhabitantService.getAllInhabitants(ownerId);
         return Response.ok(ApiResponse.success(inhabitants, "Inhabitants retrieved successfully")).build();
     }
 
@@ -62,21 +44,21 @@ public class InhabitantResource {
     @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.INHABITANT, paramName = "id")
     public Response getInhabitant(@PathParam("id") Long id, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        InhabitantResponse inhabitant = aquariumManagerService.getInhabitant(id, ownerId);
+        InhabitantResponse inhabitant = inhabitantService.getInhabitant(id, ownerId);
         return Response.ok(ApiResponse.success(inhabitant, "Inhabitant retrieved successfully")).build();
     }
 
     @GET
     @Path("/aquarium/{aquariumId}")
     public Response getInhabitantsByAquarium(@PathParam("aquariumId") Long aquariumId) {
-        List<InhabitantResponse> inhabitants = aquariumManagerService.getInhabitantsByAquarium(aquariumId);
+        List<InhabitantResponse> inhabitants = inhabitantService.getInhabitantsByAquarium(aquariumId);
         return Response.ok(ApiResponse.success(inhabitants, "Inhabitants retrieved successfully")).build();
     }
 
     @POST
     public Response createInhabitant(InhabitantRequest request, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        InhabitantResponse inhabitant = aquariumManagerService.createInhabitant(request, ownerId);
+        InhabitantResponse inhabitant = inhabitantService.createInhabitant(request, ownerId);
         
         Map<String, Object> responseData = Map.of(
             "inhabitant", inhabitant,
@@ -93,7 +75,7 @@ public class InhabitantResource {
     @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.INHABITANT, paramName = "id")
     public Response updateInhabitant(@PathParam("id") Long id, InhabitantRequest request, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        InhabitantResponse inhabitant = aquariumManagerService.updateInhabitant(id, request, ownerId);
+        InhabitantResponse inhabitant = inhabitantService.updateInhabitant(id, request, ownerId);
         return Response.ok(ApiResponse.success(inhabitant, "Inhabitant updated successfully")).build();
     }
 
@@ -102,7 +84,7 @@ public class InhabitantResource {
     @RequiresOwnership(resourceType = RequiresOwnership.ResourceType.INHABITANT, paramName = "id")
     public Response deleteInhabitant(@PathParam("id") Long id, @Context SecurityContext securityContext) {
         Long ownerId = SecurityContextHelper.getAuthenticatedOwnerId(securityContext);
-        aquariumManagerService.deleteInhabitant(id, ownerId);
+        inhabitantService.deleteInhabitant(id, ownerId);
         return Response.ok(ApiResponse.success(null, "Inhabitant deleted successfully")).build();
     }
 }
