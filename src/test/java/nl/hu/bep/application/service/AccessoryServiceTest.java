@@ -4,7 +4,6 @@ import nl.hu.bep.data.interfaces.AccessoryRepository;
 import nl.hu.bep.data.interfaces.AquariumRepository;
 import nl.hu.bep.domain.Accessory;
 import nl.hu.bep.domain.Aquarium;
-import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;

@@ -1,23 +1,15 @@
-### Accessories API Tests
-### Base URL: http://localhost:8085/api
-### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
-
 @baseUrl = http://localhost:8085/api
-@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMzUxNDksImV4cCI6MTc1MTMyMTU0OSwic3ViIjoiNDMiLCJ1c2VybmFtZSI6IjE3NTEyMzUxNDJAZXhhbXBsZS5jb20ifQ.2FXEtWaEfFGO2jZdI2klgceY6DTPOdxiN80cgWfd8PU
 
-### Get all accessories for authenticated user
 GET {{baseUrl}}/accessories
 Authorization: {{token}}
 
-### Get specific accessory by ID
 GET {{baseUrl}}/accessories/1
 Authorization: {{token}}
 
-### Get accessories by aquarium ID
 GET {{baseUrl}}/accessories?aquariumId=1
 Authorization: {{token}}
 
-### Create new filter accessory
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json
@@ -33,7 +25,6 @@ Content-Type: application/json
   "description": "300 GPH flow rate, external power filter"
 }
 
-### Create lighting system
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json
@@ -50,7 +41,6 @@ Content-Type: application/json
   "timeOff": "22:00"
 }
 
-### Create thermostat/heater
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json
@@ -67,7 +57,6 @@ Content-Type: application/json
   "currentTemperature": 25.0
 }
 
-### Create wave maker for circulation
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json
@@ -83,7 +72,6 @@ Content-Type: application/json
   "description": "Adjustable flow wavemaker for reef tanks"
 }
 
-### Create UV sterilizer
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json
@@ -99,7 +87,6 @@ Content-Type: application/json
   "description": "25W UV sterilizer for disease prevention"
 }
 
-### Update existing accessory
 PUT {{baseUrl}}/accessories/1
 Authorization: {{token}}
 Content-Type: application/json
@@ -115,18 +102,14 @@ Content-Type: application/json
   "description": "500 GPH flow rate, external power filter with bio-media"
 }
 
-### Delete accessory
 DELETE {{baseUrl}}/accessories/1
 Authorization: {{token}}
 
-### Try to access accessory without authorization
 GET {{baseUrl}}/accessories/1
 
-### Try to access non-existent accessory
 GET {{baseUrl}}/accessories/999
 Authorization: {{token}}
 
-### Create accessory with missing required fields (should fail)
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json
@@ -138,7 +121,6 @@ Content-Type: application/json
   "description": "This should fail due to empty model"
 }
 
-### Create accessory for non-existent aquarium
 POST {{baseUrl}}/accessories
 Authorization: {{token}}
 Content-Type: application/json

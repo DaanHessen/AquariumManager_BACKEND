@@ -1,35 +1,24 @@
-### API Information and Root Endpoints
-### Base URL: http://localhost:8085
-
 @baseUrl = http://localhost:8085
 
-### Get API information and health status
 GET {{baseUrl}}/api
 Accept: application/json
 
-### Get API documentation (HTML)
 GET {{baseUrl}}/api
 Accept: text/html
 
-### Check if server is running
 GET {{baseUrl}}/
 
-### Get API version and endpoints info
 GET {{baseUrl}}/api
 Content-Type: application/json
 
-### Health check - database status
 GET {{baseUrl}}/api
 Accept: application/json
 
-### Test CORS headers
 OPTIONS {{baseUrl}}/api
 Origin: http://localhost:3000
 Access-Control-Request-Method: GET
 Access-Control-Request-Headers: Content-Type,Authorization
 
-### Test non-existent endpoint
 GET {{baseUrl}}/api/nonexistent
 
-### Test malformed request
 GET {{baseUrl}}/api/malformed-endpoint?invalid-param= 

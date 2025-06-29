@@ -1,19 +1,12 @@
-### Aquariums API Tests
-### Base URL: http://localhost:8085/api
-### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
-
 @baseUrl = http://localhost:8085/api
-@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMzUxNDksImV4cCI6MTc1MTMyMTU0OSwic3ViIjoiNDMiLCJ1c2VybmFtZSI6IjE3NTEyMzUxNDJAZXhhbXBsZS5jb20ifQ.2FXEtWaEfFGO2jZdI2klgceY6DTPOdxiN80cgWfd8PU
 
-### Get all aquariums for authenticated user
 GET {{baseUrl}}/aquariums
 Authorization: {{token}}
 
-### Get specific aquarium by ID
 GET {{baseUrl}}/aquariums/1
 Authorization: {{token}}
 
-### Create new aquarium
 POST {{baseUrl}}/aquariums
 Authorization: {{token}}
 Content-Type: application/json
@@ -30,7 +23,6 @@ Content-Type: application/json
   "state": "SETUP"
 }
 
-### Create aquarium with saltwater setup
 POST {{baseUrl}}/aquariums
 Authorization: {{token}}
 Content-Type: application/json
@@ -47,7 +39,6 @@ Content-Type: application/json
   "state": "SETUP"
 }
 
-### Update existing aquarium
 PUT {{baseUrl}}/aquariums/1
 Authorization: {{token}}
 Content-Type: application/json
@@ -64,18 +55,14 @@ Content-Type: application/json
   "state": "ACTIVE"
 }
 
-### Delete aquarium
 DELETE {{baseUrl}}/aquariums/1
 Authorization: {{token}}
 
-### Try to access aquarium without authorization
 GET {{baseUrl}}/aquariums/1
 
-### Try to access non-existent aquarium
 GET {{baseUrl}}/aquariums/999
 Authorization: {{token}}
 
-### Create aquarium with invalid dimensions
 POST {{baseUrl}}/aquariums
 Authorization: {{token}}
 Content-Type: application/json

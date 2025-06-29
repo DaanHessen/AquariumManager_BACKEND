@@ -1,23 +1,15 @@
-### Inhabitants API Tests
-### Base URL: http://localhost:8085/api
-### Note: First run auth.http to get a valid token, then replace {{token}} with actual Bearer token
-
 @baseUrl = http://localhost:8085/api
-@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMjA5NTAsImV4cCI6MTc1MTMwNzM1MCwic3ViIjoiMjYiLCJ1c2VybmFtZSI6ImlldHN3YXRuaWV0YmVzdGFhdEBleGFtcGxlLmNvbSJ9.Izs0Cu9E-oFNwpBySasX4miJ-HNgO11fYRsVlQkPPns
+@token = Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJhcXVhcml1bS1hcGkiLCJpYXQiOjE3NTEyMzUxNDksImV4cCI6MTc1MTMyMTU0OSwic3ViIjoiNDMiLCJ1c2VybmFtZSI6IjE3NTEyMzUxNDJAZXhhbXBsZS5jb20ifQ.2FXEtWaEfFGO2jZdI2klgceY6DTPOdxiN80cgWfd8PU
 
-### Get all inhabitants for authenticated user
 GET {{baseUrl}}/inhabitants
 Authorization: {{token}}
 
-### Get specific inhabitant by ID
 GET {{baseUrl}}/inhabitants/1
 Authorization: {{token}}
 
-### Get inhabitants by aquarium ID
 GET {{baseUrl}}/inhabitants?aquariumId=1
 Authorization: {{token}}
 
-### Create new fish inhabitant
 POST {{baseUrl}}/inhabitants
 Authorization: {{token}}
 Content-Type: application/json
@@ -44,7 +36,6 @@ Content-Type: application/json
   "saltTolerance": 1.025
 }
 
-### Create coral inhabitant for saltwater aquarium
 POST {{baseUrl}}/inhabitants
 Authorization: {{token}}
 Content-Type: application/json
@@ -68,7 +59,6 @@ Content-Type: application/json
   "saltTolerance": 1.025
 }
 
-### Create freshwater plant
 POST {{baseUrl}}/inhabitants
 Authorization: {{token}}
 Content-Type: application/json
@@ -92,7 +82,6 @@ Content-Type: application/json
   "saltTolerance": 0.0
 }
 
-### Create schooling fish
 POST {{baseUrl}}/inhabitants
 Authorization: {{token}}
 Content-Type: application/json
@@ -146,7 +135,6 @@ Content-Type: application/json
   "saltTolerance": 0.1
 }
 
-### Update existing inhabitant
 PUT {{baseUrl}}/inhabitants/1
 Authorization: {{token}}
 Content-Type: application/json
@@ -173,18 +161,14 @@ Content-Type: application/json
   "saltTolerance": 1.025
 }
 
-### Delete inhabitant
 DELETE {{baseUrl}}/inhabitants/1
 Authorization: {{token}}
 
-### Try to access inhabitant without authorization
 GET {{baseUrl}}/inhabitants/1
 
-### Try to access non-existent inhabitant
 GET {{baseUrl}}/inhabitants/999
 Authorization: {{token}}
 
-### Create inhabitant with incompatible water type
 POST {{baseUrl}}/inhabitants
 Authorization: {{token}}
 Content-Type: application/json
