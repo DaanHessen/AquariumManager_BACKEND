@@ -66,7 +66,6 @@ create_response=$(curl -s -X POST "$BASE_URL/aquariums" \
     -d '{"name": "abc", "length": 120.0, "width": 60.0, "height": 80.0, "substrate": "SAND", "waterType": "FRESHWATER", "color": "Black", "description": "yes", "state": "SETUP"}')
 echo "$create_response" | jq . 2>/dev/null || echo "$create_response"
 AQUARIUM_ID=$(echo "$create_response" | jq -r '.data.id // empty')
-echo "DEBUG: Extracted AQUARIUM_ID = '$AQUARIUM_ID'"
 echo ""
 
 echo "POST /aquariums (second)"

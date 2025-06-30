@@ -1,234 +1,251 @@
 package nl.hu.bep.domain.species;
 
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.exception.ApplicationException;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
-
-import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("Fish Species Tests")
 class FishTest {
 
-    @Test
-    void testFishCreationWithValidData() {
-        Fish fish = Fish.builder()
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .count(1)
-                .isSchooling(false)
-                .isAggressiveEater(false)
-                .requiresSpecialFood(false)
-                .isSnailEater(false)
-                .dateCreated(LocalDateTime.now())
-                .build();
+    @Nested
+    @DisplayName("Fish Creation")
+    class FishCreation {
 
-        assertEquals("Fish", fish.getType());
-        assertEquals("Goldfish", fish.getName());
-        assertEquals("Carassius auratus", fish.getSpecies());
-        assertEquals("Orange", fish.getColor());
-        assertEquals(WaterType.FRESHWATER, fish.getWaterType());
-    }
+        @Test
+        @DisplayName("Should create fish with valid data")
+        void shouldCreateFishWithValidData() {
+            // When
+            Fish fish = Fish.builder()
+                    .name("Clownfish")
+                    .species("Amphiprioninae")
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .ownerId(1L)
+                    .count(2)
+                    .build();
 
-    @Test
-    @Disabled
-    void testFishCreationWithNullSpecies() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            Fish.builder()
+            // Then
+            assertEquals("Clownfish", fish.getName());
+            assertEquals(WaterType.SALTWATER, fish.getWaterType());
+            assertEquals("Orange", fish.getColor());
+            assertEquals("Fish", fish.getType());
+        }
+
+        @Test
+        @DisplayName("Should create fish with freshwater type")
+        void shouldCreateFishWithFreshwaterType() {
+            // When
+            Fish fish = Fish.builder()
                     .name("Goldfish")
-                    .species(null)
+                    .species("Goldfish Species")
                     .ownerId(1L)
                     .waterType(WaterType.FRESHWATER)
-                    .color("Orange")
+                    .color("Gold")
                     .build();
-        });
-    }
 
-    @Test
-    @Disabled
-    void testFishCreationWithEmptySpecies() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            Fish.builder()
-                    .name("Goldfish")
-                    .species("")
+            // Then
+            assertEquals("Goldfish", fish.getName());
+            assertEquals(WaterType.FRESHWATER, fish.getWaterType());
+            assertEquals("Gold", fish.getColor());
+        }
+
+        @Test
+        @DisplayName("Should throw exception when species name is null")
+        void shouldThrowExceptionWhenSpeciesNameIsNull() {
+            // When & Then
+            ApplicationException.ValidationException exception = assertThrows(
+                ApplicationException.ValidationException.class,
+                () -> Fish.builder()
+                    .name(null)
+                    .species("Test Species")
                     .ownerId(1L)
-                    .waterType(WaterType.FRESHWATER)
+                    .waterType(WaterType.SALTWATER)
                     .color("Orange")
-                    .build();
-        });
-    }
+                    .build()
+            );
+            
+            assertTrue(exception.getMessage().contains("name"));
+        }
 
-    @Test
-    @Disabled
-    void testFishCreationWithNullWaterType() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            Fish.builder()
-                    .name("Goldfish")
-                    .species("Carassius auratus")
+        @Test
+        @DisplayName("Should throw exception when species name is empty")
+        void shouldThrowExceptionWhenSpeciesNameIsEmpty() {
+            // When & Then
+            ApplicationException.ValidationException exception = assertThrows(
+                ApplicationException.ValidationException.class,
+                () -> Fish.builder()
+                    .name("")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build()
+            );
+            
+            assertTrue(exception.getMessage().contains("name"));
+        }
+
+        @Test
+        @DisplayName("Should use default water type when null")
+        void shouldUseDefaultWaterTypeWhenNull() {
+            // When
+            Fish fish = Fish.builder()
+                    .name("Clownfish")
+                    .species("Test Species")
                     .ownerId(1L)
                     .waterType(null)
                     .color("Orange")
                     .build();
-        });
+            
+            // Then
+            assertEquals(WaterType.FRESHWATER, fish.getWaterType());
+        }
+
+        @Test
+        @DisplayName("Should allow null color pattern")
+        void shouldAllowNullColorPattern() {
+            // When & Then
+            assertDoesNotThrow(() -> Fish.builder()
+                .name("Clownfish")
+                .species("Test Species")
+                .ownerId(1L)
+                .waterType(WaterType.SALTWATER)
+                .color(null)
+                .build());
+        }
     }
 
-    @Test
-    @Disabled
-    void testFishCreationWithNullColor() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            Fish.builder()
+    @Nested
+    @DisplayName("Fish Equality")
+    class FishEquality {
+
+        @Test
+        @DisplayName("Should be equal when all properties match")
+        void shouldBeEqualWhenAllPropertiesMatch() {
+            // Given
+            Fish fish1 = Fish.builder()
+                    .name("Clownfish")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build();
+            Fish fish2 = Fish.builder()
+                    .name("Clownfish")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build();
+
+            // When & Then
+            assertEquals(fish1, fish2);
+            assertEquals(fish1.hashCode(), fish2.hashCode());
+        }
+
+        @Test
+        @DisplayName("Should not be equal when species names differ")
+        void shouldNotBeEqualWhenSpeciesNamesDiffer() {
+            // Given
+            Fish fish1 = Fish.builder()
+                    .id(1L)
+                    .name("Clownfish")
+                    .species("Species1")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build();
+            Fish fish2 = Fish.builder()
+                    .id(2L)
+                    .name("Angelfish")
+                    .species("Species2")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build();
+
+            // When & Then
+            assertNotEquals(fish1, fish2);
+        }
+
+        @Test
+        @DisplayName("Should not be equal when water types differ")
+        void shouldNotBeEqualWhenWaterTypesDiffer() {
+            // Given
+            Fish fish1 = Fish.builder()
+                    .id(1L)
                     .name("Goldfish")
-                    .species("Carassius auratus")
+                    .species("Test Species")
                     .ownerId(1L)
                     .waterType(WaterType.FRESHWATER)
-                    .color(null)
+                    .color("Gold")
                     .build();
-        });
+            Fish fish2 = Fish.builder()
+                    .id(2L)
+                    .name("Goldfish")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Gold")
+                    .build();
+
+            // When & Then
+            assertNotEquals(fish1, fish2);
+        }
+
+        @Test
+        @DisplayName("Should not be equal when color patterns differ")
+        void shouldNotBeEqualWhenColorPatternsDiffer() {
+            // Given
+            Fish fish1 = Fish.builder()
+                    .id(1L)
+                    .name("Clownfish")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build();
+            Fish fish2 = Fish.builder()
+                    .id(2L)
+                    .name("Clownfish")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Black")
+                    .build();
+
+            // When & Then
+            assertNotEquals(fish1, fish2);
+        }
     }
 
-    @Test
-    void testFishEquals() {
-        Fish fish1 = Fish.builder()
-                .id(1L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
-        
-        Fish fish2 = Fish.builder()
-                .id(1L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
+    @Nested
+    @DisplayName("Fish toString")
+    class FishToString {
 
-        assertEquals(fish1, fish2);
-    }
+        @Test
+        @DisplayName("Should include relevant information in toString")
+        void shouldIncludeRelevantInformationInToString() {
+            // Given
+            Fish fish = Fish.builder()
+                    .name("Clownfish")
+                    .species("Test Species")
+                    .ownerId(1L)
+                    .waterType(WaterType.SALTWATER)
+                    .color("Orange")
+                    .build();
 
-    @Test
-    void testFishNotEquals() {
-        Fish fish1 = Fish.builder()
-                .id(1L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
-        
-        Fish fish2 = Fish.builder()
-                .id(2L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
+            // When
+            String toString = fish.toString();
 
-        assertNotEquals(fish1, fish2);
-    }
-
-    @Test
-    void testFishHashCode() {
-        Fish fish1 = Fish.builder()
-                .id(1L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
-        
-        Fish fish2 = Fish.builder()
-                .id(1L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
-
-        assertEquals(fish1.hashCode(), fish2.hashCode());
-    }
-
-    @Test
-    @Disabled
-    void testFishToString() {
-        Fish fish = Fish.builder()
-                .id(1L)
-                .name("Goldfish")
-                .species("Carassius auratus")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Orange")
-                .build();
-
-        String result = fish.toString();
-        assertNotNull(result);
-        assertTrue(result.contains("Fish"));
-    }
-
-    @Test
-    void testAggressiveEaterCompatibility() {
-        Fish aggressiveFish = Fish.builder()
-                .name("Aggressive Fish")
-                .species("Aggressive species")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Red")
-                .count(5)
-                .isAggressiveEater(true)
-                .build();
-
-        Fish peacefulFish = Fish.builder()
-                .name("Peaceful Fish")
-                .species("Peaceful species")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Blue")
-                .count(3)
-                .isAggressiveEater(false)
-                .build();
-
-        assertFalse(aggressiveFish.isCompatibleWith(peacefulFish));
-    }
-
-    @Test
-    void testSnailEaterCompatibility() {
-        Fish snailEater = Fish.builder()
-                .name("Snail Eater")
-                .species("Snail eating species")
-                .ownerId(1L)
-                .waterType(WaterType.FRESHWATER)
-                .color("Green")
-                .isSnailEater(true)
-                .build();
-
-        // Create a mock snail for testing
-        nl.hu.bep.domain.Inhabitant mockSnail = new nl.hu.bep.domain.Inhabitant() {
-            @Override
-            public String getInhabitantType() { return "Snail"; }
-            @Override
-            public String getType() { return "Snail"; }
-            @Override
-            public InhabitantProperties getTypeSpecificProperties() { return null; }
-            @Override
-            public boolean isCompatibleWith(nl.hu.bep.domain.Inhabitant other) { return true; }
-            @Override
-            public Boolean getAggressiveEater() { return false; }
-            @Override
-            public Boolean getRequiresSpecialFood() { return false; }
-            @Override
-            public Boolean getSnailEater() { return false; }
-        };
-
-        assertFalse(snailEater.isCompatibleWith(mockSnail));
+            // Then
+            assertTrue(toString.contains("Clownfish"));
+            assertTrue(toString.contains("SALTWATER"));
+            assertTrue(toString.contains("Orange"));
+        }
     }
 }

@@ -197,7 +197,6 @@
                     <configuration>
                         <properties>
                             <cargo.servlet.port>8085</cargo.servlet.port>
-                            <cargo.logging>high</cargo.logging>
                         </properties>
                     </configuration>
                 </configuration>
