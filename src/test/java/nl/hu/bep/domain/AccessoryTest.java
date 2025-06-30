@@ -3,6 +3,8 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Lighting;
 import nl.hu.bep.domain.accessories.Thermostat;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -61,7 +63,7 @@ class AccessoryTest {
                     true, 250, false, null, null, 0, 0, 0, OWNER_ID, "grey", "A classic filter.");
 
             // Act & Assert
-            assertThrows(IllegalArgumentException.class, () -> 
+            assertThrows(BusinessRuleException.class, () -> 
                     filter.assignToAquarium(AQUARIUM_ID, DIFFERENT_OWNER_ID));
         }
     }
@@ -144,7 +146,7 @@ class AccessoryTest {
         @DisplayName("Should throw exception for unsupported accessory type")
         void shouldThrowExceptionForUnsupportedAccessoryType() {
             // Act & Assert
-            assertThrows(IllegalArgumentException.class, () -> 
+            assertThrows(BusinessRuleException.class, () -> 
                     Accessory.createFromType("toaster", "Philips", "999", false, 0, false, 
                             null, null, 0, 0, 0, OWNER_ID, "white", "Makes toast."));
         }
@@ -158,7 +160,7 @@ class AccessoryTest {
 
             // Act & Assert
             assertDoesNotThrow(() -> accessory.validateOwnership(OWNER_ID));
-            assertThrows(IllegalArgumentException.class, () -> accessory.validateOwnership(DIFFERENT_OWNER_ID));
+            assertThrows(BusinessRuleException.class, () -> accessory.validateOwnership(DIFFERENT_OWNER_ID));
         }
 
         @Test
@@ -185,7 +187,7 @@ class AccessoryTest {
             accessory.assignToAquarium(AQUARIUM_ID, OWNER_ID);
 
             // Act & Assert
-            assertThrows(IllegalArgumentException.class, () -> 
+            assertThrows(BusinessRuleException.class, () -> 
                     accessory.removeFromAquarium(DIFFERENT_OWNER_ID));
         }
     }

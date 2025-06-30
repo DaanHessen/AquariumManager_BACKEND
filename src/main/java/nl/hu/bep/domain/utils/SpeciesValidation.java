@@ -1,7 +1,7 @@
 package nl.hu.bep.domain.utils;
 
 import nl.hu.bep.domain.enums.WaterType;
-
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 
@@ -25,10 +25,10 @@ public final class SpeciesValidation {
                                            Long ownerId, String name, String description) {
         validateSpeciesCreation(species, waterType, ownerId, count);
         if (color != null && color.trim().isEmpty()) {
-            throw new IllegalArgumentException("Color cannot be empty if provided");
+            throw new BusinessRuleException("Color cannot be empty if provided");
         }
         if (name != null && name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Name cannot be empty if provided");
+            throw new BusinessRuleException("Name cannot be empty if provided");
         }
     }
     

@@ -1,5 +1,7 @@
 package nl.hu.bep.security.application.filter;
 
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;
@@ -99,10 +101,10 @@ public class OwnershipFilter implements ContainerRequestFilter {
             }
         } catch (NumberFormatException e) {
             log.error("Invalid resource ID format for parameter {}", paramName);
-            throw new IllegalArgumentException("Invalid resource ID format");
+            throw new BusinessRuleException("Invalid resource ID format");
         }
 
-        throw new IllegalArgumentException("Resource ID parameter not found: " + paramName);
+        throw new BusinessRuleException("Resource ID parameter not found: " + paramName);
     }
 
     private void abortWithUnauthorized(ContainerRequestContext requestContext, String message) {

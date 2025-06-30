@@ -4,6 +4,7 @@ import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.species.Fish;
 import nl.hu.bep.domain.species.Plant;
 import nl.hu.bep.domain.species.Snail;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import nl.hu.bep.domain.species.Shrimp;
 
 
@@ -235,7 +236,7 @@ class InhabitantTest {
         @DisplayName("Should throw exception for unknown inhabitant type")
         void shouldThrowExceptionForUnknownInhabitantType() {
             // Act & Assert
-            assertThrows(IllegalArgumentException.class, () -> 
+            assertThrows(BusinessRuleException.class, () -> 
                     Inhabitant.create("unknown", "Unknown", "Unknown", OWNER_ID, 
                             Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), 
                             Optional.empty(), Inhabitant.InhabitantProperties.defaults()));

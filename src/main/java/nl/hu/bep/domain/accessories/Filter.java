@@ -1,7 +1,9 @@
 package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 
+import java.time.LocalTime;
 import lombok.*;
 
 @Getter
@@ -26,7 +28,7 @@ public class Filter extends Accessory {
 
     public void updateProperties(boolean isExternal, int capacityLiters) {
         if (capacityLiters <= 0) {
-            throw new IllegalArgumentException("Filter capacity must be positive");
+            throw new BusinessRuleException("Filter capacity must be positive");
         }
         this.isExternal = isExternal;
         this.capacityLiters = capacityLiters;
@@ -39,7 +41,7 @@ public class Filter extends Accessory {
 
     public void updateCapacity(int capacityLiters) {
         if (capacityLiters <= 0) {
-            throw new IllegalArgumentException("Filter capacity must be positive");
+            throw new BusinessRuleException("Filter capacity must be positive");
         }
         this.capacityLiters = capacityLiters;
     }
@@ -58,10 +60,10 @@ public class Filter extends Accessory {
     public boolean isLed() { return false; }
     
     @Override
-    public java.time.LocalTime getTurnOnTime() { return null; }
+    public LocalTime getTurnOnTime() { return null; }
     
     @Override
-    public java.time.LocalTime getTurnOffTime() { return null; }
+    public LocalTime getTurnOffTime() { return null; }
     
     @Override
     public double getMinTemperature() { return 0.0; }

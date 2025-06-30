@@ -1,6 +1,8 @@
 package nl.hu.bep.domain.utils;
 
 import nl.hu.bep.domain.enums.WaterType;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
 
@@ -20,7 +22,7 @@ class SpeciesValidationTest {
     @Test
     @Disabled
     void testValidateSpeciesCreationWithNullSpecies() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateSpeciesCreation(null, WaterType.FRESHWATER, 1L, 5);
         });
     }
@@ -28,7 +30,7 @@ class SpeciesValidationTest {
     @Test
     @Disabled
     void testValidateSpeciesCreationWithEmptySpecies() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateSpeciesCreation("", WaterType.FRESHWATER, 1L, 5);
         });
     }
@@ -36,7 +38,7 @@ class SpeciesValidationTest {
     @Test
     @Disabled
     void testValidateSpeciesCreationWithNullWaterType() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateSpeciesCreation("Goldfish", null, 1L, 5);
         });
     }
@@ -44,7 +46,7 @@ class SpeciesValidationTest {
     @Test
     @Disabled
     void testValidateSpeciesCreationWithNullOwnerId() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateSpeciesCreation("Goldfish", WaterType.FRESHWATER, null, 5);
         });
     }
@@ -52,7 +54,7 @@ class SpeciesValidationTest {
     @Test
     @Disabled
     void testValidateSpeciesCreationWithZeroCount() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateSpeciesCreation("Goldfish", WaterType.FRESHWATER, 1L, 0);
         });
     }
@@ -60,7 +62,7 @@ class SpeciesValidationTest {
     @Test
     @Disabled
     void testValidateSpeciesCreationWithNegativeCount() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateSpeciesCreation("Goldfish", WaterType.FRESHWATER, 1L, -1);
         });
     }
@@ -76,7 +78,7 @@ class SpeciesValidationTest {
 
     @Test
     void testValidateCommonFieldsWithEmptyColor() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateCommonFields(
                 "Goldfish", "", 5, true, WaterType.FRESHWATER, 1L, "My Fish", "Beautiful fish"
             );
@@ -85,7 +87,7 @@ class SpeciesValidationTest {
 
     @Test
     void testValidateCommonFieldsWithEmptyName() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             SpeciesValidation.validateCommonFields(
                 "Goldfish", "Orange", 5, true, WaterType.FRESHWATER, 1L, "", "Beautiful fish"
             );

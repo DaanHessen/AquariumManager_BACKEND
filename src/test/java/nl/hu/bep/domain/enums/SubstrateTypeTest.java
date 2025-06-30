@@ -3,6 +3,8 @@ package nl.hu.bep.domain.enums;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("SubstrateType Enum Unit Tests")
@@ -55,7 +57,7 @@ class SubstrateTypeTest {
     @DisplayName("Should throw exception for invalid valueOf")
     void shouldThrowExceptionForInvalidValueOf() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> SubstrateType.valueOf("INVALID"));
+        assertThrows(BusinessRuleException.class, () -> SubstrateType.valueOf("INVALID"));
     }
 
     @Test

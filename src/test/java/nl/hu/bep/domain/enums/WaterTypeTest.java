@@ -3,6 +3,8 @@ package nl.hu.bep.domain.enums;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("WaterType Enum Unit Tests")
@@ -58,7 +60,7 @@ class WaterTypeTest {
     @DisplayName("Should throw exception for invalid valueOf")
     void shouldThrowExceptionForInvalidValueOf() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> WaterType.valueOf("INVALID"));
+        assertThrows(BusinessRuleException.class, () -> WaterType.valueOf("INVALID"));
     }
 
     @Test

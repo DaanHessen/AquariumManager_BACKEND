@@ -18,10 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Service focused solely on ornament-related operations.
- * Follows Single Responsibility Principle.
- */
 @Slf4j
 public class OrnamentService {
 

@@ -15,10 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service focused solely on aquarium-related operations.
- * Follows Single Responsibility Principle.
- */
 @Slf4j
 public class AquariumService {
 
@@ -79,7 +75,7 @@ public class AquariumService {
                 request.substrate(),
                 request.waterType(),
                 request.state(),
-                null // temperature not supported in AquariumRequest, will be handled separately if needed
+                null
         );
 
         Aquarium updatedAquarium = aquariumRepository.update(aquarium);

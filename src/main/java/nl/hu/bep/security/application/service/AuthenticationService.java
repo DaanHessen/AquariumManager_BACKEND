@@ -6,6 +6,7 @@ import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.data.OwnerRepositoryImpl;
 import nl.hu.bep.domain.Owner;
 import nl.hu.bep.exception.ApplicationException;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import nl.hu.bep.presentation.dto.request.AuthRequest;
 import nl.hu.bep.security.model.request.RegisterRequest;
 import nl.hu.bep.security.model.response.AuthResponse;
@@ -30,7 +31,7 @@ public class AuthenticationService {
 
         Optional<Owner> existingOwner = ownerRepository.findByEmail(request.email());
         if (existingOwner.isPresent()) {
-            throw new IllegalArgumentException("Email already registered");
+            throw new BusinessRuleException("Email already registered");
         }
 
         Owner owner = Owner.create(

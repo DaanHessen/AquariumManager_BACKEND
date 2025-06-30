@@ -13,10 +13,8 @@ public class HK2Binder extends AbstractBinder {
 
     @Override
     protected void configure() {
-        // Database Manager for Production
         bindFactory(DatabaseManagerFactory.class).to(DatabaseManager.class).in(Singleton.class);
 
-        // Bind repositories
         bind(OwnerRepositoryImpl.class).to(OwnerRepository.class).in(Singleton.class);
         bindAsContract(OwnerRepositoryImpl.class).in(Singleton.class); // Also bind concrete class for AuthenticationService
         bind(AquariumRepositoryImpl.class).to(AquariumRepository.class).in(Singleton.class);
@@ -24,7 +22,6 @@ public class HK2Binder extends AbstractBinder {
         bind(InhabitantRepositoryImpl.class).to(InhabitantRepository.class).in(Singleton.class);
         bind(OrnamentRepositoryImpl.class).to(OrnamentRepository.class).in(Singleton.class);
 
-        // Bind application services
         bindAsContract(AuthenticationService.class).in(Singleton.class);
         bindAsContract(JwtService.class).in(Singleton.class);
         bindAsContract(AquariumService.class).in(Singleton.class);
@@ -32,7 +29,6 @@ public class HK2Binder extends AbstractBinder {
         bindAsContract(InhabitantService.class).in(Singleton.class);
         bindAsContract(OrnamentService.class).in(Singleton.class);
         
-        // Bind mappers
         bindAsContract(EntityMapper.class).in(Singleton.class);
     }
 }

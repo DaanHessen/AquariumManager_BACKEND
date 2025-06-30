@@ -3,6 +3,7 @@ package nl.hu.bep.domain;
 import nl.hu.bep.domain.base.OwnedEntity;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.domain.utils.Validator;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import nl.hu.bep.config.AquariumConstants;
 import nl.hu.bep.domain.species.*;
 
@@ -172,7 +173,7 @@ public abstract class Inhabitant extends OwnedEntity {
                     .description(description.orElse(null))
                     .build();
                     
-            default -> throw new IllegalArgumentException("Invalid inhabitant type: " + type);
+            default -> throw new BusinessRuleException("Invalid inhabitant type: " + type);
         };
     }
 
@@ -182,7 +183,7 @@ public abstract class Inhabitant extends OwnedEntity {
                                        boolean isAggressiveEater, boolean requiresSpecialFood, boolean isSnailEater) {
         
         if (type == null || type.isEmpty()) {
-            throw new IllegalArgumentException("Inhabitant type is required for reconstruction");
+            throw new BusinessRuleException("Inhabitant type is required for reconstruction");
         }
 
         return switch (type.toLowerCase()) {
@@ -274,7 +275,7 @@ public abstract class Inhabitant extends OwnedEntity {
                     .aquariumId(aquariumId)
                     .build();
                     
-            default -> throw new IllegalArgumentException("Unsupported inhabitant type: " + type);
+            default -> throw new BusinessRuleException("Unsupported inhabitant type: " + type);
         };
     }
 

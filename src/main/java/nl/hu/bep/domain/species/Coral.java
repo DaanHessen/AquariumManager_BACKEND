@@ -2,7 +2,7 @@ package nl.hu.bep.domain.species;
 
 import nl.hu.bep.domain.Inhabitant;
 import nl.hu.bep.domain.enums.WaterType;
-
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -21,7 +21,7 @@ public class Coral extends Inhabitant {
                  String description, LocalDateTime dateCreated, Long aquariumId) {
         super(id, name, species, ownerId, color, count, isSchooling, WaterType.SALTWATER, description, dateCreated, aquariumId);
         if (this.getWaterType() != WaterType.SALTWATER) {
-            throw new IllegalArgumentException("Coral must be in saltwater.");
+            throw new BusinessRuleException("Coral must be in saltwater.");
         }
     }
 

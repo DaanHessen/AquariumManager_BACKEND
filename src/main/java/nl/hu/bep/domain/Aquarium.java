@@ -4,6 +4,7 @@ import nl.hu.bep.domain.enums.AquariumState;
 import nl.hu.bep.domain.enums.SubstrateType;
 import nl.hu.bep.domain.enums.WaterType;
 import nl.hu.bep.exception.ApplicationException;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import nl.hu.bep.domain.utils.Validator;
 import nl.hu.bep.domain.value.Dimensions;
 import nl.hu.bep.config.AquariumConstants;
@@ -162,7 +163,7 @@ public class Aquarium {
 
     public void updateTemperature(Double temperature) {
         if (temperature != null && temperature < 0) {
-            throw new IllegalArgumentException("Temperature cannot be negative");
+            throw new BusinessRuleException("Temperature cannot be negative");
         }
         this.temperature = temperature;
     }

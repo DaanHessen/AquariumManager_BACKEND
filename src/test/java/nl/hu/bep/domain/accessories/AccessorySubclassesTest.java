@@ -1,6 +1,8 @@
 package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import org.junit.jupiter.api.Test;
 import java.time.LocalTime;
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,7 +55,7 @@ class AccessorySubclassesTest {
 
     @Test
     void createFilter_InvalidCapacity_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             Accessory.createFromType(
                 "filter", "Bad Filter", "00000", true, 0, // Invalid capacity
                 false, null, null, 0, 0, 0, 1L, "red", "Bad filter"
@@ -63,7 +65,7 @@ class AccessorySubclassesTest {
 
     @Test
     void createThermostat_InvalidTemperatureRange_ThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(BusinessRuleException.class, () -> {
             Accessory.createFromType(
                 "thermostat", "Bad Heater", "00000", false, 0,
                 false, null, null, 30.0, 20.0, 25.0, 1L, "red", "Invalid temp range" // min > max

@@ -1,5 +1,7 @@
 package nl.hu.bep.domain;
 
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
@@ -9,9 +11,6 @@ import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Thermostat;
 import nl.hu.bep.presentation.dto.request.AccessoryRequest;
 
-/**
- * Test cases to verify the validation fixes for Filter and Thermostat accessories
- */
 class ValidatorFixTest {
 
     @Test
@@ -48,7 +47,7 @@ class ValidatorFixTest {
     @Test
     @DisplayName("Filter creation should fail with zero capacity")
     void testFilterCreationWithZeroCapacity() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
             Accessory.createFromType(
                 "filter", "Model", "Serial", 
                 true, 0, // Invalid capacity
@@ -80,7 +79,7 @@ class ValidatorFixTest {
     @DisplayName("Thermostat creation should fail with invalid temperatures")
     void testThermostatCreationWithInvalidTemperatures() {
         // Test zero minimum temperature
-        IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () -> {
+        BusinessRuleException exception1 = assertThrows(BusinessRuleException.class, () -> {
             Accessory.createFromType(
                 "thermostat", "TempControl", "TC123", 
                 false, 0,
@@ -92,7 +91,7 @@ class ValidatorFixTest {
         assertTrue(exception1.getMessage().contains("Minimum temperature must be positive"));
 
         // Test min >= max temperature
-        IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () -> {
+        BusinessRuleException exception2 = assertThrows(BusinessRuleException.class, () -> {
             Accessory.createFromType(
                 "thermostat", "TempControl", "TC123", 
                 false, 0,

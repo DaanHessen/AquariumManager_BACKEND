@@ -16,10 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Service focused solely on accessory-related operations.
- * Follows Single Responsibility Principle.
- */
 @Slf4j
 public class AccessoryService {
 

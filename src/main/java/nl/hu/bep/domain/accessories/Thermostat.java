@@ -1,7 +1,9 @@
 package nl.hu.bep.domain.accessories;
 
 import nl.hu.bep.domain.Accessory;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 
+import java.time.LocalTime;
 import lombok.*;
 
 @Getter
@@ -29,13 +31,13 @@ public class Thermostat extends Accessory {
 
     public void updateProperties(double minTemperature, double maxTemperature, double currentTemperature) {
         if (minTemperature <= 0) {
-            throw new IllegalArgumentException("Minimum temperature must be positive");
+            throw new BusinessRuleException("Minimum temperature must be positive");
         }
         if (maxTemperature <= 0) {
-            throw new IllegalArgumentException("Maximum temperature must be positive");
+            throw new BusinessRuleException("Maximum temperature must be positive");
         }
         if (minTemperature >= maxTemperature) {
-            throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+            throw new BusinessRuleException("Minimum temperature must be less than maximum temperature");
         }
         this.minTemperature = minTemperature;
         this.maxTemperature = maxTemperature;
@@ -44,20 +46,20 @@ public class Thermostat extends Accessory {
 
     public void adjustMinTemperature(double minTemperature) {
         if (minTemperature <= 0) {
-            throw new IllegalArgumentException("Minimum temperature must be positive");
+            throw new BusinessRuleException("Minimum temperature must be positive");
         }
         if (minTemperature >= this.maxTemperature) {
-            throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+            throw new BusinessRuleException("Minimum temperature must be less than maximum temperature");
         }
         this.minTemperature = minTemperature;
     }
 
     public void adjustMaxTemperature(double maxTemperature) {
         if (maxTemperature <= 0) {
-            throw new IllegalArgumentException("Maximum temperature must be positive");
+            throw new BusinessRuleException("Maximum temperature must be positive");
         }
         if (this.minTemperature >= maxTemperature) {
-            throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+            throw new BusinessRuleException("Minimum temperature must be less than maximum temperature");
         }
         this.maxTemperature = maxTemperature;
     }
@@ -98,10 +100,10 @@ public class Thermostat extends Accessory {
     public boolean isLed() { return false; }
     
     @Override
-    public java.time.LocalTime getTurnOnTime() { return null; }
+    public LocalTime getTurnOnTime() { return null; }
     
     @Override
-    public java.time.LocalTime getTurnOffTime() { return null; }
+    public LocalTime getTurnOffTime() { return null; }
     
     @Override
     public double getMinTemperature() { return minTemperature; }

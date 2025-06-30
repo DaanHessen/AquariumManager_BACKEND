@@ -2,6 +2,7 @@ package nl.hu.bep.domain;
 
 import nl.hu.bep.domain.base.AssignableEntity;
 import nl.hu.bep.domain.utils.Validator;
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
 import nl.hu.bep.domain.accessories.Filter;
 import nl.hu.bep.domain.accessories.Lighting;
 import nl.hu.bep.domain.accessories.Thermostat;
@@ -58,24 +59,24 @@ public abstract class Accessory extends AssignableEntity {
 
   public void assignToAquarium(Long aquariumId, Long requestingOwnerId) {
       if (!this.ownerId.equals(requestingOwnerId)) {
-          throw new IllegalArgumentException("Only the accessory owner can assign it to an aquarium");
+          throw new BusinessRuleException("Only the accessory owner can assign it to an aquarium");
       }
       this.aquariumId = aquariumId;
   }
 
   public void removeFromAquarium(Long requestingOwnerId) {
       if (!this.ownerId.equals(requestingOwnerId)) {
-          throw new IllegalArgumentException("Only the accessory owner can remove it from an aquarium");
+          throw new BusinessRuleException("Only the accessory owner can remove it from an aquarium");
       }
       this.aquariumId = null;
   }
 
   public void validateOwnership(Long requestingOwnerId) {
       if (requestingOwnerId == null) {
-          throw new IllegalArgumentException("Requesting Owner ID cannot be null");
+          throw new BusinessRuleException("Requesting Owner ID cannot be null");
       }
       if (this.ownerId == null || !this.ownerId.equals(requestingOwnerId)) {
-          throw new IllegalArgumentException("Entity does not belong to the current user");
+          throw new BusinessRuleException("Entity does not belong to the current user");
       }
   }
 
@@ -97,14 +98,14 @@ public abstract class Accessory extends AssignableEntity {
                                      double minTemperature, double maxTemperature, double currentTemperature) {
     
     if (type == null || type.isEmpty()) {
-      throw new IllegalArgumentException("Accessory type is required for reconstruction");
+      throw new BusinessRuleException("Accessory type is required for reconstruction");
     }
 
     Accessory accessory = switch (type.toLowerCase()) {
       case "filter" -> new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
       case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
       case "heater", "thermostat" -> new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
-      default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
+      default -> throw new BusinessRuleException("Unsupported accessory type: " + type);
     };
 
     accessory.id = id;
@@ -123,30 +124,30 @@ public abstract class Accessory extends AssignableEntity {
       Long ownerId, String color, String description) {
 
     if (type == null || type.isEmpty()) {
-      throw new IllegalArgumentException("Accessory type is required");
+      throw new BusinessRuleException("Accessory type is required");
     }
 
     Accessory accessory = switch (type.toLowerCase()) {
       case "filter" -> {
         if (capacityLiters <= 0) {
-          throw new IllegalArgumentException("Filter capacity must be provided and positive");
+          throw new BusinessRuleException("Filter capacity must be provided and positive");
         }
         yield new Filter(model, serialNumber, isExternal, capacityLiters, ownerId);
       }
       case "light", "lighting" -> new Lighting(model, serialNumber, isLED, timeOff, timeOn, ownerId);
       case "heater", "thermostat" -> {
         if (minTemperature <= 0) {
-          throw new IllegalArgumentException("Minimum temperature must be positive");
+          throw new BusinessRuleException("Minimum temperature must be positive");
         }
         if (maxTemperature <= 0) {
-          throw new IllegalArgumentException("Maximum temperature must be positive");
+          throw new BusinessRuleException("Maximum temperature must be positive");
         }
         if (minTemperature >= maxTemperature) {
-          throw new IllegalArgumentException("Minimum temperature must be less than maximum temperature");
+          throw new BusinessRuleException("Minimum temperature must be less than maximum temperature");
         }
         yield new Thermostat(model, serialNumber, minTemperature, maxTemperature, currentTemperature, ownerId);
       }
-      default -> throw new IllegalArgumentException("Unsupported accessory type: " + type);
+      default -> throw new BusinessRuleException("Unsupported accessory type: " + type);
     };
 
     accessory.color = color;

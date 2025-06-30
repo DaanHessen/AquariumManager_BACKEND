@@ -3,6 +3,8 @@ package nl.hu.bep.domain.enums;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import nl.hu.bep.exception.ApplicationException.BusinessRuleException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Role Enum Unit Tests")
@@ -46,7 +48,7 @@ class RoleTest {
     @DisplayName("Should throw exception for invalid valueOf")
     void shouldThrowExceptionForInvalidValueOf() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> Role.valueOf("INVALID"));
+        assertThrows(BusinessRuleException.class, () -> Role.valueOf("INVALID"));
     }
 
     @Test
